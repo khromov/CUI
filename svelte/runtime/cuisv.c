@@ -216,6 +216,53 @@ int cuisv_site_count(cuisv_scope *s, int site) {
     return n;
 }
 
+int cuisv_site_scopes(cuisv_scope *s, int site, cuisv_scope ***out) {
+    int n = cuisv_site_count(s, site);
+    cuisv_scope **v = cuisv_frame_alloc(sizeof *v * (size_t)(n > 0 ? n : 1));
+    int k = 0;
+    for (cuisv_scope *c = s->sites[site].first; c; c = c->next) v[k++] = c;
+    *out = v;
+    return n;
+}
+
+/* ---- <Reorder> ------------------------------------------------------------------------------ */
+
+#define REORDER_DEPTH 16
+static int reorder_pos[REORDER_DEPTH];
+static int reorder_depth;
+
+void cuisv_reorder_push(void) {
+    if (reorder_depth < REORDER_DEPTH) reorder_pos[reorder_depth] = 0;
+    reorder_depth++;
+}
+
+void cuisv_reorder_pop(void) { if (reorder_depth > 0) reorder_depth--; }
+
+/* outside a list (or nested too deep) every row is position 0, which CUI draws as a plain row */
+int cuisv_reorder_next(void) {
+    if (reorder_depth <= 0 || reorder_depth > REORDER_DEPTH) return 0;
+    return reorder_pos[reorder_depth - 1]++;
+}
+
+static int row_index(cuisv_scope **rows, int n, int key) {
+    for (int k = 0; k < n; k++) if ((int)rows[k]->handle == key) return k;
+    return -1;
+}
+
+void cuisv_reorder_rows(cui_ctx *ui, cuisv_scope **rows, int n, const int *keys) {
+    for (int p = 0; p < n; p++) {
+        int k = row_index(rows, n, keys[p]);
+        if (k >= 0) cuisv_render_scope(ui, rows[k]);
+    }
+}
+
+void cuisv_reorder_back(cuisv_scope **rows, int n, const float *js, const int *keys, float *out) {
+    for (int p = 0; p < n; p++) {
+        int k = row_index(rows, n, keys[p]);
+        out[p] = k >= 0 ? js[k] : js[p];
+    }
+}
+
 void cuisv_render_scope(cui_ctx *ui, cuisv_scope *s) {
     cui_push_id_int(ui, (int)s->handle);
     s->tpl->render(ui, s);
@@ -485,6 +532,7 @@ static int text_depth;   /* the inherited text style stack, below */
 
 void cuisv_frame_reset(void) {
     text_depth = 0;   /* a frame always starts outside every styled element */
+    reorder_depth = 0;
     /* keep the newest (largest) block, free the rest */
     if (!arena_head) return;
     arena_block *b = arena_head->next;

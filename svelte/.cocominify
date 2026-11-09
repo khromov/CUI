@@ -1,0 +1,5 @@
+third_party/
+**/**/gen/bundle.c
+cui-api.json
+dist-*/
+**/**/out/app.js

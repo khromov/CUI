@@ -149,11 +149,17 @@ These containers take their parts as children:
 </Split>
 
 <Reorder bind:order>
-	{#each order as item, position (item)}
-		<ReorderItem {position}><Text>{names[item]}</Text></ReorderItem>
+	{#each order as item (item)}
+		<ReorderItem><Text>{names[item]}</Text></ReorderItem>
 	{/each}
 </Reorder>
 ```
+
+`<Reorder>` rewrites `order` when a row is dropped. To use that order for your own list,
+bind a getter and a setter: `bind:order={() => list.map((_, i) => i), (o) => (list = o.map((i) => list[i]))}`.
+Write the rows as one keyed `{#each}`, so every row keeps its identity. The dropped row is
+then drawn in its new place on the frame you let go, and glides there as in a C app.
+`examples/tasks` reorders a filtered list this way.
 
 The node editor is built the same way, from `NodeEditor`, `Node`, `NodeInput`, `NodeOutput`
 and `NodeLink`, with `onconnect`, `ondisconnect` and `ondelete` events.

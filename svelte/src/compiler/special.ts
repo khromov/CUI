@@ -7,6 +7,7 @@ import type { Spec } from './specs.ts';
 import {
 	attr_source,
 	c_string,
+	each_site,
 	gather,
 	new_template,
 	string_val,
@@ -291,7 +292,13 @@ const otp: Emitter = (ctx, t, node, spec) => {
 	t.close();
 };
 
-/** <Reorder bind:order={order}> with a <ReorderItem position={i}> per item, in display order. */
+/**
+ * <Reorder bind:order={order}> with a <ReorderItem> per row, in display order. When the rows
+ * come from one {#each}, CUI knows each row by its scope (which a keyed each keeps with the
+ * row), and the drop is drawn in its new order on the frame it happens, as a C app draws from
+ * order[] after cui_reorder_begin; JS gets the new order of its own indices and catches up a
+ * frame later with the same picture. Other children keep JS's order until JS answers.
+ */
 const reorder: Emitter = (ctx, t, node, spec) => {
 	const key = t.key();
 	const g = gather(ctx, node, spec.name);
@@ -301,15 +308,34 @@ const reorder: Emitter = (ctx, t, node, spec) => {
 	const slot = t.slot('d', bound ? bound.js : given?.kind === 'expr' ? given.js : null);
 	const setter = bound ? t.setter(slot, `(b) => (${bound.set})(Array.from(new Int32Array(b.slice().buffer)))`) : -1;
 	const id_c = g.props.get('id') ? string_val(t, g.props.get('id')!).c : c_string(`##${key}`);
+	const kids = node.fragment.nodes.filter((n) => !(n.type === 'Text' && !n.data.trim()));
+	const each = kids.length === 1 && kids[0].type === 'EachBlock' ? (kids[0] as AST.EachBlock) : null;
+	const site = each ? each_site(ctx, t, each) : -1;
 	t.open(`{ /* <Reorder> ${key} */`);
 	t.line(`int n = 0; const float *src = cuisv_floats(s, ${slot}, &n);`);
-	t.line('int *order = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1)); for (int k = 0; k < n; k++) order[k] = (int)src[k];');
+	t.line('int *order = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1));');
+	if (each) {
+		// one row scope per index: CUI keys rows by scope handle
+		t.line(`cuisv_scope **rows = NULL; int m = cuisv_site_scopes(s, ${site}, &rows); bool by_row = m == n && n > 0;`);
+		t.line('for (int k = 0; k < n; k++) order[k] = by_row ? (int)rows[k]->handle : (int)src[k];');
+	} else {
+		t.line('for (int k = 0; k < n; k++) order[k] = (int)src[k];');
+	}
 	t.line(`cui_reorder_begin(ui, ${id_c}, order, n);`);
-	walk(ctx, t, node.fragment.nodes);
+	t.line('cuisv_reorder_push();');
+	if (each) t.line(`if (by_row) cuisv_reorder_rows(ui, rows, n, order); else cuisv_render_site(ui, s, ${site});`);
+	else walk(ctx, t, node.fragment.nodes);
+	t.line('cuisv_reorder_pop();');
 	t.open('if (cui_reorder_end(ui)) {');
-	t.line('float *f = cuisv_frame_alloc(sizeof(float) * (size_t)(n > 0 ? n : 1)); for (int k = 0; k < n; k++) f[k] = (float)order[k];');
-	t.line(`cuisv_slot_floats_set(s, ${slot}, f, n);`);
-	if (setter >= 0) t.line(`cuisv_emit_bytes(s, ${setter}, order, (uint32_t)(sizeof(int) * (size_t)n));`);
+	t.line('float *f = cuisv_frame_alloc(sizeof(float) * (size_t)(n > 0 ? n : 1));');
+	if (each) t.line('if (by_row) cuisv_reorder_back(rows, n, src, order, f); else for (int k = 0; k < n; k++) f[k] = (float)order[k];');
+	else t.line('for (int k = 0; k < n; k++) f[k] = (float)order[k];');
+	// rows keyed by scope wait for JS to move them; otherwise C keeps the new order until JS answers
+	t.line(`${each ? 'if (!by_row) ' : ''}cuisv_slot_floats_set(s, ${slot}, f, n);`);
+	if (setter >= 0) {
+		t.line('int *js = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1)); for (int k = 0; k < n; k++) js[k] = (int)f[k];');
+		t.line(`cuisv_emit_bytes(s, ${setter}, js, (uint32_t)(sizeof(int) * (size_t)n));`);
+	}
 	const onchange = g.events.get('onchange');
 	if (onchange) t.line(`cuisv_emit(s, ${t.slot('f', onchange)});`);
 	t.close();

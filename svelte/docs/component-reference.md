@@ -1024,8 +1024,6 @@ Events: `onchange`
 
 `cui_reorder_item_begin` … `cui_reorder_item_end` · takes children
 
-position: `number`
-
 ## Code
 
 ### CodeBlock

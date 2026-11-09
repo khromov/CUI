@@ -4446,7 +4446,6 @@ export interface ReorderProps {
 export const Reorder: Component<ReorderProps, {}, "order"> = intrinsic("Reorder");
 
 export interface ReorderItemProps {
-	position?: number;
 	class?: string;
 	style?: string;
 	tooltip?: string;

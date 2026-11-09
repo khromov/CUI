@@ -53,8 +53,8 @@
 		{#if shown.length}
 			<!-- drag a row by its grip (or anywhere but its controls) to move it -->
 			<Reorder bind:order={() => shown.map((_, i) => i), reorder}>
-				{#each shown as task, position (task.id)}
-					<ReorderItem {position}><Task {task} ondelete={() => remove(task.id)} /></ReorderItem>
+				{#each shown as task (task.id)}
+					<ReorderItem><Task {task} ondelete={() => remove(task.id)} /></ReorderItem>
 				{/each}
 			</Reorder>
 		{:else}

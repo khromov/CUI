@@ -106,7 +106,8 @@ FN(text) {
 }
 FN(scroll) { UNUSED; if (ui) cui_input_scroll(ui, (float)num(c, argv[0]), (float)num(c, argv[1])); return JS_UNDEFINED; }
 
-/* Every node of the latest layout with text: [text, x, y, w, h, depth]. */
+/* Every node of the latest layout with text: [text, x, y, w, h, dy], dy being how far
+ * animations (a row gliding into place) move it from its layout position when drawn. */
 FN(nodes) {
     UNUSED; (void)argv;
     JSValue arr = JS_NewArray(c);
@@ -122,6 +123,9 @@ FN(nodes) {
         JS_SetPropertyUint32(c, e, 2, JS_NewFloat64(c, n->rect.y));
         JS_SetPropertyUint32(c, e, 3, JS_NewFloat64(c, n->rect.w));
         JS_SetPropertyUint32(c, e, 4, JS_NewFloat64(c, n->rect.h));
+        float dy = n->ty;
+        for (int p = n->parent; p >= 0; p = ui->nodes[p].parent) dy += ui->nodes[p].ty;
+        JS_SetPropertyUint32(c, e, 5, JS_NewFloat64(c, dy));
         JS_SetPropertyUint32(c, arr, k++, e);
     }
     return arr;
@@ -189,6 +193,8 @@ static void sleep_ms(double ms) {
 #endif
 }
 FN(clipboard) { UNUSED; (void)argv; return JS_NewString(c, clipboard); }
+/* animations play (frames are 1/60 s apart) instead of snapping: for tests of motion */
+FN(motion) { UNUSED; if (ui) cui_set_reduced_motion(ui, !(JS_ToBool(c, argv[0]) > 0)); return JS_UNDEFINED; }
 
 static void setup_test(JSContext *c, JSValue bridge) {
     static const JSCFunctionListEntry funcs[] = {
@@ -204,6 +210,7 @@ static void setup_test(JSContext *c, JSValue bridge) {
         JS_CFUNC_DEF("test_png", 2, cuisvt_png),
         JS_CFUNC_DEF("test_exit", 1, cuisvt_exit),
         JS_CFUNC_DEF("test_clipboard", 0, cuisvt_clipboard),
+        JS_CFUNC_DEF("test_motion", 1, cuisvt_motion),
     };
     JS_SetPropertyFunctionList(c, bridge, funcs, (int)(sizeof funcs / sizeof funcs[0]));
     JS_SetPropertyStr(c, bridge, "redraw", JS_NewCFunction(c, cuisvt_noop, "redraw", 0));

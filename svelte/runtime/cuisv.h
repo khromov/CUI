@@ -233,6 +233,23 @@ static inline void cuisv_render_site(cui_ctx *ui, cuisv_scope *s, int site) {
 }
 static inline bool cuisv_site_empty(cuisv_scope *s, int site) { return s->sites[site].first == NULL; }
 int cuisv_site_count(cuisv_scope *s, int site);
+/* The scopes of a site, in order, in frame memory; returns how many. */
+int cuisv_site_scopes(cuisv_scope *s, int site, cuisv_scope ***out);
+
+/* ---- <Reorder> --------------------------------------------------------------------------
+ * A <ReorderItem> takes the next position in the list being built (cuisv_reorder_next), so
+ * rows can be drawn in an order JS has not seen yet. When the rows are the scopes of one
+ * {#each}, CUI knows each row by its scope's handle, which stays with the row when a keyed
+ * each moves it: on a drop CUI reorders the handles, the rows are drawn in that order the same
+ * frame (as a C app draws from order[] after cui_reorder_begin), and JS gets the new order in
+ * its own indices. */
+void cuisv_reorder_push(void);
+void cuisv_reorder_pop(void);
+int cuisv_reorder_next(void);
+/* Draws rows in the order of `keys` (row handles). */
+void cuisv_reorder_rows(cui_ctx *ui, cuisv_scope **rows, int n, const int *keys);
+/* The new order in JS's terms: out[p] = js[k] for the row k whose handle is keys[p]. */
+void cuisv_reorder_back(cuisv_scope **rows, int n, const float *js, const int *keys, float *out);
 
 /* ---- per frame scratch ---------------------------------------------------------------- */
 

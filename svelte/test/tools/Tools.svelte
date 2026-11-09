@@ -55,8 +55,8 @@
 	<OtpInput id="otp" bind:value={code} length={4} oncomplete={(c) => (completed = c)} />
 	<Text>code={code} completed={completed} masks={masks.join(',')} keys={keys.length} stops={stops.length}</Text>
 	<Reorder bind:order>
-		{#each order as idx, pos (idx)}
-			<ReorderItem position={pos}><Text>{fruit[idx]}</Text></ReorderItem>
+		{#each order as idx (idx)}
+			<ReorderItem><Text>{fruit[idx]}</Text></ReorderItem>
 		{/each}
 	</Reorder>
 	<Box height={160}>

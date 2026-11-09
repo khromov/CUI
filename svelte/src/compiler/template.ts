@@ -319,6 +319,11 @@ function emit_node(ctx: CompileContext, t: Template, node: Node) {
 	}
 }
 
+/** The site an {#each} renders into, for an emitter that draws its scopes itself. */
+export function each_site(ctx: CompileContext, t: Template, node: AST.EachBlock): number {
+	return t.site(each_block(ctx, node));
+}
+
 function emit_site(ctx: CompileContext, t: Template, content: string) {
 	void ctx;
 	const site = t.site(content);
@@ -905,7 +910,8 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 			return arg;
 		}
 		case 'skip':
-			return { c: '', pre: [], post: [] };
+			// a count travels with its array; any other skipped parameter is its C default
+			return { c: p.count ? '' : (p.default ?? ''), pre: [], post: [] };
 		default:
 			warn(ctx, 'unsupported_param', `${spec.name}: ${p.prop} (${p.type}) is not supported yet`, node as never);
 			arg.c = zero_of(p.type);

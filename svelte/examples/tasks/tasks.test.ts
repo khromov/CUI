@@ -70,3 +70,36 @@ test('rows reorder by dragging, also while the list is filtered', () => {
 	localStorage.removeItem('tasks');
 	local_storage.flush();
 });
+
+test('a dropped row is drawn in its new place on the drop frame, with no jump', () => {
+	localStorage.removeItem('tasks');
+	const app = mount_test(App, { width: 520, height: 640 });
+	const native = (globalThis as unknown as { __cuisv: Record<string, (...a: number[]) => unknown> }).__cuisv;
+	native.test_motion(1); // rows glide as on screen, not snap
+	app.frame(30);
+	// where each title is drawn: layout y plus the offset its row is animating by
+	const drawn = (title: string) => {
+		const n = (native.test_nodes() as [string, number, number, number, number, number][]).find((x) => x[0] === title)!;
+		return n[2] + n[5];
+	};
+	const from = app.find('Ship it')!, to = app.find('Write the renderer')!;
+	const x = 28 + 16, y = from.y + from.h / 2, ty = to.y + to.h / 2 - 8;
+	native.test_move(x, y);
+	app.frame();
+	native.test_button(0, 1);
+	app.frame();
+	for (let k = 1; k <= 12; k++) {
+		native.test_move(x, y + ((ty - y) * k) / 12);
+		app.frame();
+	}
+	const held = drawn('Ship it');
+	native.test_button(0, 0);
+	app.frame();
+	// the drop frame: the new order already, the dropped row where the pointer left it
+	expect(drawn('Ship it')).toBeCloseTo(held, 2);
+	expect(drawn('Ship it')).toBeLessThan(drawn('Write the renderer'));
+	expect(drawn('Write the renderer')).toBeLessThan(drawn('Try the web build'));
+	native.test_motion(0);
+	localStorage.removeItem('tasks');
+	local_storage.flush();
+});

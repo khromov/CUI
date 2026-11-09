@@ -538,7 +538,8 @@ const ENTRIES: Entry[] = [
 	['FilterBar', 'cui_filter_bar', { props: { selected: 'selected', search: 'search' } }],
 	['OtpInput', 'cui_otp_input', { custom: 'otp' }],
 	['Reorder', 'cui_reorder_begin', { custom: 'reorder' }],
-	['ReorderItem', 'cui_reorder_item'],
+	// a row's position is counted as the list is built, so rows can be drawn in an order JS has not seen yet
+	['ReorderItem', 'cui_reorder_item', { roles: { position: 'skip' }, defaults: { position: 'cuisv_reorder_next()' } }],
 	['TreeTable', 'cui_tree_table_begin', { custom: 'tree_table' }],
 	['TreeName', 'cui_tree_table_name', { roles: { label: 'text' }, events: [] }],
 	['NodeLink', 'cui_node_link', { props: { link_id: 'id', from_pin: 'from', to_pin: 'to' }, events: [] }]
