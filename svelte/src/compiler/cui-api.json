@@ -1466,6 +1466,43 @@
 				"comment": "user text scale multiplier (default 1)"
 			}
 		],
+		"cui_strings": [
+			{
+				"name": "month",
+				"type": "const char *",
+				"comment": "\"January\" ...",
+				"array": 12
+			},
+			{
+				"name": "month_short",
+				"type": "const char *",
+				"comment": "\"Jan\" ...",
+				"array": 12
+			},
+			{
+				"name": "weekday",
+				"type": "const char *",
+				"comment": "\"Monday\" ... \"Sunday\"",
+				"array": 7
+			},
+			{
+				"name": "weekday_short",
+				"type": "const char *",
+				"comment": "\"Mon\" ...",
+				"array": 7
+			},
+			{
+				"name": "weekday_min",
+				"type": "const char *",
+				"comment": "\"Mo\" ...",
+				"array": 7
+			},
+			{
+				"name": "today",
+				"type": "const char *",
+				"comment": "\"Today\""
+			}
+		],
 		"cui_text_metrics": [
 			{
 				"name": "width",
@@ -8286,6 +8323,30 @@
 				}
 			]
 		},
+		"cui_set_strings": {
+			"name": "cui_set_strings",
+			"ret": "void",
+			"params": [
+				{
+					"name": "ui",
+					"type": "cui_ctx *"
+				},
+				{
+					"name": "strings",
+					"type": "const cui_strings *"
+				}
+			]
+		},
+		"cui_get_strings": {
+			"name": "cui_get_strings",
+			"ret": "const cui_strings *",
+			"params": [
+				{
+					"name": "ui",
+					"type": "cui_ctx *"
+				}
+			]
+		},
 		"cui_token_color": {
 			"name": "cui_token_color",
 			"ret": "cui_color",
@@ -8299,7 +8360,7 @@
 					"type": "cui_token"
 				}
 			],
-			"comment": "CUI_API cui_color cui_color_of(cui_ctx *ui, cui_color c); resolves tokens"
+			"comment": "CUI_API const cui_strings *cui_get_strings(cui_ctx *ui); what was set, or NULL"
 		},
 		"cui_accent_name": {
 			"name": "cui_accent_name",
