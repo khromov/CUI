@@ -10,7 +10,6 @@
  * themselves from the current rectangle. */
 #include "cui_internal.h"
 
-static cui_color cui__cv_accent(cui_ctx *ui) { return ui->accent == CUI_ACCENT_NEUTRAL ? CUI_C(ui, FOREGROUND) : CUI_C(ui, ACCENT); }
 
 /* ======================================================================== */
 /* Curve math                                                               */
@@ -399,159 +398,191 @@ static void cui__cv_remove(cui_curve_key *keys, int *n, int i) {
     (*n)--;
 }
 
-cui_curve_result cui_curve_editor_ex(cui_ctx *ui, const char *id_str, cui_curve_key *keys, int *count, int capacity, const cui_curve_opts *o) {
-    static const char *const modes[4] = { "Smooth", "Free", "Linear", "Step" };
-    cui_curve_opts d;
-    memset(&d, 0, sizeof d);
-    if (!o) o = &d;
-    cui_curve_result res;
-    memset(&res, 0, sizeof res);
-    res.added = res.removed = res.selected = -1;
-    int n = (keys && count && *count > 0) ? *count : 0;
-    if (capacity < n) capacity = n;
-    cui__cv_range g = { o->x_min, o->x_max, o->y_min, o->y_max };
-    if (!isfinite(g.x0) || !isfinite(g.x1)) g.x0 = g.x1 = 0;
-    if (!isfinite(g.y0) || !isfinite(g.y1)) g.y0 = g.y1 = 0;
-    if (!(g.x1 > g.x0)) { if (g.x0 == 0 && g.x1 == 0) g.x1 = 1; else g.x1 = g.x0 + 1; }
-    if (!(g.y1 > g.y0)) { if (g.y0 == 0 && g.y1 == 0) g.y1 = 1; else g.y1 = g.y0 + 1; }
-    const char *xlabel = o->x_label ? o->x_label : "X", *ylabel = o->y_label ? o->y_label : "Y";
-    const char *xname = cui__frame_printf(ui, "%.*s", cui__display_len(xlabel), xlabel);   /* for the tooltips */
-    const char *yname = cui__frame_printf(ui, "%.*s", cui__display_len(ylabel), ylabel);
-    int xrd = cui__cv_readout_decimals(g.x1 - g.x0), yrd = cui__cv_readout_decimals(g.y1 - g.y0);
+/* one frame of the curve editor: what its phases share */
+typedef struct {
+    cui_ctx *ui;
+    const cui_curve_opts *o;
+    cui_curve_result *res;
+    cui_curve_key *keys; int *count; int capacity, n;
+    cui__cv_range g;                    /* the value range shown */
+    const char *xlabel, *ylabel, *xname, *yname;   /* labels, and as plain names for tooltips */
+    int xrd, yrd;                       /* readout decimals */
+    cui_id id, plot_id, tip_id, hid[2]; /* the editor, its plot, the hover tooltip, the two handles */
+    cui__cv_state *st;
+    int sel;
+    bool shift, snap;
+    cui_rect R; bool have;              /* the plot, last frame (have: it has one) */
+    cui__cv_layout L;
+    float mx, my;
+    int remove, hot_key, active_key, focus_key;
+    int hot_handle, active_handle;
+    cui_vec2 hpos[2]; bool hshow[2];    /* the selected key's handles, where shown */
+} cui__cvf;
 
-    cui_id id = cui_make_id(ui, id_str);
-    cui_id plot_id = id ^ 0x9107C0u, tip_id = id ^ 0x7199u;
-    cui_id hid[2] = { id ^ 0x4A11u, id ^ 0x4A12u };
-    cui__cv_state *st = cui_state(ui, id ^ 0x5C0Eu, sizeof *st);
-    if (!st->init) { st->sel = -1; st->init = true; }
-    int *selp = o->selected ? o->selected : &st->sel;
-    int sel = *selp;
-    if (sel < -1 || sel >= n) sel = -1;
-    bool shift = (ui->mods & CUI_MOD_SHIFT) != 0;
-    bool snap = o->snap || shift;
-    cui_rect R = cui__prev_rect(ui, plot_id);
-    bool have = R.w > 0 && R.h > 0;
-    cui__cv_layout L = cui__cv_layout_of(ui, R, &g, o->y_format);
-    float mx = ui->mx, my = ui->my;
-
-    /* a key or a handle being dragged */
-    if (have && ui->mdown[0] && !ui->mpressed[0]) {
-        for (int i = 0; i < n; i++) {
-            if (ui->active != cui__cv_key_id(id, i)) continue;
-            float nx = cui__cv_ux(&L, &g, mx + st->grab_x), ny = cui__cv_uy(&L, &g, my + st->grab_y);
-            if (snap) { nx = cui__cv_snap(nx, L.xstep * 0.5f); ny = cui__cv_snap(ny, L.ystep * 0.5f); }
-            if (cui__cv_place(keys, n, i, &g, nx, ny)) res.changed = true;
-            sel = i;
-            break;
-        }
-        for (int side = 0; side < 2 && sel >= 0; side++) {
-            if (ui->active != hid[side]) continue;
-            cui_curve_key *k = &keys[sel];
-            float dx = cui__cv_ux(&L, &g, mx + st->grab_x) - k->x, dy = cui__cv_uy(&L, &g, my + st->grab_y) - k->y;
-            if (side == 0) { k->in_dx = CUI_MIN(dx, 0.0f); k->in_dy = dy; }
-            else { k->out_dx = CUI_MAX(dx, 0.0f); k->out_dy = dy; }
-            res.changed = true;
-        }
+/* a key or a handle being dragged */
+static void cui__cvf_drag(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
+    cui__cv_state *st = f->st;
+    const cui__cv_layout *L = &f->L;
+    const cui__cv_range *g = &f->g;
+    for (int i = 0; i < f->n; i++) {
+        if (ui->active != cui__cv_key_id(f->id, i)) continue;
+        float nx = cui__cv_ux(L, g, f->mx + st->grab_x), ny = cui__cv_uy(L, g, f->my + st->grab_y);
+        if (f->snap) { nx = cui__cv_snap(nx, L->xstep * 0.5f); ny = cui__cv_snap(ny, L->ystep * 0.5f); }
+        if (cui__cv_place(f->keys, f->n, i, g, nx, ny)) f->res->changed = true;
+        f->sel = i;
+        break;
     }
+    for (int side = 0; side < 2 && f->sel >= 0; side++) {
+        if (ui->active != f->hid[side]) continue;
+        cui_curve_key *k = &f->keys[f->sel];
+        float dx = cui__cv_ux(L, g, f->mx + st->grab_x) - k->x, dy = cui__cv_uy(L, g, f->my + st->grab_y) - k->y;
+        if (side == 0) { k->in_dx = CUI_MIN(dx, 0.0f); k->in_dy = dy; }
+        else { k->out_dx = CUI_MAX(dx, 0.0f); k->out_dy = dy; }
+        f->res->changed = true;
+    }
+}
 
-    /* keys: press selects and grabs, keys nudge and delete */
-    int remove = -1, hot_key = -1, active_key = -1, focus_key = -1;
-    for (int i = 0; i < n; i++) {
-        cui_id kid = cui__cv_key_id(id, i);
+/* the keys: a press selects and grabs, arrows nudge the focused key, Delete removes it */
+static void cui__cvf_keys(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
+    const cui_curve_opts *o = f->o;
+    cui_curve_key *keys = f->keys;
+    const cui__cv_range *g = &f->g;
+    for (int i = 0; i < f->n; i++) {
+        cui_id kid = cui__cv_key_id(f->id, i);
         cui_interact r = cui__interact(ui, kid, CUI_IF_FOCUSABLE | CUI_IF_DRAG);
-        if (r.pressed && ui->mpressed[0] && have) {
-            sel = i;
-            st->grab_x = cui__cv_sx(&L, &g, keys[i].x) - mx;
-            st->grab_y = cui__cv_sy(&L, &g, keys[i].y) - my;
+        if (r.pressed && ui->mpressed[0] && f->have) {
+            f->sel = i;
+            f->st->grab_x = cui__cv_sx(&f->L, g, keys[i].x) - f->mx;
+            f->st->grab_y = cui__cv_sy(&f->L, g, keys[i].y) - f->my;
         }
-        if (r.hovered || r.active) { hot_key = i; cui__set_cursor(ui, r.active ? CUI_CURSOR_MOVE : CUI_CURSOR_HAND); }
-        if (r.active) active_key = i;
+        if (r.hovered || r.active) { f->hot_key = i; cui__set_cursor(ui, r.active ? CUI_CURSOR_MOVE : CUI_CURSOR_HAND); }
+        if (r.active) f->active_key = i;
         if (r.focus_visible) {
-            focus_key = i;
-            sel = i;
-            float fx = (g.x1 - g.x0) * (shift ? 0.001f : 0.01f), fy = (g.y1 - g.y0) * (shift ? 0.001f : 0.01f);
+            f->focus_key = i;
+            f->sel = i;
+            float fx = (g->x1 - g->x0) * (f->shift ? 0.001f : 0.01f), fy = (g->y1 - g->y0) * (f->shift ? 0.001f : 0.01f);
             float nx = keys[i].x, ny = keys[i].y;
             if (cui_key_pressed(ui, CUI_KEY_LEFT)) nx -= fx;
             if (cui_key_pressed(ui, CUI_KEY_RIGHT)) nx += fx;
             if (cui_key_pressed(ui, CUI_KEY_DOWN)) ny -= fy;
             if (cui_key_pressed(ui, CUI_KEY_UP)) ny += fy;
-            if ((nx != keys[i].x || ny != keys[i].y) && cui__cv_place(keys, n, i, &g, nx, ny)) res.changed = true;
+            if ((nx != keys[i].x || ny != keys[i].y) && cui__cv_place(keys, f->n, i, g, nx, ny)) f->res->changed = true;
         }
-        if (r.focused && (cui_key_pressed(ui, CUI_KEY_DELETE) || cui_key_pressed(ui, CUI_KEY_BACKSPACE))) remove = i;
+        if (r.focused && (cui_key_pressed(ui, CUI_KEY_DELETE) || cui_key_pressed(ui, CUI_KEY_BACKSPACE))) f->remove = i;
         if (r.hovered && !r.active && ui->active == 0)
-            cui__tooltip_passive(ui, kid, cui__frame_printf(ui, "%s %s, %s %s", xname, cui__cv_fmt(ui, o->x_format, xrd, keys[i].x),
-                                                            yname, cui__cv_fmt(ui, o->y_format, yrd, keys[i].y)));
+            cui__tooltip_passive(ui, kid, cui__frame_printf(ui, "%s %s, %s %s", f->xname, cui__cv_fmt(ui, o->x_format, f->xrd, keys[i].x),
+                                                            f->yname, cui__cv_fmt(ui, o->y_format, f->yrd, keys[i].y)));
     }
+}
 
-    /* the selected key's handles; grabbing one makes a computed tangent the key's own */
-    int hot_handle = -1, active_handle = -1;
-    cui_vec2 hpos[2];
-    bool hshow[2] = { false, false };
+/* the selected key's handles; grabbing one makes a computed tangent the key's own */
+static void cui__cvf_handles(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
+    cui_curve_key *keys = f->keys;
+    int sel = f->sel;
     for (int side = 0; side < 2; side++) {
-        hshow[side] = have && sel >= 0 && cui__cv_handle_pos(keys, n, sel, side, &L, &g, &hpos[side]);
-        if (!hshow[side]) continue;
-        cui_interact r = cui__interact(ui, hid[side], CUI_IF_DRAG);
+        f->hshow[side] = f->have && sel >= 0 && cui__cv_handle_pos(keys, f->n, sel, side, &f->L, &f->g, &f->hpos[side]);
+        if (!f->hshow[side]) continue;
+        cui_interact r = cui__interact(ui, f->hid[side], CUI_IF_DRAG);
         if (r.pressed && ui->mpressed[0]) {
-            if (keys[sel].mode != CUI_CURVE_FREE) { cui__cv_bake(keys, n, sel); res.changed = true; }
-            st->grab_x = hpos[side].x - mx;
-            st->grab_y = hpos[side].y - my;
+            if (keys[sel].mode != CUI_CURVE_FREE) { cui__cv_bake(keys, f->n, sel); f->res->changed = true; }
+            f->st->grab_x = f->hpos[side].x - f->mx;
+            f->st->grab_y = f->hpos[side].y - f->my;
         }
-        if (r.hovered || r.active) { hot_handle = side; cui__set_cursor(ui, r.active ? CUI_CURSOR_MOVE : CUI_CURSOR_HAND); }
-        if (r.active) active_handle = side;
+        if (r.hovered || r.active) { f->hot_handle = side; cui__set_cursor(ui, r.active ? CUI_CURSOR_MOVE : CUI_CURSOR_HAND); }
+        if (r.active) f->active_handle = side;
     }
+}
 
-    /* empty space: a click clears the selection, a double click adds a key */
-    cui_interact br = cui__interact(ui, plot_id, 0);
-    cui_rect P = L.plot;
-    bool inside = have && mx >= P.x - 6 && mx <= P.x + P.w + 6 && my >= P.y - 6 && my <= P.y + P.h + 6;
+/* a double click on empty space adds a key: on the curve when the click is near it,
+ * otherwise where clicked (snapped with Shift); inside a stepped or straight run the new key
+ * keeps that shape */
+static void cui__cvf_add_key(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
+    const cui__cv_layout *L = &f->L;
+    const cui__cv_range *g = &f->g;
+    cui_curve_key *keys = f->keys;
+    int n = f->n;
+    float x = cui__clampf(cui__cv_ux(L, g, f->mx), g->x0, g->x1);
+    float y = cui__cv_uy(L, g, f->my);
+    float on = n > 0 ? cui_curve_eval(keys, n, x) : y;
+    if (n > 0 && fabsf(cui__cv_sy(L, g, on) - f->my) <= CUI__CV_NEAR) y = on;
+    else if (f->snap) { x = cui__cv_snap(x, L->xstep * 0.5f); y = cui__cv_snap(y, L->ystep * 0.5f); }
+    x = cui__clampf(x, g->x0, g->x1);
+    y = cui__clampf(y, g->y0, g->y1);
+    int j = 0;
+    while (j < n && keys[j].x <= x) j++;
+    memmove(&keys[j + 1], &keys[j], sizeof *keys * (size_t)(n - j));
+    cui_curve_key nk;
+    memset(&nk, 0, sizeof nk);
+    nk.x = x; nk.y = y;
+    nk.mode = (uint8_t)(j > 0 && !cui__cv_bezier_mode(keys[j - 1].mode) ? keys[j - 1].mode : CUI_CURVE_SMOOTH);
+    keys[j] = nk;
+    f->n = n + 1;
+    *f->count = f->n;
+    f->sel = j;
+    f->res->added = j;
+    f->res->changed = true;
+    ui->focus = cui__cv_key_id(f->id, j);
+    ui->focus_visible = false;
+}
+
+/* empty space: a click clears the selection, a double click adds a key; the value under the
+ * pointer is reported */
+static void cui__cvf_plot_input(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
+    float mx = f->mx, my = f->my;
+    cui_interact br = cui__interact(ui, f->plot_id, 0);
+    cui_rect P = f->L.plot;
+    bool inside = f->have && mx >= P.x - 6 && mx <= P.x + P.w + 6 && my >= P.y - 6 && my <= P.y + P.h + 6;
     if (br.pressed && ui->mpressed[0]) {
-        sel = -1;
-        if (br.double_clicked && inside && keys && count && n < capacity) {
-            float x = cui__clampf(cui__cv_ux(&L, &g, mx), g.x0, g.x1);
-            float y = cui__cv_uy(&L, &g, my);
-            float on = n > 0 ? cui_curve_eval(keys, n, x) : y;
-            if (n > 0 && fabsf(cui__cv_sy(&L, &g, on) - my) <= CUI__CV_NEAR) y = on;
-            else if (snap) { x = cui__cv_snap(x, L.xstep * 0.5f); y = cui__cv_snap(y, L.ystep * 0.5f); }
-            x = cui__clampf(x, g.x0, g.x1);
-            y = cui__clampf(y, g.y0, g.y1);
-            int j = 0;
-            while (j < n && keys[j].x <= x) j++;
-            memmove(&keys[j + 1], &keys[j], sizeof *keys * (size_t)(n - j));
-            cui_curve_key nk;
-            memset(&nk, 0, sizeof nk);
-            nk.x = x; nk.y = y;
-            /* inside a stepped or straight run the new key keeps that shape */
-            nk.mode = (uint8_t)(j > 0 && !cui__cv_bezier_mode(keys[j - 1].mode) ? keys[j - 1].mode : CUI_CURVE_SMOOTH);
-            keys[j] = nk;
-            n++;
-            *count = n;
-            sel = j;
-            res.added = j;
-            res.changed = true;
-            ui->focus = cui__cv_key_id(id, j);
-            ui->focus_visible = false;
-        }
+        f->sel = -1;
+        if (br.double_clicked && inside && f->keys && f->count && f->n < f->capacity) cui__cvf_add_key(f);
     }
-    /* the value under the pointer */
-    if (have && ui->hot == plot_id && ui->active == 0 && n > 0 && mx >= P.x && mx <= P.x + P.w && my >= R.y && my <= R.y + R.h) {
-        res.hovered = true;
-        res.hover_x = cui__cv_ux(&L, &g, mx);
-        res.hover_y = cui_curve_eval(keys, n, res.hover_x);
+    if (f->have && ui->hot == f->plot_id && ui->active == 0 && f->n > 0 && mx >= P.x && mx <= P.x + P.w && my >= f->R.y && my <= f->R.y + f->R.h) {
+        f->res->hovered = true;
+        f->res->hover_x = cui__cv_ux(&f->L, &f->g, mx);
+        f->res->hover_y = cui_curve_eval(f->keys, f->n, f->res->hover_x);
     }
+}
 
-    /* ---- build ---- */
-    int outer = cui__node_new(ui, id);
-    cui_node *on = &ui->nodes[outer];
-    on->w = o->width.kind ? o->width : CUI_FILL;
-    on->bg = CUI_C(ui, SURFACE);
-    on->border = 1;
-    on->border_color = CUI_C(ui, BORDER);
-    on->radius = CUI_CORNERS(ui->theme.radius_panel);
-    on->flags |= CUI_NF_CLIP;
-    on->gap = 0;
-    cui__open(ui, outer);
-    cui_push_id(ui, id_str);
-    int pn = cui__node_new(ui, plot_id);
+/* the hit areas of the keys and handles, placed with the last frame's layout like every hit,
+ * and the hover tooltip */
+static void cui__cvf_build_hits(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
+    const cui__cv_layout *L = &f->L;
+    const cui__cv_range *g = &f->g;
+    cui_rect R = f->R;
+    for (int i = 0; i < f->n; i++) {
+        const cui_curve_key *k = &f->keys[i];
+        float kx = cui__cv_sx(L, g, k->x), ky = cui__cv_sy(L, g, k->y);
+        int a = cui__absolute(ui, cui__cv_key_id(f->id, i), kx - R.x - CUI__CV_KEY_HIT * 0.5f, ky - R.y - CUI__CV_KEY_HIT * 0.5f, CUI__CV_KEY_HIT, CUI__CV_KEY_HIT);
+        cui__mark_interactive(ui, a, CUI_IF_FOCUSABLE);
+        ui->nodes[a].radius = CUI_CORNERS(CUI__CV_KEY_HIT * 0.5f);
+    }
+    for (int side = 0; side < 2; side++) {
+        if (!f->hshow[side] || f->res->added >= 0) continue;
+        int a = cui__absolute(ui, f->hid[side], f->hpos[side].x - R.x - CUI__CV_HANDLE_HIT * 0.5f, f->hpos[side].y - R.y - CUI__CV_HANDLE_HIT * 0.5f,
+                              CUI__CV_HANDLE_HIT, CUI__CV_HANDLE_HIT);
+        cui__mark_interactive(ui, a, 0);
+    }
+    if (f->res->hovered) {
+        const cui_curve_opts *o = f->o;
+        float tx = cui__cv_sx(L, g, f->res->hover_x), ty = cui__cv_sy(L, g, f->res->hover_y);
+        cui__absolute(ui, f->tip_id, tx - R.x - 1, ty - R.y - 4, 2, 2);
+        cui__tooltip_passive(ui, f->tip_id, cui__frame_printf(ui, "%s %s, %s %s", f->xname, cui__cv_fmt(ui, o->x_format, f->xrd, f->res->hover_x),
+                                                              f->yname, cui__cv_fmt(ui, o->y_format, f->yrd, f->res->hover_y)));
+    }
+}
+
+/* the plot: its node, the paint data (a copy of the keys), then the hit areas */
+static void cui__cvf_build_plot(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
+    const cui_curve_opts *o = f->o;
+    int n = f->n;
+    int pn = cui__node_new(ui, f->plot_id);
     ui->nodes[pn].w = CUI_FILL;
     ui->nodes[pn].h = CUI_PX(o->height > 0 ? o->height : CUI__CV_PLOT_H);
     cui__mark_interactive(ui, pn, 0);
@@ -559,53 +590,84 @@ cui_curve_result cui_curve_editor_ex(cui_ctx *ui, const char *id_str, cui_curve_
     memset(pp, 0, sizeof *pp);
     pp->n = n;
     pp->keys = cui__frame_alloc(ui, sizeof(cui_curve_key) * (size_t)CUI_MAX(1, n));
-    if (n) memcpy(pp->keys, keys, sizeof(cui_curve_key) * (size_t)n);
+    if (n > 0) memcpy(pp->keys, f->keys, sizeof(cui_curve_key) * (size_t)n);
     pp->key_hover = cui__frame_alloc(ui, sizeof(float) * (size_t)CUI_MAX(1, n));
     for (int i = 0; i < n; i++) {
-        float *hv = cui_state(ui, cui__cv_key_id(id, i) ^ 0x40u, sizeof(float));
-        pp->key_hover[i] = cui__tween(ui, hv, i == hot_key ? 1.0f : 0.0f, CUI__T_HOVER);
+        float *hv = cui_state(ui, cui__cv_key_id(f->id, i) ^ 0x40u, sizeof(float));
+        pp->key_hover[i] = cui__tween(ui, hv, i == f->hot_key ? 1.0f : 0.0f, CUI__T_HOVER);
     }
-    pp->g = g;
+    pp->g = f->g;
     pp->xfmt = o->x_format; pp->yfmt = o->y_format;
-    pp->sel = sel;
-    pp->focus_key = focus_key; pp->hot_key = hot_key; pp->active_key = active_key;
-    pp->hot_handle = hot_handle; pp->active_handle = active_handle;
-    pp->hover = res.hovered; pp->hx = res.hover_x; pp->hy = res.hover_y;
+    pp->sel = f->sel;
+    pp->focus_key = f->focus_key; pp->hot_key = f->hot_key; pp->active_key = f->active_key;
+    pp->hot_handle = f->hot_handle; pp->active_handle = f->active_handle;
+    pp->hover = f->res->hovered; pp->hx = f->res->hover_x; pp->hy = f->res->hover_y;
     pp->playhead = o->show_playhead; pp->px = o->playhead;
-    pp->curve = cui__cv_accent(ui);
+    pp->curve = cui__emphasis(ui);
     ui->nodes[pn].paint = cui__paint_curve;
     ui->nodes[pn].paint_data = pp;
     cui__open(ui, pn);
-    if (have) {
-        /* hit areas, placed with the last frame's layout like every hit */
-        for (int i = 0; i < n; i++) {
-            const cui_curve_key *k = &keys[i];
-            float kx = cui__cv_sx(&L, &g, k->x), ky = cui__cv_sy(&L, &g, k->y);
-            int a =cui__absolute(ui, cui__cv_key_id(id, i), kx - R.x - CUI__CV_KEY_HIT * 0.5f, ky - R.y - CUI__CV_KEY_HIT * 0.5f, CUI__CV_KEY_HIT, CUI__CV_KEY_HIT);
-            cui__mark_interactive(ui, a, CUI_IF_FOCUSABLE);
-            ui->nodes[a].radius = CUI_CORNERS(CUI__CV_KEY_HIT * 0.5f);
-        }
-        for (int side = 0; side < 2; side++) {
-            if (!hshow[side] || res.added >= 0) continue;
-            int a = cui__absolute(ui, hid[side], hpos[side].x - R.x - CUI__CV_HANDLE_HIT * 0.5f, hpos[side].y - R.y - CUI__CV_HANDLE_HIT * 0.5f,
-                                  CUI__CV_HANDLE_HIT, CUI__CV_HANDLE_HIT);
-            cui__mark_interactive(ui, a, 0);
-        }
-        if (res.hovered) {
-            float tx = cui__cv_sx(&L, &g, res.hover_x), ty = cui__cv_sy(&L, &g, res.hover_y);
-            cui__absolute(ui, tip_id, tx - R.x - 1, ty - R.y - 4, 2, 2);
-            cui__tooltip_passive(ui, tip_id, cui__frame_printf(ui, "%s %s, %s %s", xname, cui__cv_fmt(ui, o->x_format, xrd, res.hover_x),
-                                                               yname, cui__cv_fmt(ui, o->y_format, yrd, res.hover_y)));
-        }
-    }
+    if (f->have) cui__cvf_build_hits(f);
     cui__close(ui);   /* plot */
+}
 
-    /* the selected key's mode and exact position */
+/* the selected key's mode, exact position and a remove button; narrow: two rows, tiny: the
+ * two fields stack rather than cut their labels */
+static void cui__cvf_build_key_fields(cui__cvf *f, bool narrow, bool tiny) {
+    static const char *const modes[4] = { "Smooth", "Free", "Linear", "Step" };
+    cui_ctx *ui = f->ui;
+    const cui_curve_opts *o = f->o;
+    const cui__cv_range *g = &f->g;
+    int sel = f->sel, n = f->n;
+    cui_curve_key *k = &f->keys[sel];
+    int mode = k->mode <= CUI_CURVE_STEP ? k->mode : CUI_CURVE_SMOOTH;
+    cui_select_opts so; memset(&so, 0, sizeof so);
+    cui_scrub_opts xo; memset(&xo, 0, sizeof xo);
+    cui_scrub_opts yo; memset(&yo, 0, sizeof yo);
+    cui_button_opts bo; memset(&bo, 0, sizeof bo);
+    so.width = narrow ? CUI_GROW(1) : CUI_PX(128);
+    xo.width = yo.width = narrow ? CUI_GROW(1) : CUI_PX(132);
+    xo.step = (g->x1 - g->x0) / 100.0f; yo.step = (g->y1 - g->y0) / 100.0f;
+    xo.format = o->x_format ? o->x_format : cui__frame_printf(ui, "%%.%df", f->xrd);
+    yo.format = o->y_format ? o->y_format : cui__frame_printf(ui, "%%.%df", f->yrd);
+    bo.variant = CUI_BUTTON_GHOST;
+    bo.tooltip = "Remove key";
+    bo.disabled = n <= 2;
+    float vx = k->x, vy = k->y;
+    bool del = false;
+    int row1 = -1;
+    if (narrow) { row1 = cui__node_new(ui, 0); ui->nodes[row1].dir = CUI_ROW; ui->nodes[row1].gap = 8; ui->nodes[row1].align = CUI_ALIGN_CENTER; cui__open(ui, row1); }
+    if (cui_select_ex(ui, "##mode", modes, 4, &mode, &so)) {
+        if (mode == CUI_CURVE_FREE && k->mode != CUI_CURVE_FREE) cui__cv_bake(f->keys, n, sel);
+        k->mode = (uint8_t)mode;
+        f->res->changed = true;
+    }
+    if (narrow) {
+        del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
+        cui__close(ui);
+        int row2 = cui__node_new(ui, 0);
+        ui->nodes[row2].dir = tiny ? CUI_COLUMN : CUI_ROW; ui->nodes[row2].gap = 8;
+        cui__open(ui, row2);
+    }
+    bool cx = cui_scrub_ex(ui, cui__frame_printf(ui, "%s##cv-x", f->xlabel), &vx, g->x0, g->x1, &xo);
+    bool cy = cui_scrub_ex(ui, cui__frame_printf(ui, "%s##cv-y", f->ylabel), &vy, g->y0, g->y1, &yo);
+    if ((cx || cy) && cui__cv_place(f->keys, n, sel, g, vx, vy)) f->res->changed = true;
+    if (narrow) cui__close(ui);
+    else {
+        cui_spacer(ui);
+        del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
+    }
+    if (del) f->remove = sel;
+}
+
+/* below the plot: the selected key's fields, or a hint */
+static void cui__cvf_build_footer(cui__cvf *f) {
+    cui_ctx *ui = f->ui;
     int line = cui__leaf(ui, 0, CUI_FILL, CUI_PX(1));
     ui->nodes[line].bg = CUI_C(ui, BORDER_SUBTLE);
-    cui_rect orr = cui__prev_rect(ui, id);
+    cui_rect orr = cui__prev_rect(ui, f->id);
     bool narrow = orr.w > 0 && orr.w < CUI__CV_NARROW;
-    bool tiny = orr.w > 0 && orr.w < CUI__CV_TINY;   /* the two fields stack rather than cut their labels */
+    bool tiny = orr.w > 0 && orr.w < CUI__CV_TINY;
     int foot = cui__node_new(ui, 0);
     cui_node *fn = &ui->nodes[foot];
     fn->w = CUI_FILL;
@@ -616,66 +678,90 @@ cui_curve_result cui_curve_editor_ex(cui_ctx *ui, const char *id_str, cui_curve_
     fn->min_h = (tiny ? 36 * 3 + 16 : narrow ? 36 * 2 + 8 : 36) + 20;
     fn->justify = narrow ? CUI_JUSTIFY_CENTER : CUI_JUSTIFY_START;   /* the hint sits left, centered vertically */
     cui__open(ui, foot);
-    if (sel >= 0 && sel < n) {
-        cui_curve_key *k = &keys[sel];
-        int mode = k->mode <= CUI_CURVE_STEP ? k->mode : CUI_CURVE_SMOOTH;
-        cui_select_opts so; memset(&so, 0, sizeof so);
-        cui_scrub_opts xo; memset(&xo, 0, sizeof xo);
-        cui_scrub_opts yo; memset(&yo, 0, sizeof yo);
-        cui_button_opts bo; memset(&bo, 0, sizeof bo);
-        so.width = narrow ? CUI_GROW(1) : CUI_PX(128);
-        xo.width = yo.width = narrow ? CUI_GROW(1) : CUI_PX(132);
-        xo.step = (g.x1 - g.x0) / 100.0f; yo.step = (g.y1 - g.y0) / 100.0f;
-        xo.format = o->x_format ? o->x_format : cui__frame_printf(ui, "%%.%df", xrd);
-        yo.format = o->y_format ? o->y_format : cui__frame_printf(ui, "%%.%df", yrd);
-        bo.variant = CUI_BUTTON_GHOST;
-        bo.tooltip = "Remove key";
-        bo.disabled = n <= 2;
-        float vx = k->x, vy = k->y;
-        bool del = false;
-        int row1 = -1;
-        if (narrow) { row1 = cui__node_new(ui, 0); ui->nodes[row1].dir = CUI_ROW; ui->nodes[row1].gap = 8; ui->nodes[row1].align = CUI_ALIGN_CENTER; cui__open(ui, row1); }
-        if (cui_select_ex(ui, "##mode", modes, 4, &mode, &so)) {
-            if (mode == CUI_CURVE_FREE && k->mode != CUI_CURVE_FREE) cui__cv_bake(keys, n, sel);
-            k->mode = (uint8_t)mode;
-            res.changed = true;
-        }
-        if (narrow) {
-            del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
-            cui__close(ui);
-            int row2 = cui__node_new(ui, 0);
-            ui->nodes[row2].dir = tiny ? CUI_COLUMN : CUI_ROW; ui->nodes[row2].gap = 8;
-            cui__open(ui, row2);
-        }
-        bool cx = cui_scrub_ex(ui, cui__frame_printf(ui, "%s##cv-x", xlabel), &vx, g.x0, g.x1, &xo);
-        bool cy = cui_scrub_ex(ui, cui__frame_printf(ui, "%s##cv-y", ylabel), &vy, g.y0, g.y1, &yo);
-        if ((cx || cy) && cui__cv_place(keys, n, sel, &g, vx, vy)) res.changed = true;
-        if (narrow) cui__close(ui);
-        else {
-            cui_spacer(ui);
-            del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
-        }
-        if (del) remove = sel;
-    } else {
-        int t = cui__text_node(ui, n < capacity ? "Double-click the plot to add a key, or select one to edit it." : "Select a key to edit it.", -1,
-                               CUI_FONT_BODY, cui__fsz(ui, ui->theme.text_sm), CUI_C(ui, TEXT_MUTED), true);
+    if (f->sel >= 0 && f->sel < f->n) cui__cvf_build_key_fields(f, narrow, tiny);
+    else {
+        int t = cui__text_node(ui, f->n < f->capacity ? "Double-click the plot to add a key, or select one to edit it." : "Select a key to edit it.", -1,
+                               CUI_FONT_BODY, cui__fs(ui, ui->theme.text_sm), CUI_C(ui, TEXT_MUTED), true);
         ui->nodes[t].line_height = 1.4f;
     }
     cui__close(ui);   /* footer */
+}
+
+cui_curve_result cui_curve_editor_ex(cui_ctx *ui, const char *id_str, cui_curve_key *keys, int *count, int capacity, const cui_curve_opts *o) {
+    cui_curve_opts d;
+    memset(&d, 0, sizeof d);
+    if (!o) o = &d;
+    cui_curve_result res;
+    memset(&res, 0, sizeof res);
+    res.added = res.removed = res.selected = -1;
+    cui__cvf f;
+    memset(&f, 0, sizeof f);
+    f.ui = ui; f.o = o; f.res = &res; f.keys = keys; f.count = count;
+    f.n = (keys && count && *count > 0) ? *count : 0;
+    f.capacity = capacity < f.n ? f.n : capacity;
+    cui__cv_range g = { o->x_min, o->x_max, o->y_min, o->y_max };
+    if (!isfinite(g.x0) || !isfinite(g.x1)) g.x0 = g.x1 = 0;
+    if (!isfinite(g.y0) || !isfinite(g.y1)) g.y0 = g.y1 = 0;
+    if (!(g.x1 > g.x0)) { if (g.x0 == 0 && g.x1 == 0) g.x1 = 1; else g.x1 = g.x0 + 1; }
+    if (!(g.y1 > g.y0)) { if (g.y0 == 0 && g.y1 == 0) g.y1 = 1; else g.y1 = g.y0 + 1; }
+    f.g = g;
+    f.xlabel = o->x_label ? o->x_label : "X"; f.ylabel = o->y_label ? o->y_label : "Y";
+    f.xname = cui__frame_printf(ui, "%.*s", cui__display_len(f.xlabel), f.xlabel);   /* for the tooltips */
+    f.yname = cui__frame_printf(ui, "%.*s", cui__display_len(f.ylabel), f.ylabel);
+    f.xrd = cui__cv_readout_decimals(g.x1 - g.x0); f.yrd = cui__cv_readout_decimals(g.y1 - g.y0);
+
+    f.id = cui_make_id(ui, id_str);
+    f.plot_id = f.id ^ 0x9107C0u; f.tip_id = f.id ^ 0x7199u;
+    f.hid[0] = f.id ^ 0x4A11u; f.hid[1] = f.id ^ 0x4A12u;
+    cui__cv_state *st = f.st = cui_state(ui, f.id ^ 0x5C0Eu, sizeof *st);
+    if (!st->init) { st->sel = -1; st->init = true; }
+    int *selp = o->selected ? o->selected : &st->sel;
+    f.sel = *selp;
+    if (f.sel < -1 || f.sel >= f.n) f.sel = -1;
+    f.shift = (ui->mods & CUI_MOD_SHIFT) != 0;
+    f.snap = o->snap || f.shift;
+    f.R = cui__prev_rect(ui, f.plot_id);
+    f.have = f.R.w > 0 && f.R.h > 0;
+    f.L = cui__cv_layout_of(ui, f.R, &f.g, o->y_format);
+    f.mx = ui->mx; f.my = ui->my;
+
+    /* input */
+    if (f.have && ui->mdown[0] && !ui->mpressed[0]) cui__cvf_drag(&f);
+    f.remove = f.hot_key = f.active_key = f.focus_key = -1;
+    f.hot_handle = f.active_handle = -1;
+    cui__cvf_keys(&f);
+    cui__cvf_handles(&f);
+    cui__cvf_plot_input(&f);
+
+    /* build */
+    int outer = cui__node_new(ui, f.id);
+    cui_node *on = &ui->nodes[outer];
+    on->w = o->width.kind ? o->width : CUI_FILL;
+    on->bg = CUI_C(ui, SURFACE);
+    on->border = 1;
+    on->border_color = CUI_C(ui, BORDER);
+    on->radius = CUI_CORNERS(ui->theme.radius_panel);
+    on->flags |= CUI_NF_CLIP;
+    on->gap = 0;
+    cui__open(ui, outer);
+    cui_push_id(ui, id_str);
+    cui__cvf_build_plot(&f);
+    cui__cvf_build_footer(&f);
     cui_pop_id(ui);
     cui__close(ui);   /* outer */
 
+    int n = f.n, sel = f.sel, remove = f.remove;
     if (remove >= 0 && remove < n && n > 2) {
         cui__cv_remove(keys, &n, remove);
         *count = n;
         res.removed = remove;
         res.changed = true;
         sel = CUI_MIN(remove, n - 1);
-        if (ui->focus == cui__cv_key_id(id, remove) || ui->focus == 0) ui->focus = cui__cv_key_id(id, sel);
+        if (ui->focus == cui__cv_key_id(f.id, remove) || ui->focus == 0) ui->focus = cui__cv_key_id(f.id, sel);
     }
     *selp = sel;
     res.selected = sel;
-    ui->last_id = id;
+    ui->last_id = f.id;
     return res;
 }
 
@@ -827,6 +913,228 @@ static void cui__paint_gradient_track(cui_ctx *ui, cui_node *nd, void *data) {
         }
 }
 
+/* one frame of the gradient editor: what its phases share */
+typedef struct {
+    cui_ctx *ui;
+    const cui_gradient_opts *o;
+    cui_gradient_result *res;
+    cui_gradient_stop *stops; int *count; int capacity, n;
+    cui_id id, ramp_id, track_id;
+    cui__gr_state *st;
+    int sel;
+    bool shift;
+    cui_rect RR, TR; bool have;         /* the ramp and the track, last frame */
+    float mx, my;
+    bool open_picker;
+    int remove, pending;                /* a stop to remove; one dragged away (removed on release) */
+    float pending_dy;
+    int hot, focus;
+} cui__grf;
+
+/* the stop being dragged; it may pass its neighbours (the array stays sorted and the drag,
+ * focus and selection follow it); dragged far enough off the track it goes on release */
+static void cui__grf_drag(cui__grf *f) {
+    cui_ctx *ui = f->ui;
+    cui__gr_state *st = f->st;
+    cui_gradient_stop *stops = f->stops;
+    int n = f->n;
+    for (int i = 0; i < n; i++) {
+        cui_id sid = cui__gr_stop_id(f->id, i);
+        if (ui->active != sid) continue;
+        if (ui->mdown[0] && !ui->mpressed[0]) {
+            bool away = n > 2 && (f->my > f->TR.y + f->TR.h + CUI__GR_AWAY || f->my < f->RR.y - CUI__GR_AWAY);
+            st->pending = away;
+            if (away) { f->pending = i; f->pending_dy = f->my - (f->TR.y + f->TR.h * 0.5f); }
+            else {
+                float pos = cui__clampf((f->mx - st->grab - f->RR.x) / f->RR.w, 0, 1);
+                if (pos != stops[i].pos) {
+                    stops[i].pos = pos;
+                    f->res->changed = true;
+                    int j = cui__gr_resort(stops, n, i);
+                    if (j != i) {
+                        ui->active = cui__gr_stop_id(f->id, j);
+                        if (ui->focus == sid) ui->focus = ui->active;
+                    }
+                    f->sel = j;
+                }
+            }
+        } else if (ui->mreleased[0]) {
+            if (st->pending && n > 2) f->remove = i;
+            st->pending = false;
+        }
+        break;
+    }
+}
+
+/* the stops: a press selects and grabs, a double click or Enter opens the picker, arrows
+ * nudge the focused stop, Delete removes it */
+static void cui__grf_stops(cui__grf *f) {
+    cui_ctx *ui = f->ui;
+    cui_gradient_stop *stops = f->stops;
+    int nudge = -1;
+    float nudge_d = 0;
+    for (int i = 0; i < f->n; i++) {
+        cui_interact r = cui__interact(ui, cui__gr_stop_id(f->id, i), CUI_IF_FOCUSABLE | CUI_IF_DRAG);
+        if (r.pressed && ui->mpressed[0] && f->have) {
+            f->sel = i;
+            f->st->grab = f->mx - (f->RR.x + stops[i].pos * f->RR.w);
+            f->st->pending = false;
+            if (r.double_clicked) f->open_picker = true;
+        }
+        if (r.hovered || r.active) { f->hot = i; cui__set_cursor(ui, r.active ? CUI_CURSOR_MOVE : CUI_CURSOR_HAND); }
+        if (r.focus_visible) {
+            f->focus = i;
+            f->sel = i;
+            float step = f->shift ? 0.001f : 0.01f;
+            if (cui_key_pressed(ui, CUI_KEY_LEFT)) { nudge = i; nudge_d -= step; }
+            if (cui_key_pressed(ui, CUI_KEY_RIGHT)) { nudge = i; nudge_d += step; }
+            if (r.keyboard_activate) f->open_picker = true;
+        }
+        if (r.focused && (cui_key_pressed(ui, CUI_KEY_DELETE) || cui_key_pressed(ui, CUI_KEY_BACKSPACE))) f->remove = i;
+    }
+    if (nudge >= 0) {
+        float pos = cui__clampf(stops[nudge].pos + nudge_d, 0, 1);
+        if (pos != stops[nudge].pos) {
+            cui_id was = cui__gr_stop_id(f->id, nudge);
+            stops[nudge].pos = pos;
+            f->res->changed = true;
+            int j = cui__gr_resort(stops, f->n, nudge);
+            if (ui->focus == was) ui->focus = cui__gr_stop_id(f->id, j);
+            f->sel = j;
+            f->focus = j;
+        }
+    }
+}
+
+/* the ramp and the empty track: a press adds a stop there, in the gradient's color at that
+ * point, and drags it */
+static void cui__grf_add(cui__grf *f) {
+    cui_ctx *ui = f->ui;
+    cui_interact rr = cui__interact(ui, f->ramp_id, CUI_IF_DRAG);
+    cui_interact tr = cui__interact(ui, f->track_id, CUI_IF_DRAG);
+    if ((rr.hovered || tr.hovered) && f->n < f->capacity) cui__set_cursor(ui, CUI_CURSOR_HAND);
+    if (!(((rr.pressed || tr.pressed) && ui->mpressed[0]) && f->have && f->stops && f->count && f->n < f->capacity && f->remove < 0)) return;
+    cui_gradient_stop *stops = f->stops;
+    int n = f->n;
+    float pos = cui__clampf((f->mx - f->RR.x) / f->RR.w, 0, 1);
+    cui_gradient_stop ns;
+    ns.pos = pos;
+    ns.color = cui_gradient_eval(stops, n, pos);
+    int j = 0;
+    while (j < n && stops[j].pos <= pos) j++;
+    memmove(&stops[j + 1], &stops[j], sizeof *stops * (size_t)(n - j));
+    stops[j] = ns;
+    f->n = n + 1;
+    *f->count = f->n;
+    f->sel = j;
+    f->res->added = j;
+    f->res->changed = true;
+    ui->active = ui->focus = cui__gr_stop_id(f->id, j);
+    ui->focus_visible = false;
+    f->st->grab = 0;
+    f->st->pending = false;
+}
+
+/* the ramp and the track of stops, inset so the end markers fit; the paint reads a copy */
+static void cui__grf_build_bars(cui__grf *f) {
+    cui_ctx *ui = f->ui;
+    int n = f->n;
+    bool any_alpha = false;
+    for (int i = 0; i < n; i++) if (f->stops[i].color.a < 255) any_alpha = true;
+    bool dark = ui->mode == CUI_THEME_DARK;
+    cui_color light = CUI_C(ui, SURFACE), darkc = cui_mix(CUI_C(ui, SURFACE), CUI_C(ui, FOREGROUND), dark ? 0.16f : 0.1f);
+    cui_color edge = cui_alpha(CUI_C(ui, FOREGROUND), dark ? 0.16f : 0.12f);
+    cui_gradient_stop *copy = cui__frame_alloc(ui, sizeof(cui_gradient_stop) * (size_t)CUI_MAX(1, n));
+    if (n) memcpy(copy, f->stops, sizeof(cui_gradient_stop) * (size_t)n);
+
+    int bars = cui__node_new(ui, 0);
+    ui->nodes[bars].w = CUI_FILL;
+    ui->nodes[bars].pad[1] = ui->nodes[bars].pad[3] = CUI__GR_PAD;
+    ui->nodes[bars].gap = 0;
+    cui__open(ui, bars);
+    int ramp = cui__leaf(ui, f->ramp_id, CUI_FILL, CUI_PX(f->o->height > 0 ? f->o->height : CUI__GR_RAMP_H));
+    cui__mark_interactive(ui, ramp, 0);
+    cui__gr_ramp_paint *rp = cui__frame_alloc(ui, sizeof *rp);
+    rp->stops = copy; rp->n = n; rp->light = light; rp->dark = darkc; rp->edge = edge; rp->alpha = any_alpha;
+    ui->nodes[ramp].paint = cui__paint_gradient_ramp;
+    ui->nodes[ramp].paint_data = rp;
+    int track = cui__node_new(ui, f->track_id);
+    ui->nodes[track].w = CUI_FILL;
+    ui->nodes[track].h = CUI_PX(CUI__GR_TRACK_H);
+    cui__mark_interactive(ui, track, 0);
+    cui__gr_track_paint *tp = cui__frame_alloc(ui, sizeof *tp);
+    tp->stops = copy; tp->n = n; tp->sel = f->sel; tp->focus = f->focus; tp->hot = f->hot;
+    tp->pending = f->pending; tp->pending_dy = f->pending_dy;
+    tp->light = light; tp->dark = darkc; tp->edge = edge;
+    tp->ring = CUI_C(ui, BORDER_STRONG); tp->ring_on = cui__emphasis(ui); tp->surface = CUI_C(ui, SURFACE);
+    ui->nodes[track].paint = cui__paint_gradient_track;
+    ui->nodes[track].paint_data = tp;
+    cui__open(ui, track);
+    if (f->have)   /* the stops' hit areas */
+        for (int i = 0; i < n; i++) {
+            float cx = f->RR.x + f->stops[i].pos * f->RR.w;
+            int a = cui__absolute(ui, cui__gr_stop_id(f->id, i), cx - f->TR.x - CUI__GR_HIT_W * 0.5f, 0, CUI__GR_HIT_W, CUI__GR_TRACK_H);
+            cui__mark_interactive(ui, a, CUI_IF_FOCUSABLE);
+        }
+    cui__close(ui);   /* track */
+    cui__close(ui);   /* bars */
+}
+
+/* the selected stop: color (the picker), location, opacity and a remove button; narrow: two
+ * lines, tiny: the fields stack */
+static void cui__grf_build_stop_fields(cui__grf *f, bool narrow, bool tiny) {
+    cui_ctx *ui = f->ui;
+    int n = f->n;
+    cui_gradient_stop *s = &f->stops[f->sel];
+    cui_id cid = cui_make_id(ui, "##color");
+    if (f->open_picker) cui__color_picker_open(ui, cid, s->color);
+    int line1 = -1;
+    if (narrow) { line1 = cui__node_new(ui, 0); ui->nodes[line1].dir = CUI_ROW; ui->nodes[line1].gap = 8; ui->nodes[line1].align = CUI_ALIGN_CENTER; cui__open(ui, line1); }
+    cui_color c = s->color;
+    uint8_t alpha = c.a;
+    if (cui_color_picker(ui, "##color", &c)) {
+        c.a = alpha;   /* the picker edits the color; opacity has its own field */
+        if (memcmp(&c, &s->color, sizeof c) != 0) { s->color = c; f->res->changed = true; }
+    }
+    int pk = ui->nodes[cui__current(ui)].last;
+    if (narrow && pk >= 0 && ui->nodes[pk].id == cid) ui->nodes[pk].w = CUI_GROW(1);
+    cui_button_opts bo; memset(&bo, 0, sizeof bo);
+    bo.variant = CUI_BUTTON_GHOST;
+    bo.tooltip = "Remove stop";
+    bo.disabled = n <= 2;
+    bool del = false;
+    if (narrow) {
+        del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
+        cui__close(ui);
+        int line2 = cui__node_new(ui, 0);
+        ui->nodes[line2].dir = tiny ? CUI_COLUMN : CUI_ROW; ui->nodes[line2].gap = 8;
+        cui__open(ui, line2);
+    }
+    cui_scrub_opts lo; memset(&lo, 0, sizeof lo);
+    lo.step = 1; lo.format = "%.0f"; lo.suffix = "%";
+    lo.width = narrow ? CUI_GROW(1) : CUI_PX(140);
+    cui_scrub_opts ao = lo;
+    float loc = s->pos * 100.0f, op = (float)s->color.a * (100.0f / 255.0f);
+    if (cui_scrub_ex(ui, "Location", &loc, 0, 100, &lo)) {
+        s->pos = cui__clampf(loc / 100.0f, 0, 1);
+        f->res->changed = true;
+        int was = f->sel;
+        f->sel = cui__gr_resort(f->stops, n, f->sel);
+        if (f->sel != was && ui->focus == cui__gr_stop_id(f->id, was)) ui->focus = cui__gr_stop_id(f->id, f->sel);
+        s = &f->stops[f->sel];
+    }
+    if (cui_scrub_ex(ui, "Opacity", &op, 0, 100, &ao)) {
+        s->color.a = (uint8_t)CUI_CLAMP(op * 2.55f + 0.5f, 0.0f, 255.0f);
+        f->res->changed = true;
+    }
+    if (narrow) cui__close(ui);
+    else {
+        cui_spacer(ui);
+        del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
+    }
+    if (del) f->remove = f->sel;
+}
+
 cui_gradient_result cui_gradient_editor_ex(cui_ctx *ui, const char *id_str, cui_gradient_stop *stops, int *count, int capacity, const cui_gradient_opts *o) {
     cui_gradient_opts d;
     memset(&d, 0, sizeof d);
@@ -834,159 +1142,39 @@ cui_gradient_result cui_gradient_editor_ex(cui_ctx *ui, const char *id_str, cui_
     cui_gradient_result res;
     memset(&res, 0, sizeof res);
     res.added = res.removed = -1;
-    int n = (stops && count && *count > 0) ? *count : 0;
-    if (capacity < n) capacity = n;
-    cui_id id = cui_make_id(ui, id_str);
-    cui_id ramp_id = id ^ 0x7A3Bu, track_id = id ^ 0x7AC4u;
-    cui__gr_state *st = cui_state(ui, id ^ 0x6E5Du, sizeof *st);
+    cui__grf f;
+    memset(&f, 0, sizeof f);
+    f.ui = ui; f.o = o; f.res = &res; f.stops = stops; f.count = count;
+    f.n = (stops && count && *count > 0) ? *count : 0;
+    f.capacity = capacity < f.n ? f.n : capacity;
+    f.id = cui_make_id(ui, id_str);
+    f.ramp_id = f.id ^ 0x7A3Bu; f.track_id = f.id ^ 0x7AC4u;
+    cui__gr_state *st = f.st = cui_state(ui, f.id ^ 0x6E5Du, sizeof *st);
     if (!st->init) { st->sel = 0; st->init = true; }
     int *selp = o->selected ? o->selected : &st->sel;
-    int sel = *selp;
-    if (sel < 0 || sel >= n) sel = n > 0 ? 0 : -1;
-    bool shift = (ui->mods & CUI_MOD_SHIFT) != 0;
-    cui_rect RR = cui__prev_rect(ui, ramp_id), TR = cui__prev_rect(ui, track_id);
-    bool have = RR.w > 0 && TR.w > 0;
-    float mx = ui->mx, my = ui->my;
-    bool open_picker = false;
-    int remove = -1, pending = -1;
-    float pending_dy = 0;
+    f.sel = *selp;
+    if (f.sel < 0 || f.sel >= f.n) f.sel = f.n > 0 ? 0 : -1;
+    f.shift = (ui->mods & CUI_MOD_SHIFT) != 0;
+    f.RR = cui__prev_rect(ui, f.ramp_id); f.TR = cui__prev_rect(ui, f.track_id);
+    f.have = f.RR.w > 0 && f.TR.w > 0;
+    f.mx = ui->mx; f.my = ui->my;
+    f.remove = f.pending = -1;
 
-    /* the stop being dragged; it may pass its neighbours (the array stays
-     * sorted and the drag, focus and selection follow it) */
-    for (int i = 0; i < n && have; i++) {
-        cui_id sid = cui__gr_stop_id(id, i);
-        if (ui->active != sid) continue;
-        if (ui->mdown[0] && !ui->mpressed[0]) {
-            bool away = n > 2 && (my > TR.y + TR.h + CUI__GR_AWAY || my < RR.y - CUI__GR_AWAY);
-            st->pending = away;
-            if (away) { pending = i; pending_dy = my - (TR.y + TR.h * 0.5f); }
-            else {
-                float pos = cui__clampf((mx - st->grab - RR.x) / RR.w, 0, 1);
-                if (pos != stops[i].pos) {
-                    stops[i].pos = pos;
-                    res.changed = true;
-                    int j = cui__gr_resort(stops, n, i);
-                    if (j != i) {
-                        ui->active = cui__gr_stop_id(id, j);
-                        if (ui->focus == sid) ui->focus = ui->active;
-                    }
-                    sel = j;
-                }
-            }
-        } else if (ui->mreleased[0]) {
-            if (st->pending && n > 2) remove = i;
-            st->pending = false;
-        }
-        break;
-    }
+    /* input */
+    if (f.have) cui__grf_drag(&f);
+    f.hot = f.focus = -1;
+    cui__grf_stops(&f);
+    cui__grf_add(&f);
 
-    /* stops: press selects and grabs, a double click opens the picker */
-    int hot = -1, focus = -1, nudge = -1;
-    float nudge_d = 0;
-    for (int i = 0; i < n; i++) {
-        cui_interact r = cui__interact(ui, cui__gr_stop_id(id, i), CUI_IF_FOCUSABLE | CUI_IF_DRAG);
-        if (r.pressed && ui->mpressed[0] && have) {
-            sel = i;
-            st->grab = mx - (RR.x + stops[i].pos * RR.w);
-            st->pending = false;
-            if (r.double_clicked) open_picker = true;
-        }
-        if (r.hovered || r.active) { hot = i; cui__set_cursor(ui, r.active ? CUI_CURSOR_MOVE : CUI_CURSOR_HAND); }
-        if (r.focus_visible) {
-            focus = i;
-            sel = i;
-            float step = shift ? 0.001f : 0.01f;
-            if (cui_key_pressed(ui, CUI_KEY_LEFT)) { nudge = i; nudge_d -= step; }
-            if (cui_key_pressed(ui, CUI_KEY_RIGHT)) { nudge = i; nudge_d += step; }
-            if (r.keyboard_activate) open_picker = true;
-        }
-        if (r.focused && (cui_key_pressed(ui, CUI_KEY_DELETE) || cui_key_pressed(ui, CUI_KEY_BACKSPACE))) remove = i;
-    }
-    if (nudge >= 0) {
-        float pos = cui__clampf(stops[nudge].pos + nudge_d, 0, 1);
-        if (pos != stops[nudge].pos) {
-            cui_id was = cui__gr_stop_id(id, nudge);
-            stops[nudge].pos = pos;
-            res.changed = true;
-            int j = cui__gr_resort(stops, n, nudge);
-            if (ui->focus == was) ui->focus = cui__gr_stop_id(id, j);
-            sel = j;
-            focus = j;
-        }
-    }
-    /* the ramp and the empty track: a press adds a stop there and drags it */
-    cui_interact rr = cui__interact(ui, ramp_id, CUI_IF_DRAG);
-    cui_interact tr = cui__interact(ui, track_id, CUI_IF_DRAG);
-    if ((rr.hovered || tr.hovered) && n < capacity) cui__set_cursor(ui, CUI_CURSOR_HAND);
-    if (((rr.pressed || tr.pressed) && ui->mpressed[0]) && have && stops && count && n < capacity && remove < 0) {
-        float pos = cui__clampf((mx - RR.x) / RR.w, 0, 1);
-        cui_gradient_stop ns;
-        ns.pos = pos;
-        ns.color = cui_gradient_eval(stops, n, pos);
-        int j = 0;
-        while (j < n && stops[j].pos <= pos) j++;
-        memmove(&stops[j + 1], &stops[j], sizeof *stops * (size_t)(n - j));
-        stops[j] = ns;
-        n++;
-        *count = n;
-        sel = j;
-        res.added = j;
-        res.changed = true;
-        ui->active = ui->focus = cui__gr_stop_id(id, j);
-        ui->focus_visible = false;
-        st->grab = 0;
-        st->pending = false;
-    }
-
-    /* ---- build ---- */
-    bool any_alpha = false;
-    for (int i = 0; i < n; i++) if (stops[i].color.a < 255) any_alpha = true;
-    bool dark = ui->mode == CUI_THEME_DARK;
-    cui_color light = CUI_C(ui, SURFACE), darkc = cui_mix(CUI_C(ui, SURFACE), CUI_C(ui, FOREGROUND), dark ? 0.16f : 0.1f);
-    cui_color edge = cui_alpha(CUI_C(ui, FOREGROUND), dark ? 0.16f : 0.12f);
-    cui_gradient_stop *copy = cui__frame_alloc(ui, sizeof(cui_gradient_stop) * (size_t)CUI_MAX(1, n));
-    if (n) memcpy(copy, stops, sizeof(cui_gradient_stop) * (size_t)n);
-
-    int outer = cui__node_new(ui, id);
+    /* build */
+    int outer = cui__node_new(ui, f.id);
     cui_node *on = &ui->nodes[outer];
     on->w = o->width.kind ? o->width : CUI_FILL;
     on->gap = 0;
     cui__open(ui, outer);
     cui_push_id(ui, id_str);
-    int bars = cui__node_new(ui, 0);   /* the ramp and the track, inset so the end markers fit */
-    ui->nodes[bars].w = CUI_FILL;
-    ui->nodes[bars].pad[1] = ui->nodes[bars].pad[3] = CUI__GR_PAD;
-    ui->nodes[bars].gap = 0;
-    cui__open(ui, bars);
-    int ramp = cui__leaf(ui, ramp_id, CUI_FILL, CUI_PX(o->height > 0 ? o->height : CUI__GR_RAMP_H));
-    cui__mark_interactive(ui, ramp, 0);
-    cui__gr_ramp_paint *rp = cui__frame_alloc(ui, sizeof *rp);
-    rp->stops = copy; rp->n = n; rp->light = light; rp->dark = darkc; rp->edge = edge; rp->alpha = any_alpha;
-    ui->nodes[ramp].paint = cui__paint_gradient_ramp;
-    ui->nodes[ramp].paint_data = rp;
-    int track = cui__node_new(ui, track_id);
-    ui->nodes[track].w = CUI_FILL;
-    ui->nodes[track].h = CUI_PX(CUI__GR_TRACK_H);
-    cui__mark_interactive(ui, track, 0);
-    cui__gr_track_paint *tp = cui__frame_alloc(ui, sizeof *tp);
-    tp->stops = copy; tp->n = n; tp->sel = sel; tp->focus = focus; tp->hot = hot;
-    tp->pending = pending; tp->pending_dy = pending_dy;
-    tp->light = light; tp->dark = darkc; tp->edge = edge;
-    tp->ring = CUI_C(ui, BORDER_STRONG); tp->ring_on = cui__cv_accent(ui); tp->surface = CUI_C(ui, SURFACE);
-    ui->nodes[track].paint = cui__paint_gradient_track;
-    ui->nodes[track].paint_data = tp;
-    cui__open(ui, track);
-    if (have)
-        for (int i = 0; i < n; i++) {
-            float cx = RR.x + stops[i].pos * RR.w;
-            int a = cui__absolute(ui, cui__gr_stop_id(id, i), cx - TR.x - CUI__GR_HIT_W * 0.5f, 0, CUI__GR_HIT_W, CUI__GR_TRACK_H);
-            cui__mark_interactive(ui, a, CUI_IF_FOCUSABLE);
-        }
-    cui__close(ui);   /* track */
-    cui__close(ui);   /* bars */
-
-    /* the selected stop: color (the picker), location, opacity */
-    cui_rect orr = cui__prev_rect(ui, id);
+    cui__grf_build_bars(&f);
+    cui_rect orr = cui__prev_rect(ui, f.id);
     bool narrow = orr.w > 0 && orr.w < CUI__GR_NARROW, tiny = orr.w > 0 && orr.w < CUI__CV_TINY;
     int row = cui__node_new(ui, 0);
     cui_node *rn = &ui->nodes[row];
@@ -996,60 +1184,12 @@ cui_gradient_result cui_gradient_editor_ex(cui_ctx *ui, const char *id_str, cui_
     rn->gap = 8;
     rn->pad[0] = 6;
     cui__open(ui, row);
-    if (sel >= 0 && sel < n) {
-        cui_gradient_stop *s = &stops[sel];
-        cui_id cid = cui_make_id(ui, "##color");
-        if (open_picker) cui__color_picker_open(ui, cid, s->color);
-        int line1 = -1;
-        if (narrow) { line1 = cui__node_new(ui, 0); ui->nodes[line1].dir = CUI_ROW; ui->nodes[line1].gap = 8; ui->nodes[line1].align = CUI_ALIGN_CENTER; cui__open(ui, line1); }
-        cui_color c = s->color;
-        uint8_t alpha = c.a;
-        if (cui_color_picker(ui, "##color", &c)) {
-            c.a = alpha;   /* the picker edits the color; opacity has its own field */
-            if (memcmp(&c, &s->color, sizeof c) != 0) { s->color = c; res.changed = true; }
-        }
-        int pk = ui->nodes[cui__current(ui)].last;
-        if (narrow && pk >= 0 && ui->nodes[pk].id == cid) ui->nodes[pk].w = CUI_GROW(1);
-        cui_button_opts bo; memset(&bo, 0, sizeof bo);
-        bo.variant = CUI_BUTTON_GHOST;
-        bo.tooltip = "Remove stop";
-        bo.disabled = n <= 2;
-        bool del = false;
-        if (narrow) {
-            del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
-            cui__close(ui);
-            int line2 = cui__node_new(ui, 0);
-            ui->nodes[line2].dir = tiny ? CUI_COLUMN : CUI_ROW; ui->nodes[line2].gap = 8;
-            cui__open(ui, line2);
-        }
-        cui_scrub_opts lo; memset(&lo, 0, sizeof lo);
-        lo.step = 1; lo.format = "%.0f"; lo.suffix = "%";
-        lo.width = narrow ? CUI_GROW(1) : CUI_PX(140);
-        cui_scrub_opts ao = lo;
-        float loc = s->pos * 100.0f, op = (float)s->color.a * (100.0f / 255.0f);
-        if (cui_scrub_ex(ui, "Location", &loc, 0, 100, &lo)) {
-            s->pos = cui__clampf(loc / 100.0f, 0, 1);
-            res.changed = true;
-            int was = sel;
-            sel = cui__gr_resort(stops, n, sel);
-            if (sel != was && ui->focus == cui__gr_stop_id(id, was)) ui->focus = cui__gr_stop_id(id, sel);
-            s = &stops[sel];
-        }
-        if (cui_scrub_ex(ui, "Opacity", &op, 0, 100, &ao)) {
-            s->color.a = (uint8_t)CUI_CLAMP(op * 2.55f + 0.5f, 0.0f, 255.0f);
-            res.changed = true;
-        }
-        if (narrow) cui__close(ui);
-        else {
-            cui_spacer(ui);
-            del = cui_icon_button_ex(ui, CUI_ICON_TRASH_2, &bo);
-        }
-        if (del) remove = sel;
-    }
+    if (f.sel >= 0 && f.sel < f.n) cui__grf_build_stop_fields(&f, narrow, tiny);
     cui__close(ui);   /* row */
     cui_pop_id(ui);
     cui__close(ui);   /* outer */
 
+    int n = f.n, sel = f.sel, remove = f.remove;
     if (remove >= 0 && remove < n && n > 2) {
         memmove(&stops[remove], &stops[remove + 1], sizeof *stops * (size_t)(n - remove - 1));
         n--;
@@ -1057,10 +1197,10 @@ cui_gradient_result cui_gradient_editor_ex(cui_ctx *ui, const char *id_str, cui_
         res.removed = remove;
         res.changed = true;
         sel = CUI_MIN(remove, n - 1);
-        if (ui->focus == cui__gr_stop_id(id, remove)) ui->focus = cui__gr_stop_id(id, sel);
+        if (ui->focus == cui__gr_stop_id(f.id, remove)) ui->focus = cui__gr_stop_id(f.id, sel);
     }
     *selp = sel;
     res.selected = sel;
-    ui->last_id = id;
+    ui->last_id = f.id;
     return res;
 }

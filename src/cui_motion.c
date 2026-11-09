@@ -2,12 +2,11 @@
  * loaders, dock, tab bar, control tiles, waveform and a now playing card. */
 #include "cui_internal.h"
 
-#define cui__fs cui__fsz
 
 static bool cui__still(cui_ctx *ui) { return ui->theme.motion <= 0.0f; }
 
 static cui_color cui__mo_accent(cui_ctx *ui) {
-    return ui->accent == CUI_ACCENT_NEUTRAL ? CUI_C(ui, FOREGROUND) : CUI_C(ui, ACCENT);
+    return cui__emphasis(ui);
 }
 
 static int cui__fx_text_node(cui_ctx *ui, const char *text, const cui_text_fx_opts *o, cui_color c) {
@@ -483,7 +482,7 @@ void cui_spotlight_begin(cui_ctx *ui, const char *id_str, const cui_spotlight_op
     nd->border = 1; nd->border_color = CUI_C(ui, BORDER);   /* rests on its edge, like any card: no shadow */
     cui__spot_paint *p = cui__frame_alloc(ui, sizeof *p);
     p->hover = st->hover; p->mx = st->mx; p->my = st->my;
-    p->c = cui__color_set(o->color) ? cui_color_of(ui, o->color) : (ui->accent == CUI_ACCENT_NEUTRAL ? CUI_C(ui, FOREGROUND) : CUI_C(ui, ACCENT));
+    p->c = cui__color_set(o->color) ? cui_color_of(ui, o->color) : (cui__emphasis(ui));
     p->beam = o->beam && !cui__still(ui);
     p->t = (float)fmod(ui->time, 10000.0);
     nd->paint = cui__paint_spot_over;   /* the lit edge, above the content */
@@ -496,14 +495,14 @@ void cui_spotlight_begin(cui_ctx *ui, const char *id_str, const cui_spotlight_op
     ui->nodes[over].paint = cui__paint_spot_under;
     ui->nodes[over].paint_data = p;
     struct cui_spot_build *b = cui__frame_alloc(ui, sizeof *b);
-    b->node = over; b->prev = (struct cui_spot_build *)ui->spot;
-    ui->spot = b;
+    b->node = over; b->prev = (struct cui_spot_build *)ui->building.spot;
+    ui->building.spot = b;
     ui->last_id = id;
 }
 
 void cui_spotlight_end(cui_ctx *ui) {
-    struct cui_spot_build *b = (struct cui_spot_build *)ui->spot;
-    if (b) ui->spot = b->prev;
+    struct cui_spot_build *b = (struct cui_spot_build *)ui->building.spot;
+    if (b) ui->building.spot = b->prev;
     cui__close(ui);
 }
 
@@ -617,8 +616,8 @@ void cui_dock_begin(cui_ctx *ui, const char *id_str, const cui_dock_opts *o) {
         /* squeezed onto a narrow screen there is no room to magnify (and no hover on a phone) */
         if (fit < b->size) { b->size = CUI_MAX(24.0f, fit); b->mag = 1; }
     }
-    b->prev = (struct cui_dock_build *)ui->dock;
-    ui->dock = b;
+    b->prev = (struct cui_dock_build *)ui->building.dock;
+    ui->building.dock = b;
     cui_rect pr = cui__prev_rect(ui, b->id);
     float reach = b->size * (b->mag - 1) + 16;
     b->hot = pr.w > 0 && ui->mx >= pr.x - 8 && ui->mx < pr.x + pr.w + 8 && ui->my >= pr.y - reach && ui->my < pr.y + pr.h + 4 && ui->mouse_inside;
@@ -663,7 +662,7 @@ bool cui_dock_item_ex(cui_ctx *ui, const char *icon, const char *label, const cu
     cui_dock_item_opts d;
     memset(&d, 0, sizeof d);
     if (!o) o = &d;
-    struct cui_dock_build *b = (struct cui_dock_build *)ui->dock;
+    struct cui_dock_build *b = (struct cui_dock_build *)ui->building.dock;
     if (!b) return false;
     int k = b->k++;
     cui_id iid = cui__hash(&k, sizeof k, b->id ^ 0xD0Cu);
@@ -699,7 +698,7 @@ bool cui_dock_item_ex(cui_ctx *ui, const char *icon, const char *label, const cu
 }
 
 void cui_dock_separator(cui_ctx *ui) {
-    struct cui_dock_build *b = (struct cui_dock_build *)ui->dock;
+    struct cui_dock_build *b = (struct cui_dock_build *)ui->building.dock;
     float h = b ? b->size * 0.7f : 30;
     int n = cui__leaf(ui, 0, CUI_PX(1), CUI_PX(h));
     ui->nodes[n].bg = CUI_C(ui, BORDER);
@@ -708,13 +707,13 @@ void cui_dock_separator(cui_ctx *ui) {
 }
 
 void cui_dock_end(cui_ctx *ui) {
-    struct cui_dock_build *b = (struct cui_dock_build *)ui->dock;
+    struct cui_dock_build *b = (struct cui_dock_build *)ui->building.dock;
     if (!b) return;
     cui_pop_id(ui);
     cui__close(ui);
     cui__dock_count *dc = cui_state(ui, b->id ^ 0xD0C5u, sizeof *dc);
     dc->items = b->k; dc->seps = b->seps;
-    ui->dock = b->prev;
+    ui->building.dock = b->prev;
     ui->last_id = b->id;
 }
 
@@ -978,9 +977,9 @@ static const char *cui__mmss(cui_ctx *ui, float s) {
     return cui__frame_printf(ui, "%d:%02d", t / 60, t % 60);
 }
 
-typedef struct { float frac, hover; } cui__scrub_paint;
-static void cui__paint_scrub(cui_ctx *ui, cui_node *n, void *data) {
-    cui__scrub_paint *p = data;
+typedef struct { float frac, hover; } cui__np_scrub_paint;
+static void cui__paint_np_scrub(cui_ctx *ui, cui_node *n, void *data) {
+    cui__np_scrub_paint *p = data;
     cui_rect r = n->rect;
     float th = 4 + 2 * p->hover, y = r.y + (r.h - th) * 0.5f;
     cui_draw_rect(ui, (cui_rect){ r.x, y, r.w, th }, CUI_CORNERS(th * 0.5f), CUI_C(ui, CONTROL_TRACK));
@@ -1104,9 +1103,9 @@ int cui_now_playing_ex(cui_ctx *ui, const char *id_str, cui_now_playing *np, con
     int t0 = cui__text_node(ui, cui__mmss(ui, pos), -1, CUI_FONT_BODY, fx, CUI_C(ui, TEXT_MUTED), false);
     ui->nodes[t0].flags |= CUI_NF_TABULAR; ui->nodes[t0].line_height = 1.2f;
     int bar = cui__leaf(ui, sid, CUI_FILL, CUI_PX(14));
-    cui__scrub_paint *sp = cui__frame_alloc(ui, sizeof *sp);
+    cui__np_scrub_paint *sp = cui__frame_alloc(ui, sizeof *sp);
     sp->frac = frac; sp->hover = st->hover;
-    ui->nodes[bar].paint = cui__paint_scrub;
+    ui->nodes[bar].paint = cui__paint_np_scrub;
     ui->nodes[bar].paint_data = sp;
     cui__mark_interactive(ui, bar, CUI_IF_DRAG);
     int t1 = cui__text_node(ui, cui__frame_printf(ui, "-%s", cui__mmss(ui, np->duration - pos)), -1, CUI_FONT_BODY, fx, CUI_C(ui, TEXT_MUTED), false);

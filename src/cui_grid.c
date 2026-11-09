@@ -1,7 +1,6 @@
 /* Data grid, tree cells and the filter bar. */
 #include "cui_internal.h"
 
-#define cui__fs cui__fsz
 #define CUI__GRID_COLS 32
 #define CUI__GRID_HEAD 40.0f
 #define CUI__GRID_CHECK 44.0f
@@ -37,7 +36,6 @@ struct cui_grid_build {
 };
 
 
-static cui_color cui__accent_or_fg_c(cui_ctx *ui) { return ui->accent == CUI_ACCENT_NEUTRAL ? CUI_C(ui, FOREGROUND) : CUI_C(ui, ACCENT); }
 
 typedef struct { float t, mixed; } cui__gcheck_paint;
 static void cui__paint_grid_check(cui_ctx *ui, cui_node *n, void *data) {
@@ -266,7 +264,7 @@ bool cui_data_grid_begin_ex(cui_ctx *ui, const char *id_str, const cui_grid_colu
             if (rr.hovered || active) {
                 cui__set_cursor(ui, CUI_CURSOR_RESIZE_EW);
                 int bar = cui__absolute(ui, 0, 5, 9, 2, CUI__GRID_HEAD - 18);
-                ui->nodes[bar].bg = active ? cui__accent_or_fg_c(ui) : CUI_C(ui, BORDER_STRONG);
+                ui->nodes[bar].bg = active ? cui__emphasis(ui) : CUI_C(ui, BORDER_STRONG);
                 ui->nodes[bar].radius = CUI_CORNERS(1);
                 (void)bar;
             }
@@ -281,7 +279,7 @@ bool cui_data_grid_begin_ex(cui_ctx *ui, const char *id_str, const cui_grid_colu
     cui__leaf(ui, 0, CUI_PX(total), CUI_PX(CUI__GRID_HEAD));   /* the header's place */
     if (f > 0) cui__leaf(ui, 0, CUI_PX(total), CUI_PX(f * b->row_h));
     if (b->focused) cui__focus_ring(ui, outer, ui->focus_visible ? 1.0f : 0.0f);
-    ui->grid = b;
+    ui->building.grid = b;
     return true;
 }
 
@@ -296,7 +294,7 @@ static void cui__grid_close_row(cui_ctx *ui, struct cui_grid_build *b) {
 }
 
 bool cui_data_grid_row(cui_ctx *ui, int row) {
-    struct cui_grid_build *b = ui->grid;
+    struct cui_grid_build *b = ui->building.grid;
     if (!b) return false;
     cui__grid_close_row(ui, b);
     cui__grid_state *st = b->st;
@@ -346,7 +344,7 @@ bool cui_data_grid_row(cui_ctx *ui, int row) {
     if (b->focused && st->cursor == row && ui->focus_visible) {
         /* keyboard cursor: an accent bar on the left edge */
         int bar = cui__absolute(ui, 0, 0, 0, 2, b->row_h);
-        ui->nodes[bar].bg = cui__accent_or_fg_c(ui);
+        ui->nodes[bar].bg = cui__emphasis(ui);
     }
     cui_push_id_int(ui, row);
     b->row = row; b->col = 0; b->in_row = true;
@@ -366,7 +364,7 @@ bool cui_data_grid_row(cui_ctx *ui, int row) {
 }
 
 void cui_data_grid_cell(cui_ctx *ui) {
-    struct cui_grid_build *b = ui->grid;
+    struct cui_grid_build *b = ui->building.grid;
     if (!b || !b->in_row) return;
     if (b->col > 0) cui__close(ui);
     if (b->col >= b->ncols) { b->col++; int c = cui__node_new(ui, 0); cui__open(ui, c); return; }
@@ -393,7 +391,7 @@ void cui_data_grid_cell(cui_ctx *ui) {
 
 void cui_data_grid_cell_text(cui_ctx *ui, const char *text) {
     cui_data_grid_cell(ui);
-    struct cui_grid_build *b = ui->grid;
+    struct cui_grid_build *b = ui->building.grid;
     bool right = b && b->col - 1 < b->ncols && b->cols[b->col - 1].align == CUI_TEXT_RIGHT;
     /* single line text: cut short, it shows the whole value on hover */
     cui_text_opts to;
@@ -403,14 +401,14 @@ void cui_data_grid_cell_text(cui_ctx *ui, const char *text) {
 }
 
 bool cui_data_grid_cell_edit(cui_ctx *ui, char *buf, size_t cap) {
-    struct cui_grid_build *b = ui->grid;
+    struct cui_grid_build *b = ui->building.grid;
     if (!b || !b->in_row) return false;
     cui_data_grid_cell(ui);
     return cui_data_grid_edit(ui, buf, cap);
 }
 
 bool cui_data_grid_edit(cui_ctx *ui, char *buf, size_t cap) {
-    struct cui_grid_build *b = ui->grid;
+    struct cui_grid_build *b = ui->building.grid;
     if (!b || !b->in_row || b->col <= 0) return false;
     cui__grid_state *st = b->st;
     int col = b->col - 1;
@@ -465,7 +463,7 @@ bool cui_data_grid_edit(cui_ctx *ui, char *buf, size_t cap) {
 }
 
 void cui_data_grid_end(cui_ctx *ui) {
-    struct cui_grid_build *b = ui->grid;
+    struct cui_grid_build *b = ui->building.grid;
     if (!b) return;
     cui__grid_close_row(ui, b);
     if (b->last < b->nrows) cui__leaf(ui, 0, CUI_PX(b->total_w), CUI_PX((b->nrows - b->last) * b->row_h));
@@ -481,7 +479,7 @@ void cui_data_grid_end(cui_ctx *ui) {
     cui__scroll_end_ex(ui);
     cui__close(ui);          /* frame */
     ui->last_id = b->id;
-    ui->grid = NULL;
+    ui->building.grid = NULL;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -533,13 +531,13 @@ bool cui_tree_cell(cui_ctx *ui, const char *label, int depth, bool has_children,
 
 static int cui__popcount(uint32_t v) { int n = 0; while (v) { n += v & 1; v >>= 1; } return n; }
 
-typedef struct { uint32_t active; } cui__fb_state;   /* fields shown as chips even with nothing picked */
+typedef struct { uint32_t active; } cui__filter_bar_state;   /* fields shown as chips even with nothing picked */
 
 bool cui_filter_bar(cui_ctx *ui, const char *id_str, const cui_filter_field *fields, int count, uint32_t *selected,
                     char *search, size_t search_cap) {
     if (count > 32) count = 32;
     cui_id id = cui_make_id(ui, id_str);
-    cui__fb_state *st = cui_state(ui, id, sizeof *st);
+    cui__filter_bar_state *st = cui_state(ui, id, sizeof *st);
     bool changed = false;
     cui_push_id(ui, id_str);
     int row = cui__node_new(ui, id);

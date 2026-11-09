@@ -11,7 +11,6 @@ float cui__control_height(cui_ctx *ui, cui_control_size s) {
     return s == CUI_SIZE_SM ? t->control_sm : s == CUI_SIZE_LG ? t->control_lg : t->control_md;
 }
 
-static float cui__fs(cui_ctx *ui, float size) { return size * ui->theme.font_scale; }
 
 void cui__label_text(cui_ctx *ui, const char *label, cui_font font, float size, cui_color color) {
     int len = cui__display_len(label);
@@ -1207,8 +1206,8 @@ void cui_split_begin(cui_ctx *ui, const char *id_str, float *ratio, const cui_sp
     b->id = id; b->ratio = ratio; b->vertical = o->vertical;
     b->min1 = o->min_first > 0 ? o->min_first : 120;
     b->min2 = o->min_second > 0 ? o->min_second : 120;
-    b->prev = ui->split;
-    ui->split = b;
+    b->prev = ui->building.split;
+    ui->building.split = b;
     cui_rect pr = cui__prev_rect(ui, id);
     cui_id hid = id ^ 0x77u;
     cui_interact r = cui__interact(ui, hid, CUI_IF_DRAG);
@@ -1255,7 +1254,7 @@ static void cui__paint_split_handle(cui_ctx *ui, cui_node *n, void *data) {
 }
 
 void cui_split_next(cui_ctx *ui) {
-    struct cui_split_build *b = ui->split;
+    struct cui_split_build *b = ui->building.split;
     if (!b) return;
     cui__close(ui);
     /* the divider takes one point of layout, so panes with their own background meet at the line;
@@ -1284,9 +1283,9 @@ void cui_split_next(cui_ctx *ui) {
 }
 
 void cui_split_end(cui_ctx *ui) {
-    struct cui_split_build *b = ui->split;
+    struct cui_split_build *b = ui->building.split;
     if (!b) return;
     cui__close(ui);   /* second pane */
     cui__close(ui);   /* container */
-    ui->split = b->prev;
+    ui->building.split = b->prev;
 }
