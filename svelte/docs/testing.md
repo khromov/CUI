@@ -56,4 +56,12 @@ npm test                 # every test/**/*.test.ts and examples/**/*.test.ts
 node test/run.ts css     # the ones whose path contains "css"
 VERBOSE=1 npm test       # with each file's output
 npm run typecheck        # tsc and svelte-check
+node test/codegen/codegen.ts --update   # after a change to the compiler's output; review with git diff
 ```
+
+`test/codegen` is the compiler's golden output. It compiles every component under `test/` and
+`examples/`, plus a corpus that uses each component of `components.ts` four ways (static props,
+other static values, dynamic props with every event, bound props), and compares the generated
+C, skeleton and metadata byte for byte with `test/codegen/snapshots/`. The tests reach about
+half of the components, so a refactor that should not change the output proves it here, and
+one that should shows how in the snapshot diff.

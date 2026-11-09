@@ -40,7 +40,7 @@ fine for anything but the window itself.
 | | |
 |---|---|
 | `cui-svelte dev main.ts` | A debug build in a window; reloads on save (see below) |
-| `cui-svelte run main.ts [--release]` | Build and start once |
+| `cui-svelte run main.ts [--release] [-- args]` | Build and start once; arguments after `--` go to the app |
 | `cui-svelte build main.ts [--out file]` | A release binary in `dist/` with everything inside |
 | `cui-svelte build main.ts --web` | `dist-web/`: the browser build ([Web](web.md)) |
 | `cui-svelte build main.ts --app` | `dist/Name.app`: a macOS application (below) |
