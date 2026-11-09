@@ -344,6 +344,32 @@ FN(get_accent) {
     return JS_NewString(c, ui ? cui_accent_name(cui_get_accent(ui)) : "neutral");
 }
 
+/* set_strings(list | null): the list is in cui_strings' field order (see cuisv_strings_set);
+ * an entry that is not a string stays English, and null restores English everywhere. */
+FN(set_strings) {
+    UNUSED;
+    const char *items[CUISV_STRINGS_COUNT] = { 0 };
+    size_t lens[CUISV_STRINGS_COUNT] = { 0 };
+    int n = 0;
+    bool failed = false;
+    if (JS_IsArray(argv[0])) {
+        for (; n < CUISV_STRINGS_COUNT; n++) {
+            JSValue v = JS_GetPropertyUint32(c, argv[0], (uint32_t)n);
+            if (JS_IsException(v)) { failed = true; break; }
+            if (JS_IsString(v) && !(items[n] = JS_ToCStringLen(c, &lens[n], v))) failed = true;
+            JS_FreeValue(c, v);
+            if (failed) break;
+        }
+    }
+    if (!failed) {
+        cuisv_strings_set(items, lens, n);
+        cuisv_strings_apply(cuisv_ui());
+        cuisv_request_redraw();
+    }
+    for (int i = 0; i < n; i++) if (items[i]) JS_FreeCString(c, items[i]);
+    return failed ? JS_EXCEPTION : JS_UNDEFINED;
+}
+
 FN(args) {
     UNUSED; (void)argv;
     JSValue arr = JS_NewArray(c);
@@ -695,6 +721,7 @@ static void setup(JSContext *c, JSValue bridge) {
         JS_CFUNC_DEF("get_theme", 0, cuisva_get_theme),
         JS_CFUNC_DEF("set_accent", 1, cuisva_set_accent),
         JS_CFUNC_DEF("get_accent", 0, cuisva_get_accent),
+        JS_CFUNC_DEF("set_strings", 1, cuisva_set_strings),
         JS_CFUNC_DEF("args", 0, cuisva_args),
         JS_CFUNC_DEF("getenv", 1, cuisva_getenv),
         JS_CFUNC_DEF("platform", 0, cuisva_platform),

@@ -73,6 +73,20 @@ export async function boot(o: BootOptions) {
 			x.web_free(p);
 		}
 	};
+	/** A string list as cuisv_web.c reads it: a u32 count, then a u32 length and the bytes of each. */
+	const pack_strs = (v: ArrayLike<unknown>) => {
+		const parts = Array.from(v, (s) => enc.encode(String(s)));
+		const buf = new Uint8Array(4 + parts.reduce((n, b) => n + 4 + b.length, 0));
+		const view = new DataView(buf.buffer);
+		view.setUint32(0, parts.length, true);
+		let at = 4;
+		for (const b of parts) {
+			view.setUint32(at, b.length, true);
+			buf.set(b, at + 4);
+			at += 4 + b.length;
+		}
+		return buf;
+	};
 	const with_bytes = <T>(b: Uint8Array, fn: (p: number, n: number) => T): T => {
 		const p = put(b);
 		try {
@@ -105,21 +119,7 @@ export async function boot(o: BootOptions) {
 		str: (h, i, v) => (with_str(v, (p, n) => x.cuisv_w_str(h, i, p, n)), mark()),
 		unset: (h, i) => (x.cuisv_w_unset(h, i), mark()),
 		fn: (h, i, present) => (x.cuisv_w_fn(h, i, present ? 1 : 0), mark()),
-		strs: (h, i, v) => {
-			const parts = Array.from(v, (s) => enc.encode(String(s)));
-			const total = 4 + parts.reduce((n, b) => n + 4 + b.length, 0);
-			const buf = new Uint8Array(total);
-			const view = new DataView(buf.buffer);
-			view.setUint32(0, parts.length, true);
-			let at = 4;
-			for (const b of parts) {
-				view.setUint32(at, b.length, true);
-				buf.set(b, at + 4);
-				at += 4 + b.length;
-			}
-			with_bytes(buf, (p, n) => x.cuisv_w_strs(h, i, p, n));
-			mark();
-		},
+		strs: (h, i, v) => (with_bytes(pack_strs(v), (p, n) => x.cuisv_w_strs(h, i, p, n)), mark()),
 		floats: (h, i, v) => (with_floats(v, (p, n) => x.cuisv_w_floats(h, i, p, n)), mark()),
 		blob: (h, i, v) => (with_bytes(v instanceof Uint8Array ? v : new Uint8Array(v), (p, n) => x.cuisv_w_blob(h, i, p, n)), mark()),
 		timeout: (fn, ms, repeat) => (repeat ? setInterval(fn, ms) : setTimeout(fn, ms)) as unknown as number,
@@ -151,6 +151,7 @@ export async function boot(o: BootOptions) {
 		get_theme: () => (x.cuisv_w_theme_dark() ? 'dark' : 'light'),
 		set_accent: (a: string) => (x.inst_set_accent(inst, ACCENTS.indexOf(a)), mark()),
 		get_accent: () => ACCENTS[x.inst_get_accent(inst)] ?? 'neutral',
+		set_strings: (list: string[] | null) => (with_bytes(pack_strs(list ?? []), (p, n) => x.cuisv_w_set_strings(p, n)), mark()),
 		args: () => [location.href],
 		getenv: () => undefined,
 		platform: () => 'web',

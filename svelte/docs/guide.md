@@ -27,6 +27,7 @@ run(App, {
 	theme: 'system',           // 'light' (default), 'dark', or follow the OS
 	accent: 'blue',            // neutral, violet, blue, green, amber, orange, coral, rose
 	app_id: 'com.example.notes', // names the data folder (localStorage); default the binary name
+	strings: es,               // month and weekday names in another language (host.md)
 	props: { /* App's props */ }
 });
 ```

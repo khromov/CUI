@@ -714,4 +714,5 @@ void cuisv_runtime_shutdown(void) {
         root_scope->sites[0].first = root_scope->sites[0].last = NULL;
     }
     cuisv_events_clear();
+    cuisv_strings_set(NULL, NULL, 0);
 }

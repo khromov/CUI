@@ -71,6 +71,49 @@ void cuisv_open_url(const char *url) {
     if (url && *url) cuisv_host_open_url(url);
 }
 
+/* ---- text for another language ------------------------------------------------------------
+ * CUI keeps the cui_strings pointer and reads it every frame, so the runtime owns one table and
+ * copies the app's text into it. JS sends a flat list in the field order of cui_strings (month,
+ * month_short, weekday, weekday_short, weekday_min, today); an empty or missing entry stays
+ * English. Changes land between frames, when CUI holds no text from the table. */
+
+static cui_strings strings_table;
+static bool strings_on;
+
+static const char **strings_slot(int i) {
+    cui_strings *t = &strings_table;
+    if (i < 12) return &t->month[i];
+    if ((i -= 12) < 12) return &t->month_short[i];
+    if ((i -= 12) < 7) return &t->weekday[i];
+    if ((i -= 7) < 7) return &t->weekday_short[i];
+    if ((i -= 7) < 7) return &t->weekday_min[i];
+    return i == 7 ? &t->today : NULL;
+}
+
+/* n == 0 (or no items) restores English. */
+void cuisv_strings_set(const char *const *items, const size_t *lens, int n) {
+    for (int i = 0; i < CUISV_STRINGS_COUNT; i++) {
+        const char **s = strings_slot(i);
+        free((char *)*s);
+        *s = NULL;
+    }
+    strings_on = items && lens && n > 0;
+    if (!strings_on) return;
+    if (n > CUISV_STRINGS_COUNT) n = CUISV_STRINGS_COUNT;
+    for (int i = 0; i < n; i++) {
+        if (!items[i] || !lens[i]) continue;
+        char *copy = malloc(lens[i] + 1);
+        if (!copy) continue;
+        memcpy(copy, items[i], lens[i]);
+        copy[lens[i]] = 0;
+        *strings_slot(i) = copy;
+    }
+}
+
+void cuisv_strings_apply(cui_ctx *ui) {
+    if (ui) cui_set_strings(ui, strings_on ? &strings_table : NULL);
+}
+
 /* ---- log and terminal buffers ------------------------------------------------------------- */
 
 typedef struct host_buffer {

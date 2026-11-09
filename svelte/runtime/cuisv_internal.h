@@ -48,6 +48,12 @@ void cuisv_host_open_url(const char *url);
 cui_texture cuisv_host_load_image(cui_ctx *ui, const char *path, int *w, int *h);
 double cuisv_host_now_ms(void);
 
+/* CUI's own text for another language, set_strings() in JS (cuisv_services.c): items in the
+ * field order of cui_strings, each with its byte length; empty ones stay English. */
+#define CUISV_STRINGS_COUNT 46   /* 12 + 12 months, 3 x 7 weekdays, "Today" */
+void cuisv_strings_set(const char *const *items, const size_t *lens, int n);
+void cuisv_strings_apply(cui_ctx *ui);   /* points ui at the table, or back at English */
+
 /* LogBuffer / TerminalBuffer storage (cuisv_services.c). */
 int cuisv_buffer_new(int kind, int line_cap, size_t text_cap);
 void cuisv_buffer_write(double handle, const char *s, size_t len, int level);

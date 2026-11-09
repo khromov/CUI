@@ -40,18 +40,48 @@ export interface RunOptions<Props extends Record<string, unknown> = Record<strin
 	renderer?: 'auto' | 'opengl' | 'software';
 	/** Names the app's data folder (localStorage, paths.data()); default the binary's name. */
 	app_id?: string;
+	/** The components' own text in another language; see Strings. Default English. */
+	strings?: Strings;
 	props?: Props;
 }
 
 export type Accent = 'neutral' | 'violet' | 'blue' | 'green' | 'amber' | 'orange' | 'coral' | 'rose';
 
+/**
+ * Text the components show, for another language: month and weekday names and "Today", used
+ * by the date pickers, calendars, gantt, calendar heatmap and file browser. Anything left out
+ * (a whole list, one entry, or an empty string) stays English. A component's own prop, such as
+ * MonthCalendar's month_names, wins over this.
+ */
+export interface Strings {
+	/** 12 names, January first: "January" … */
+	month?: string[];
+	/** "Jan" … */
+	month_short?: string[];
+	/** 7 names, Monday first (every CUI calendar starts the week on Monday): "Monday" … */
+	weekday?: string[];
+	/** "Mon" … */
+	weekday_short?: string[];
+	/** "Mo" … */
+	weekday_min?: string[];
+	/** "Today" */
+	today?: string;
+}
+
+/** Strings as the hosts take them: one list in the field order of CUI's cui_strings. */
+function flat_strings(s: Strings): string[] {
+	const list = (a: string[] | undefined, n: number) => Array.from({ length: n }, (_, i) => (typeof a?.[i] === 'string' ? a[i] : ''));
+	return [...list(s.month, 12), ...list(s.month_short, 12), ...list(s.weekday, 7), ...list(s.weekday_short, 7), ...list(s.weekday_min, 7), typeof s.today === 'string' ? s.today : ''];
+}
+
 let app: Record<string, unknown> | null = null;
 
 /** Opens the window and mounts the root component into it. */
 export function run<Props extends Record<string, unknown>>(component: Component<Props>, options: RunOptions<Props> = {}) {
-	const { props, app_id, ...window_options } = options;
+	const { props, app_id, strings, ...window_options } = options;
 	if (app_id) set_app_id(app_id);
 	bridge().app(window_options);
+	set_strings(strings ?? null);
 	if (app) unmount(app);
 	app = mount(component as Component<Record<string, unknown>>, {
 		renderer,
@@ -99,4 +129,9 @@ export function set_accent(accent: Accent) {
 
 export function get_accent(): Accent {
 	return (bridge().get_accent as () => Accent)();
+}
+
+/** Switches the components' own text to another language (see Strings); null is English. */
+export function set_strings(strings: Strings | null) {
+	(bridge().set_strings as (list: string[] | null) => void)(strings ? flat_strings(strings) : null);
 }

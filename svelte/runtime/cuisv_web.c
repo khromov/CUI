@@ -32,6 +32,7 @@ void web_content_input(int i, cui_ctx *ui, int f) { (void)i; (void)ui; (void)f; 
 void web_content_build(int i, cui_ctx *ui, int f) {
     (void)i; (void)f;
     g_ui = ui;
+    cuisv_strings_apply(ui);   /* a pointer store; the first set_strings() runs before any frame */
     cuisv_frame_reset();
     cuisv_render_scope(ui, cuisv_root());
     cuisv_collect_keys(ui);
@@ -73,17 +74,14 @@ EXPORT(cuisv_w_fn) void cuisv_w_fn(uint32_t h, int slot, int present) { cuisv_sl
 EXPORT(cuisv_w_floats) void cuisv_w_floats(uint32_t h, int slot, const float *v, int n) { cuisv_slot_floats(cuisv_scope_get(h), slot, v, n); }
 EXPORT(cuisv_w_blob) void cuisv_w_blob(uint32_t h, int slot, const uint8_t *p, int n) { cuisv_slot_blob(cuisv_scope_get(h), slot, p, (uint32_t)n); }
 /* Strings packed by JS: u32 count, then per string u32 length and the bytes. */
-EXPORT(cuisv_w_strs) void cuisv_w_strs(uint32_t h, int slot, const uint8_t *p, int len) {
-    if (!p || len < 4) { cuisv_slot_strs(cuisv_scope_get(h), slot, NULL, NULL, 0); return; }
+/* A string list as the bridge packs it (a u32 count, then a u32 length and the bytes of each
+ * string; len >= 4): up to cap strings, pointing into p. Returns how many were whole. */
+static int unpack_strs(const uint8_t *p, int len, const char **items, size_t *lens, uint32_t cap) {
     const uint8_t *end = p + len;
     uint32_t n = 0;
     memcpy(&n, p, 4);
     p += 4;
-    uint32_t most = (uint32_t)(len - 4) / 4;   /* each string takes at least its length */
-    if (n > most) n = most;
-    const char **items = malloc(sizeof *items * (n ? n : 1));
-    size_t *lens = malloc(sizeof *lens * (n ? n : 1));
-    if (!items || !lens) { free(items); free(lens); return; }
+    if (n > cap) n = cap;
     uint32_t k = 0;
     for (; k < n && end - p >= 4; k++) {
         uint32_t l;
@@ -94,9 +92,30 @@ EXPORT(cuisv_w_strs) void cuisv_w_strs(uint32_t h, int slot, const uint8_t *p, i
         lens[k] = l;
         p += l;
     }
-    cuisv_slot_strs(cuisv_scope_get(h), slot, items, lens, (int)k);
+    return (int)k;
+}
+
+EXPORT(cuisv_w_strs) void cuisv_w_strs(uint32_t h, int slot, const uint8_t *p, int len) {
+    if (!p || len < 4) { cuisv_slot_strs(cuisv_scope_get(h), slot, NULL, NULL, 0); return; }
+    uint32_t n = 0;
+    memcpy(&n, p, 4);
+    uint32_t most = (uint32_t)(len - 4) / 4;   /* each string takes at least its length */
+    if (n > most) n = most;
+    const char **items = malloc(sizeof *items * (n ? n : 1));
+    size_t *lens = malloc(sizeof *lens * (n ? n : 1));
+    if (!items || !lens) { free(items); free(lens); return; }
+    int k = unpack_strs(p, len, items, lens, n);
+    cuisv_slot_strs(cuisv_scope_get(h), slot, items, lens, k);
     free(items);
     free(lens);
+}
+
+/* set_strings(): an empty list restores English. The table reaches CUI in web_content_build. */
+EXPORT(cuisv_w_set_strings) void cuisv_w_set_strings(const uint8_t *p, int len) {
+    const char *items[CUISV_STRINGS_COUNT] = { 0 };
+    size_t lens[CUISV_STRINGS_COUNT] = { 0 };
+    int n = p && len >= 4 ? unpack_strs(p, len, items, lens, CUISV_STRINGS_COUNT) : 0;
+    cuisv_strings_set(items, lens, n);
 }
 
 /* ---- events ----------------------------------------------------------------------------- */

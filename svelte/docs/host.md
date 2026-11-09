@@ -5,11 +5,12 @@ Everything here is exported from `cui-svelte`.
 ## The window
 
 ```ts
-import { set_title, set_theme, get_theme, set_accent, quit, viewport, platform } from 'cui-svelte';
+import { set_title, set_theme, get_theme, set_accent, set_strings, quit, viewport, platform } from 'cui-svelte';
 
 set_title('Untitled — Notes');
 set_theme('dark');                 // 'light' | 'dark'; animates
 set_accent('green');
+set_strings(es);                   // month and weekday names; see "Another language"
 quit();
 viewport.width;                    // reactive: read it in markup or an $effect
 platform();                        // 'macos' | 'windows' | 'linux' | 'web'
@@ -34,6 +35,34 @@ run(App, { title: 'Notes', theme });
 ```
 
 `examples/tasks` does exactly this.
+
+### Another language
+
+The components' own text is English: month and weekday names in the date pickers,
+calendars, gantt, calendar heatmap and file browser, and "Today". Give `run()` a table to
+translate it, or switch later with `set_strings`:
+
+```ts
+import { run, set_strings, type Strings } from 'cui-svelte';
+
+const es: Strings = {
+	month: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+	month_short: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'],
+	weekday: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'],
+	weekday_short: ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'],
+	weekday_min: ['lu', 'ma', 'mi', 'ju', 'vi', 'sá', 'do'],
+	today: 'Hoy'
+};
+
+run(App, { title: 'Notas', strings: es });
+set_strings(null);                 // back to English
+```
+
+Weekdays start on Monday, as every CUI calendar does. Anything a table leaves out (a whole
+list, one entry, or an empty string) stays English, so a partial table is fine. A
+component's own prop, such as `MonthCalendar`'s `month_names`, wins over the table. A
+`run()` without `strings` is English, so it replaces an earlier `set_strings` call. Your
+own text (labels, placeholders) is yours to translate.
 
 ## Keyboard
 

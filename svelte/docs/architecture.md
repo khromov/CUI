@@ -53,7 +53,8 @@ Each component is compiled twice from one parse (`src/compiler/index.ts`).
 - **`cuisv_records.c`** packs and unpacks arrays of C structs. It works from descriptors
   the compiler emits with `offsetof`.
 - **`cuisv_services.c`** has the parts with no JS engine in them: canvas, the image cache,
-  and log/terminal buffers.
+  log/terminal buffers, and the owned copy of the `set_strings` table (CUI keeps the
+  `cui_strings` pointer, so the runtime holds the text).
 - **`cuisv_cui.c`** uses CUI's internals: pointer state for plain boxes (`cui__interact`),
   the clipboard, `scroll_to`.
   - After each frame it notes which nodes scroll. `scroll_to` writes a scroll state, and
