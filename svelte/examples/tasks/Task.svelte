@@ -13,20 +13,14 @@
 </div>
 
 <style>
+	/* the row inside the list's card (ReorderItem draws the card and the grip) */
 	.task {
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		padding: 6px 10px;
-		border-radius: 10px;
-		border: 1px solid var(--cui-border-subtle);
-		background: var(--cui-surface);
-	}
-	.task:hover {
-		border-color: var(--cui-border-strong);
+		flex: 1;
 	}
 	.task.done {
-		background: var(--cui-surface-muted);
-		opacity: 0.7;
+		opacity: 0.55;
 	}
 </style>

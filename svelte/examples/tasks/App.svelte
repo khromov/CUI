@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Column, Row, Heading, Muted, Input, Button, IconButton, Checkbox, Tabs, Badge, EmptyState, ThemeToggle, Scroll, toast, get_theme } from 'cui-svelte';
+	import { Column, Row, Heading, Muted, Input, Button, IconButton, Checkbox, Tabs, Badge, EmptyState, ThemeToggle, Scroll, Reorder, ReorderItem, toast, get_theme } from 'cui-svelte';
 	import Task from './Task.svelte';
 	import { load, save, save_theme, type Item } from './store.ts';
 
@@ -18,6 +18,14 @@
 		if (!title) return;
 		items.push({ id: crypto.randomUUID(), title, done: false });
 		draft = '';
+	}
+
+	// A dragged row lands in its new place. The list may be filtered: the shown tasks take the
+	// places they held in the full list, in their new order, and hidden ones stay where they are.
+	function reorder(order: number[]) {
+		const moved = order.map((i) => shown[i]);
+		let k = 0;
+		items = items.map((t) => (shown.includes(t) ? moved[k++] : t));
 	}
 
 	function remove(id: string) {
@@ -41,12 +49,17 @@
 		<Button variant="primary" onclick={add} disabled={!draft.trim()}>Add</Button>
 	</Row>
 	<Tabs items={filters} bind:value={filter} variant="pill" />
-	<Scroll gap={6} height="fill">
-		{#each shown as task (task.id)}
-			<Task {task} ondelete={() => remove(task.id)} />
+	<Scroll height="fill">
+		{#if shown.length}
+			<!-- drag a row by its grip (or anywhere but its controls) to move it -->
+			<Reorder bind:order={() => shown.map((_, i) => i), reorder}>
+				{#each shown as task, position (task.id)}
+					<ReorderItem {position}><Task {task} ondelete={() => remove(task.id)} /></ReorderItem>
+				{/each}
+			</Reorder>
 		{:else}
 			<EmptyState icon="check" description={filter === 2 ? 'Nothing finished yet.' : 'Add a task above.'}>Nothing here</EmptyState>
-		{/each}
+		{/if}
 	</Scroll>
 	<Muted>Saved to this computer as you go.</Muted>
 </Column>

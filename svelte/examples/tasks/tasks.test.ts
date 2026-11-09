@@ -37,3 +37,36 @@ test('the theme toggle saves its choice for the next launch', async () => {
 	localStorage.removeItem('theme');
 	local_storage.flush();
 });
+
+test('rows reorder by dragging, also while the list is filtered', () => {
+	localStorage.removeItem('tasks');
+	const app = mount_test(App, { width: 520, height: 640 });
+	const native = (globalThis as unknown as { __cuisv: Record<string, (...a: number[]) => void> }).__cuisv;
+	// press on a row's grip (left of its checkbox) and drag it to another row's height
+	const drag = (title: string, onto: string) => {
+		const from = app.find(title)!, to = app.find(onto)!;
+		const x = 28 + 16, y = from.y + from.h / 2, ty = to.y + to.h / 2 + (to.y < from.y ? -8 : 8);
+		native.test_move(x, y);
+		app.frame();
+		native.test_button(0, 1);
+		app.frame();
+		for (let k = 1; k <= 10; k++) {
+			native.test_move(x, y + ((ty - y) * k) / 10);
+			app.frame();
+		}
+		native.test_button(0, 0);
+		app.frame(4);
+	};
+	const titles = () => app.nodes().map((n) => n.text).filter((t) => ['Write the renderer', 'Try the web build', 'Ship it'].includes(t));
+	expect(titles()).toEqual(['Write the renderer', 'Try the web build', 'Ship it']);
+	drag('Ship it', 'Write the renderer');
+	expect(titles()).toEqual(['Ship it', 'Write the renderer', 'Try the web build']);
+	// only the open tasks shown: they swap, the done one keeps its place in the full list
+	app.click('Open');
+	drag('Try the web build', 'Ship it');
+	app.click('All');
+	expect(titles()).toEqual(['Try the web build', 'Write the renderer', 'Ship it']);
+	app.screenshot(temp_path('tasks-reorder.png'), 2);
+	localStorage.removeItem('tasks');
+	local_storage.flush();
+});
