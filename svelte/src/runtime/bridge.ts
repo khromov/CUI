@@ -41,6 +41,8 @@ export interface Hooks {
 	resize(w: number, h: number): void;
 	toast_action(handle: number): void;
 	key(key: number, mods: number): void;
+	/** Test builds: the host found the tests unfinished (timed out, or nothing left to run). */
+	unfinished(): void;
 }
 
 declare global {

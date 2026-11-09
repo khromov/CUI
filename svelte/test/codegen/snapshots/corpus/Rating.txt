@@ -83,7 +83,7 @@ static void cuisv_t_5725e9af(cui_ctx *ui, cuisv_scope *s) {
     { /* <Rating> k0 */
         int p_value = cuisv_int(s, 1);
         int p_value_was = p_value;
-        bool r = cui_rating(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value, 5);
+        bool r = cui_rating(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value, 5);
         (void)r;
         if (p_value != p_value_was) { cuisv_set_num(s, 1, p_value); cuisv_emit_num(s, 2, p_value); }
     }
@@ -156,7 +156,7 @@ static void cuisv_t_2242b7ff(cui_ctx *ui, cuisv_scope *s) {
     { /* <Rating> k0 */
         int p_value = cuisv_int(s, 1);
         int p_value_was = p_value;
-        bool r = cui_rating(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value, 5);
+        bool r = cui_rating(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value, 5);
         (void)r;
         if (p_value != p_value_was) { cuisv_set_num(s, 1, p_value); }
     }

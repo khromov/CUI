@@ -106,7 +106,7 @@ static void cuisv_t_c3014f98(cui_ctx *ui, cuisv_scope *s) {
         size_t sz_steps = (size_t)rec_steps->count * sizeof(cui_check_step);
         void *was_steps = cuisv_frame_alloc(sz_steps ? sz_steps : 1); memcpy(was_steps, rec_steps->items, sz_steps);
         cui_checklist_opts o = {0};
-        int r = cui_checklist_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (cui_check_step *)rec_steps->items, rec_steps->count, &o);
+        int r = cui_checklist_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (cui_check_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
         if (memcmp(was_steps, rec_steps->items, sz_steps) != 0) { cuisv_emit_records(s, 2, &cuisv_sd_cui_check_step, rec_steps->items, rec_steps->count); }
     }
@@ -193,7 +193,7 @@ static void cuisv_t_e40a66de(cui_ctx *ui, cuisv_scope *s) {
         size_t sz_steps = (size_t)rec_steps->count * sizeof(cui_check_step);
         void *was_steps = cuisv_frame_alloc(sz_steps ? sz_steps : 1); memcpy(was_steps, rec_steps->items, sz_steps);
         cui_checklist_opts o = {0};
-        int r = cui_checklist_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (cui_check_step *)rec_steps->items, rec_steps->count, &o);
+        int r = cui_checklist_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (cui_check_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
     }
 }

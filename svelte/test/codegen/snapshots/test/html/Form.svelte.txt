@@ -7,9 +7,11 @@
 
 static void cuisv_t_02f193cb(cui_ctx *ui, cuisv_scope *s);
 static void cuisv_t_01f19238(cui_ctx *ui, cuisv_scope *s);
+static void cuisv_t_04f196f1(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_02f193cb = { 0x02f193cbu, "Form.svelte#0", cuisv_t_02f193cb, 18, 1 };
+const cuisv_template cuisv_tpl_02f193cb = { 0x02f193cbu, "Form.svelte#0", cuisv_t_02f193cb, 27, 2 };
 const cuisv_template cuisv_tpl_01f19238 = { 0x01f19238u, "Form.svelte#1", cuisv_t_01f19238, 3, 0 };
+const cuisv_template cuisv_tpl_04f196f1 = { 0x04f196f1u, "Form.svelte#2", cuisv_t_04f196f1, 1, 0 };
 
 static void cuisv_t_02f193cb(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
@@ -34,7 +36,7 @@ static void cuisv_t_02f193cb(cui_ctx *ui, cuisv_scope *s) {
                 cuisv_name(ui, "name", "name");
                 cui_input_opts o = {0};
                 o.placeholder = "Name";
-                size_t cap; char *p_value = cuisv_buf(s, 0, 256, &cap);
+                size_t cap; char *p_value = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap);
                 int r = cui_input_ex(ui, "name", p_value, cap, &o);
                 if (r & CUI_CHANGED) { cuisv_buf_changed(s, 0, 1); }
                 if (r & CUI_SUBMITTED) cuisv_emit(s, 2);
@@ -44,7 +46,7 @@ static void cuisv_t_02f193cb(cui_ctx *ui, cuisv_scope *s) {
         { /* <input type=text> dom */
             cuisv_name(ui, "dom", "dom");
             cui_input_opts o = {0};
-            size_t cap; char *p_value = cuisv_buf(s, 3, 256, &cap);
+            size_t cap; char *p_value = cuisv_buf(s, 3, cuisv_edit_room(ui, 256), &cap);
             int r = cui_input_ex(ui, "dom", p_value, cap, &o);
             if (r & CUI_CHANGED) { cuisv_buf_changed(s, 3, -1); cuisv_emit_str(s, 4, p_value); }
         }
@@ -105,6 +107,114 @@ static void cuisv_t_02f193cb(cui_ctx *ui, cuisv_scope *s) {
         { /* <p> k7 */
             cuisv_text(ui, cuisv_str(s, 17), NULL);
         }
+        { /* <select> fruit */
+            cuisv_name(ui, "fruit", "fruit");
+            cui_select_opts o = {0};
+            int n_items = 0; const char *const *p_items = cuisv_strs(s, 18, &n_items);
+            int p_index = cuisv_int(s, 19); int p_was = p_index;
+            cui_select_ex(ui, "fruit", p_items, n_items, &p_index, &o);
+            if (p_index != p_was) { cuisv_set_num(s, 19, p_index); cuisv_emit_num(s, 20, p_index); }
+        }
+        { /* <input type=checkbox> k8 */
+            cui_check_opts o = {0};
+            bool p_checked = cuisv_bool(s, 21); bool p_was = p_checked;
+            cui_checkbox_ex(ui, "Null start###k8", &p_checked, &o);
+            if (p_checked != p_was) { cuisv_set_bool(s, 21, p_checked); cuisv_emit_bool(s, 22, p_checked); }
+        }
+        { /* <p> k9 */
+            if (!(false)) {
+                cuisv_text(ui, "hidden=null shows", NULL);
+            }
+        }
+        { /* <ol> k10 */
+            cui_box o = {0};
+            o.id = "k10";
+            o.dir = CUI_COLUMN;
+            o.pad_left = 4.0f;
+            o.gap = 4.0f;
+            cui_box_begin(ui, &o);
+            cuisv_ol_begin(3);
+            { /* <li> k11 */
+                cui_box o = {0};
+                o.id = "k11";
+                o.dir = CUI_ROW;
+                o.gap = 8.0f;
+                o.align = CUI_ALIGN_START;
+                cui_box_begin(ui, &o);
+                cuisv_text(ui, cuisv_ol_marker(), NULL);
+                cuisv_text(ui, "three", NULL);
+                cui_box_end(ui);
+            }
+            cuisv_render_site(ui, s, 1);
+            { /* <li> k12 */
+                cui_box o = {0};
+                o.id = "k12";
+                o.dir = CUI_ROW;
+                o.gap = 8.0f;
+                o.align = CUI_ALIGN_START;
+                cui_box_begin(ui, &o);
+                cuisv_text(ui, cuisv_ol_marker(), NULL);
+                cuisv_text(ui, "six", NULL);
+                { /* <ul> k13 */
+                    cui_box o = {0};
+                    o.id = "k13";
+                    o.dir = CUI_COLUMN;
+                    o.pad_left = 4.0f;
+                    o.gap = 4.0f;
+                    cui_box_begin(ui, &o);
+                    { /* <li> k14 */
+                        cui_box o = {0};
+                        o.id = "k14";
+                        o.dir = CUI_ROW;
+                        o.gap = 8.0f;
+                        o.align = CUI_ALIGN_START;
+                        cui_box_begin(ui, &o);
+                        cuisv_text(ui, "\342\200\242", NULL);
+                        cuisv_text(ui, "inner", NULL);
+                        cui_box_end(ui);
+                    }
+                    cui_box_end(ui);
+                }
+                cui_box_end(ui);
+            }
+            cuisv_ol_end();
+            cui_box_end(ui);
+        }
+        { /* <p> k15 */
+            cuisv_text(ui, cuisv_str(s, 23), NULL);
+        }
+        { /* <div> a* /b */
+            cuisv_name(ui, "a*/b", "a*/b");
+            cui_box o = {0};
+            o.id = "a*/b";
+            o.dir = CUI_ROW;
+            o.wrap = true;
+            o.align = CUI_ALIGN_CENTER;
+            o.width = cuisv_size(s, 24, CUI_FIT);
+            cui_box_begin(ui, &o);
+            cuisv_text(ui, "comment ", NULL);
+            { /* <span> k16 */
+                cuisv_text(ui, "end", NULL);
+            }
+            cui_box_end(ui);
+        }
+        { /* <input type=text> c* /d */
+            cuisv_name(ui, "c*/d", "c*/d");
+            cui_input_opts o = {0};
+            size_t cap; char *p_value = cuisv_buf(s, 25, cuisv_edit_room(ui, 256), &cap);
+            int r = cui_input_ex(ui, "c*/d", p_value, cap, &o);
+            if (r & CUI_CHANGED) { cuisv_buf_changed(s, 25, -1); }
+        }
+        { /* <input type=range> half */
+            cuisv_name(ui, "half", "###half");
+            cui_slider_opts o = {0};
+            float p_value = (float)cuisv_num(s, 26); float p_was = p_value;
+            cui_slider_ex(ui, "###half", &p_value, 0.0f, 100.0f, &o);
+            if (p_value != p_was) { cuisv_set_num(s, 26, p_value); }
+        }
+        { /* <p> k17 */
+            cuisv_text(ui, "line height", NULL);
+        }
         cui_box_end(ui);
     }
 }
@@ -137,6 +247,21 @@ static void cuisv_t_01f19238(cui_ctx *ui, cuisv_scope *s) {
     }
 }
 
+static void cuisv_t_04f196f1(cui_ctx *ui, cuisv_scope *s) {
+    (void)ui; (void)s;
+    { /* <li> k0 */
+        cui_box o = {0};
+        o.id = "k0";
+        o.dir = CUI_ROW;
+        o.gap = 8.0f;
+        o.align = CUI_ALIGN_START;
+        cui_box_begin(ui, &o);
+        cuisv_text(ui, cuisv_ol_marker(), NULL);
+        cuisv_text(ui, cuisv_str(s, 0), NULL);
+        cui_box_end(ui);
+    }
+}
+
 ---- skeleton ----
 <script>import * as __cuisv_h from 'cui-svelte/helpers';
 	let name = $state('');
@@ -148,8 +273,12 @@ static void cuisv_t_01f19238(cui_ctx *ui, cuisv_scope *s) {
 	let submitted = $state(0);
 	let tab = $state(0);
 	const sizes = [{ v: 's', label: 'Small' }, { v: 'm', label: 'Medium' }, { v: 'l', label: 'Large' }];
+	const fruits = [{ id: 'a', name: 'Apple' }, { id: 'b', name: 'Banana' }];
+	let fruit = $state('');
+	let nullcheck = $state('untouched');
+	const px = (n) => n * 40;
 </script>
-<t49386443 s0={name} g1v0={(__cuisv_v) => { name = __cuisv_v; }} f2={__cuisv_h.dom_event((e) => { e.preventDefault(); submitted++; }, "value")} f4={__cuisv_h.dom_event((e) => (last = e.target.value), "value")} b5={agree} g6v5={(__cuisv_v) => { agree = __cuisv_v; }} b7={(color) === ("red")} g8v7={() => { ((__cuisv_v) => { color = __cuisv_v; })("red"); }} b9={(color) === ("blue")} g10v9={() => { ((__cuisv_v) => { color = __cuisv_v; })("blue"); }} a11={Array.from(sizes, (s, __cuisv_i) => String(__cuisv_h.t(s.label)))} n12={Array.from(sizes, (s, __cuisv_i) => (s.v)).indexOf(size)} g13v12={(__cuisv_i) => ((__cuisv_v) => { size = __cuisv_v; })(Array.from(sizes, (s, __cuisv_i) => (s.v))[__cuisv_i])} f15={() => (hovered = true)} f16={() => (hovered = false)} s17={`name=${__cuisv_h.t(name)} agree=${__cuisv_h.t(agree)} color=${__cuisv_h.t(color)} size=${__cuisv_h.t(size)} last=${__cuisv_h.t(last)} hovered=${__cuisv_h.t(hovered)} submitted=${__cuisv_h.t(submitted)} tab=${__cuisv_h.t(tab)}`}><s0>{#each ['One', 'Two'] as label, i}<t32608824 b0={!!(tab === i)} s1={__cuisv_h.t(label)} f2={__cuisv_h.dom_click(() => (tab = i), "click")}></t32608824>{/each}</s0></t49386443>
+<t49386443 s0={name} g1v0={(__cuisv_v) => { name = __cuisv_v; }} f2={__cuisv_h.dom_event((e) => { e.preventDefault(); submitted++; }, "value")} f4={__cuisv_h.dom_event((e) => (last = e.target.value), "value")} b5={agree} g6v5={(__cuisv_v) => { agree = __cuisv_v; }} b7={(color) === ("red")} g8v7={() => ((__cuisv_v) => { color = __cuisv_v; })("red")} b9={(color) === ("blue")} g10v9={() => ((__cuisv_v) => { color = __cuisv_v; })("blue")} a11={Array.from(sizes, (s, __cuisv_i) => String(__cuisv_h.t(s.label)))} n12={Array.from(sizes, (s, __cuisv_i) => (s.v)).indexOf(size)} g13v12={(__cuisv_i) => ((__cuisv_v) => { size = __cuisv_v; })(Array.from(sizes, (s, __cuisv_i) => (s.v))[__cuisv_i])} f15={() => (hovered = true)} f16={() => (hovered = false)} s17={`name=${__cuisv_h.t(name)} agree=${__cuisv_h.t(agree)} color=${__cuisv_h.t(color)} size=${__cuisv_h.t(size)} last=${__cuisv_h.t(last)} hovered=${__cuisv_h.t(hovered)} submitted=${__cuisv_h.t(submitted)} tab=${__cuisv_h.t(tab)}`} a18={["Choose a fruit", ...Array.from(fruits, (f, __cuisv_i) => String(__cuisv_h.t(f.name))), "Something else"]} n19={["", ...Array.from(fruits, (f, __cuisv_i) => (f.id)), "z"].indexOf(fruit)} g20v19={(__cuisv_i) => ((__cuisv_v) => { fruit = __cuisv_v; })(["", ...Array.from(fruits, (f, __cuisv_i) => (f.id)), "z"][__cuisv_i])} f22={__cuisv_h.dom_event((e) => (nullcheck = String(e.target.checked)), "checked")} s23={`fruit=${__cuisv_h.t(fruit)} nullcheck=${__cuisv_h.t(nullcheck)}`} n24={__cuisv_h.size(`${px(`${fruit}?`.length)}px`)}><s0>{#each ['One', 'Two'] as label, i}<t32608824 b0={!!(tab === i)} s1={__cuisv_h.t(label)} f2={__cuisv_h.dom_click(() => (tab = i), "click")}></t32608824>{/each}</s0><s1>{#each ['four', 'five'] as x (x)}<t82941681 s0={__cuisv_h.t(x)}></t82941681>{/each}</s1></t49386443>
 
 ---- metadata ----
 {
@@ -158,8 +287,8 @@ static void cuisv_t_01f19238(cui_ctx *ui, cuisv_scope *s) {
    "id": 49386443,
    "symbol": "cuisv_tpl_02f193cb",
    "name": "Form.svelte#0",
-   "slots": 18,
-   "sites": 1
+   "slots": 27,
+   "sites": 2
   },
   {
    "id": 32608824,
@@ -167,8 +296,28 @@ static void cuisv_t_01f19238(cui_ctx *ui, cuisv_scope *s) {
    "name": "Form.svelte#1",
    "slots": 3,
    "sites": 0
+  },
+  {
+   "id": 82941681,
+   "symbol": "cuisv_tpl_04f196f1",
+   "name": "Form.svelte#2",
+   "slots": 1,
+   "sites": 0
   }
  ],
- "warnings": [],
+ "warnings": [
+  {
+   "code": "bad_value",
+   "message": "value: expected a number, got \"half\"",
+   "start": 2269,
+   "end": 2281
+  },
+  {
+   "code": "css_unsupported",
+   "message": "line-height: x% is not a number, percentage or length",
+   "start": 2286,
+   "end": 2328
+  }
+ ],
  "natives": null
 }

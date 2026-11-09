@@ -7,7 +7,7 @@ import type { Field } from './api.ts';
 import { enum_constant } from './api.ts';
 import type { Facet, FacetValue } from './css-props.ts';
 import { cond_c, type Cond, type ElementStyle } from './styles.ts';
-import { c_color, c_size, type Template } from './template.ts';
+import { c_color, c_float, c_size, type Template } from './template.ts';
 
 const FACET_FIELDS: Record<string, string[]> = {
 	pad_top: ['pad_top', 'pad_y', 'pad'],
@@ -50,11 +50,6 @@ const FACET_FIELDS: Record<string, string[]> = {
 	text_tabular: ['tabular']
 };
 
-function float(n: number) {
-	const s = String(n);
-	return /[.e]/.test(s) ? s + 'f' : s + '.0f';
-}
-
 /** C for a facet value stored in a field of `type`, or null when the field cannot hold it. */
 export function facet_c(v: FacetValue, field: Field, t: Template): string | null {
 	const type = field.type;
@@ -75,18 +70,18 @@ export function facet_c(v: FacetValue, field: Field, t: Template): string | null
 	switch (type) {
 		case 'float':
 		case 'double':
-			if (v.kind === 'num') return float(v.value);
-			if (v.kind === 'size' && v.size.kind === 2) return float(v.size.value);
+			if (v.kind === 'num') return c_float(v.value);
+			if (v.kind === 'size' && v.size.kind === 2) return c_float(v.size.value);
 			return null;
 		case 'int':
-			if (v.kind === 'num') return String(Math.round(v.value));
+			if (v.kind === 'num' && Number.isFinite(v.value)) return String(Math.round(v.value));
 			return null;
 		case 'bool':
 			if (v.kind === 'bool') return v.value ? 'true' : 'false';
 			return null;
 		case 'cui_size':
 			if (v.kind === 'size') return c_size(v.size.kind, v.size.value);
-			if (v.kind === 'num') return `CUI_PX(${float(v.value)})`;
+			if (v.kind === 'num') return `CUI_PX(${c_float(v.value)})`;
 			return null;
 		case 'cui_color':
 			if (v.kind === 'color') return c_color(v.color);
@@ -119,7 +114,7 @@ export function apply_fields(style: ElementStyle, fields: Map<string, Field>, t:
 			if (name === 'grow_js' || name === 'grow') {
 				if (fields.get(axis) && !o.explicit.has(axis)) {
 					if (name === 'grow_js' && f.value.kind === 'js') assigns.push(`${o.opts}.${axis} = CUI_GROW(cuisv_float(s, ${t.slot('n', f.value.js)}));`);
-					else if (name === 'grow' && f.value.kind === 'num' && f.value.value > 0) assigns.push(`${o.opts}.${axis} = CUI_GROW(${float(f.value.value)});`);
+					else if (name === 'grow' && f.value.kind === 'num' && f.value.value > 0) assigns.push(`${o.opts}.${axis} = CUI_GROW(${c_float(f.value.value)});`);
 				}
 				continue;
 			}
@@ -231,7 +226,7 @@ export function text_style(style: ElementStyle, t: Template, v: string, extra: F
 					break;
 				case 'text_size':
 					if (val.kind === 'num') {
-						a = `${v}.size = ${float(val.value)};`;
+						a = `${v}.size = ${c_float(val.value)};`;
 						if (layer.cond === true) size_known = val.value;
 					} else if (val.kind === 'js') a = `${v}.size = cuisv_float(s, ${t.slot('n', val.js)});`;
 					break;
@@ -245,10 +240,10 @@ export function text_style(style: ElementStyle, t: Template, v: string, extra: F
 					if (val.kind === 'enum') a = `${v}.align = ${enum_constant('cui_text_align', val.value) ?? 'CUI_TEXT_START'};`;
 					break;
 				case 'text_line_height':
-					if (val.kind === 'num') a = `${v}.line_height = ${float(val.value)};`;
+					if (val.kind === 'num') a = `${v}.line_height = ${c_float(val.value)};`;
 					break;
 				case 'text_line_height_px':
-					if (val.kind === 'num') a = `${v}.line_height = ${float(size_known ? val.value / size_known : val.value / 13)};`;
+					if (val.kind === 'num') a = `${v}.line_height = ${c_float(size_known ? val.value / size_known : val.value / 13)};`;
 					break;
 				case 'text_nowrap':
 					if (val.kind === 'bool') a = `${v}.nowrap = ${val.value};`;

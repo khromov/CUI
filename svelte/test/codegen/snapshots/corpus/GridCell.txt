@@ -59,7 +59,7 @@ const cuisv_template cuisv_tpl_996b40ce = { 0x996b40ceu, "GridCell_bind.svelte#1
 static void cuisv_t_9a6b4261(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     {
-        size_t cap; char *buf = cuisv_buf(s, 0, 256, &cap);
+        size_t cap; char *buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap);
         if (cui_data_grid_cell_edit(ui, buf, cap)) cuisv_buf_changed(s, 0, 1);
     }
     cuisv_render_site(ui, s, 0);
@@ -68,7 +68,7 @@ static void cuisv_t_9a6b4261(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_996b40ce(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     {
-        size_t cap; char *buf = cuisv_buf(s, 0, 256, &cap);
+        size_t cap; char *buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap);
         if (cui_data_grid_cell_edit(ui, buf, cap)) cuisv_buf_changed(s, 0, 1);
     }
 }

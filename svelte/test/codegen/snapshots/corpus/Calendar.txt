@@ -88,7 +88,7 @@ static void cuisv_t_47b852c8(cui_ctx *ui, cuisv_scope *s) {
     { /* <Calendar> k0 */
         cui_date p_value; cuisv_record_read(s, 1, &cuisv_sd_cui_date, &p_value);
         cui_date p_value_was = p_value;
-        bool r = cui_calendar(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value);
+        bool r = cui_calendar(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value);
         (void)r;
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_date, &p_value); }
     }
@@ -165,7 +165,7 @@ static void cuisv_t_e2ef404e(cui_ctx *ui, cuisv_scope *s) {
         cui_date p_value; cuisv_record_read(s, 1, &cuisv_sd_cui_date, &p_value);
         if (!p_value.year) p_value = cui_date_today();
         cui_date p_value_was = p_value;
-        bool r = cui_calendar(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value);
+        bool r = cui_calendar(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value);
         (void)r;
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_date, &p_value); }
     }

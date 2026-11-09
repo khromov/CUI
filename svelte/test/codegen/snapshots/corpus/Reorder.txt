@@ -16,6 +16,7 @@ const cuisv_template cuisv_tpl_1357ccc6 = { 0x1357ccc6u, "Reorder_alt.svelte#0",
 static void cuisv_t_1357ccc6(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Reorder> k0 */
+        cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         int n = 0; const float *src = cuisv_floats(s, 0, &n);
         int *order = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1));
         for (int k = 0; k < n; k++) order[k] = (int)src[k];
@@ -161,6 +162,7 @@ const cuisv_template cuisv_tpl_192c0b37 = { 0x192c0b37u, "Reorder_dynamic.svelte
 static void cuisv_t_182c09a4(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Reorder> k0 */
+        cuisv_name(ui, cuisv_str(s, 1), cuisv_str(s, 1));
         int n = 0; const float *src = cuisv_floats(s, 0, &n);
         int *order = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1));
         for (int k = 0; k < n; k++) order[k] = (int)src[k];
@@ -250,6 +252,7 @@ const cuisv_template cuisv_tpl_218f4a07 = { 0x218f4a07u, "Reorder_static.svelte#
 static void cuisv_t_218f4a07(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Reorder> k0 */
+        cuisv_name(ui, "s_id", "s_id");
         int n = 0; const float *src = cuisv_floats(s, 0, &n);
         int *order = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1));
         for (int k = 0; k < n; k++) order[k] = (int)src[k];
@@ -264,6 +267,7 @@ static void cuisv_t_218f4a07(cui_ctx *ui, cuisv_scope *s) {
         }
     }
     { /* <Reorder> k1 */
+        cuisv_name(ui, "fixed_id", "fixed_id");
         int n = 0; const float *src = cuisv_floats(s, 1, &n);
         int *order = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1));
         for (int k = 0; k < n; k++) order[k] = (int)src[k];

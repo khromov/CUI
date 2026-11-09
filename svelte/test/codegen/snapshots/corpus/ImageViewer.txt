@@ -24,6 +24,7 @@ static void cuisv_t_213c843e(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ImageViewer> k0 */
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
+        int tw_tex = 0, th_tex = 0;
         cui_image_view p_view; cuisv_record_read(s, 0, &cuisv_sd_cui_image_view, &p_view);
         cui_image_view p_view_was = p_view;
         cui_image_viewer_opts o = {0};
@@ -87,6 +88,7 @@ const cuisv_template cuisv_tpl_3376b76f = { 0x3376b76fu, "ImageViewer_bind.svelt
 static void cuisv_t_3276b5dc(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ImageViewer> k0 */
+        int tw_tex = 0, th_tex = 0;
         cui_image_view p_view; cuisv_record_read(s, 0, &cuisv_sd_cui_image_view, &p_view);
         cui_image_view p_view_was = p_view;
         cui_image_viewer_opts o = {0};
@@ -101,10 +103,11 @@ static void cuisv_t_3276b5dc(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_3376b76f(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ImageViewer> k0 */
+        int tw_tex = 0, th_tex = 0;
         cui_image_view p_view; cuisv_record_read(s, 1, &cuisv_sd_cui_image_view, &p_view);
         cui_image_view p_view_was = p_view;
         cui_image_viewer_opts o = {0};
-        bool r = cui_image_viewer_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_view, &o);
+        bool r = cui_image_viewer_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_view, &o);
         (void)r;
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_image_view, &p_view); }
     }
@@ -189,11 +192,12 @@ static void cuisv_t_6fd9642c(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_70d965bf(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ImageViewer> k0 */
+        int tw_tex = 0, th_tex = 0;
         cui_image_view p_view; cuisv_record_read(s, 1, &cuisv_sd_cui_image_view, &p_view);
         cui_image_view p_view_was = p_view;
         cui_image_viewer_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        bool r = cui_image_viewer_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_view, &o);
+        bool r = cui_image_viewer_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_view, &o);
         (void)r;
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_image_view, &p_view); }
     }
@@ -261,6 +265,7 @@ static void cuisv_t_894996af(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ImageViewer> k0 */
         cuisv_name(ui, "s_id", "s_id");
+        int tw_tex = 0, th_tex = 0;
         cui_image_view p_view; cuisv_record_read(s, 0, &cuisv_sd_cui_image_view, &p_view);
         cui_image_view p_view_was = p_view;
         cui_image_viewer_opts o = {0};
@@ -276,6 +281,7 @@ static void cuisv_t_894996af(cui_ctx *ui, cuisv_scope *s) {
     }
     { /* <ImageViewer> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
+        int tw_tex = 0, th_tex = 0;
         cui_image_view p_view; cuisv_record_read(s, 1, &cuisv_sd_cui_image_view, &p_view);
         cui_image_view p_view_was = p_view;
         cui_image_viewer_opts o = {0};

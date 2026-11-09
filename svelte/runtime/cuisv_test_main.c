@@ -131,15 +131,15 @@ FN(nodes) {
     return arr;
 }
 
-/* The rectangle of the box or component with id `key` (as written in markup). */
+/* The rectangle of the box or component with id `key` (as written in markup) in the latest
+ * frame, or of a CUI id made from `key` when no element was drawn under that name. */
 FN(rect) {
     UNUSED;
     const char *s = JS_ToCString(c, argv[0]);
     JSValue out = JS_NULL;
     if (ui && s) {
-        cui_id id = cuisv_named(s);
-        if (!id) id = cui_make_id(ui, s);
-        cui_rect r = cui_get_rect(ui, id);
+        cui_rect r;
+        if (!cuisv_rect_of(ui, s, &r)) r = cui_get_rect(ui, cui_make_id(ui, s));
         if (r.w > 0 || r.h > 0) {
             out = JS_NewArray(c);
             JS_SetPropertyUint32(c, out, 0, JS_NewFloat64(c, r.x));
@@ -235,12 +235,20 @@ int main(int argc, char **argv) {
         double next = cuisv_js_next_timer();
         if (next < 0) break;
         if (cuisv_now_ms() > deadline) {
+            JS_FreeValue(cuisv_js_ctx(), cuisv_js_hook("unfinished", 0, NULL));   /* names the test */
             cuisv_log("error", "test timed out");
             exit_code = 1;
             break;
         }
         sleep_ms(next * 1000);
         cuisv_js_tick();
+    }
+    if (ok && exit_code < 0) {
+        /* no timer is left and the runner never reported, so nothing can finish the tests now */
+        JS_FreeValue(cuisv_js_ctx(), cuisv_js_hook("unfinished", 0, NULL));
+        cuisv_log("error", "the tests did not finish: nothing was left to run before a result was reported "
+                           "(a test awaits something that never happens, or the file has no test())");
+        exit_code = 1;
     }
     cuisv_host_shutdown();
     if (ui) cui_destroy(ui);

@@ -92,7 +92,7 @@ static void cuisv_t_2536cdeb(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Presence> k0 */
         const cuisv_records *rec_users = cuisv_records_get(s, 1, &cuisv_sd_cui_presence_user);
-        cui_presence(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_presence_user *)rec_users->items, rec_users->count, 4, 28);
+        cui_presence(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_presence_user *)rec_users->items, rec_users->count, 4, 28);
     }
 }
 

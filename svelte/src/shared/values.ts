@@ -102,7 +102,10 @@ export function parse_size(input: unknown): Size | null {
 	if (s === 'fill' || s === 'stretch') return { kind: SIZE_GROW, value: 1 };
 	if (s === 'fit' || s === 'auto' || s === 'fit-content' || s === 'max-content' || s === 'min-content') return { kind: SIZE_FIT, value: 0 };
 	const g = /^grow\(\s*([\d.]+)\s*\)$/.exec(s) || /^([\d.]+)fr$/.exec(s);
-	if (g) return { kind: SIZE_GROW, value: parseFloat(g[1]) };
+	if (g) {
+		const n = parseFloat(g[1]);
+		return Number.isFinite(n) ? { kind: SIZE_GROW, value: n } : null;
+	}
 	if (s.endsWith('%')) {
 		const p = parseFloat(s);
 		return Number.isFinite(p) ? { kind: SIZE_PERCENT, value: p } : null;

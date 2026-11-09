@@ -23,7 +23,7 @@ components is around 575 KB of wasm and 110 KB of JS before compression.
 
 | | Browser |
 |---|---|
-| Clipboard | Writes go to the system clipboard; reads see what was pasted into the page |
+| Clipboard | Writes go to the system clipboard; reads see what was last written, copied in the app or pasted into the page |
 | `open_url` | A new tab |
 | File dialogs, `fs`, `paths` | Not available (`open_file` resolves to `null`, `fs` reads return `null`) |
 | `localStorage` | The browser's |

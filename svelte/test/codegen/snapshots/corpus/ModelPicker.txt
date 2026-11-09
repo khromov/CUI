@@ -107,7 +107,7 @@ static void cuisv_t_96818857(cui_ctx *ui, cuisv_scope *s) {
         int p_selected = cuisv_int(s, 2);
         int p_selected_was = p_selected;
         cui_model_picker_opts o = {0};
-        bool r = cui_model_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
+        bool r = cui_model_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
         (void)r;
         if (p_selected != p_selected_was) { cuisv_set_num(s, 2, p_selected); cuisv_emit_num(s, 3, p_selected); }
     }
@@ -194,7 +194,7 @@ static void cuisv_t_6e130cd7(cui_ctx *ui, cuisv_scope *s) {
         int p_selected = cuisv_int(s, 2);
         int p_selected_was = p_selected;
         cui_model_picker_opts o = {0};
-        bool r = cui_model_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
+        bool r = cui_model_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
         (void)r;
         if (p_selected != p_selected_was) { cuisv_set_num(s, 2, p_selected); }
     }

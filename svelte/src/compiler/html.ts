@@ -8,9 +8,12 @@
 import type { AST } from 'svelte/compiler';
 import {
 	attr_source,
+	c_comment,
 	c_string,
+	edit_room,
 	init_str,
 	js_of,
+	label_part,
 	setter_of,
 	src,
 	string_val,
@@ -153,6 +156,15 @@ function bind(ctx: CompileContext, node: AST.RegularElement, name: string): Boun
 	return b ? setter_of(ctx, b.expression) : null;
 }
 
+/**
+ * Whether a boolean attribute (checked, hidden) with a value known now is on: written as text
+ * (`checked`, `checked=""`) it is, like the browser's; as a {value}, when the value is truthy,
+ * like Svelte sets the property (`checked={null}` is off).
+ */
+function attr_on(value: unknown): boolean {
+	return typeof value === 'string' || !!value;
+}
+
 function is_blank(n: Node) {
 	return (n.type === 'Text' && !n.data.trim()) || n.type === 'Comment';
 }
@@ -191,20 +203,23 @@ function element_style(ctx: CompileContext, t: Template, node: AST.RegularElemen
 	const hidden = attr(node, 'hidden');
 	if (hidden) {
 		const s = attr_source(ctx, hidden);
-		const cond = s.kind === 'static' ? s.value !== false : { js: `!!(${s.js})` };
+		const cond = s.kind === 'static' ? attr_on(s.value) : { js: `!!(${s.js})` };
 		style.layers.push({ cond: cond as Layer['cond'], facets: [f('display_none', { kind: 'bool', value: true })] });
 	}
 	return { info, style };
 }
 
-/** The element's identity: its id="…" when static, else a key unique in the template. */
-function element_key(ctx: CompileContext, t: Template, node: AST.RegularElement): { key: string; name_line: string | null } {
+/**
+ * The element's identity: its id="…" when static, else a key unique in the template.
+ * `labelled`: CUI knows the element by a label, "…###key", whose identity is "###key".
+ */
+function element_key(ctx: CompileContext, t: Template, node: AST.RegularElement, labelled = false): { key: string; name_line: string | null } {
 	const id = attr(node, 'id');
 	if (id) {
 		const s = attr_source(ctx, id);
 		if (s.kind === 'static' && s.value) {
 			const v = String(s.value);
-			return { key: v, name_line: `cuisv_name(ui, ${c_string(v)}, ${c_string(v)});` };
+			return { key: v, name_line: `cuisv_name(ui, ${c_string(v)}, ${c_string(labelled ? `###${v}` : v)});` };
 		}
 	}
 	return { key: t.key(), name_line: null };
@@ -292,7 +307,7 @@ function emit_box(ctx: CompileContext, t: Template, node: AST.RegularElement, sp
 	const mg = margins(style);
 	const v = key.replace(/\W/g, '_');
 
-	t.open(`{ /* <${node.name}> ${key} */`);
+	t.open(`{ /* ${c_comment(`<${node.name}> ${key}`)} */`);
 	if (name_line) t.line(name_line);
 	if (none) t.open(`if (!${none}) {`);
 	if (mg) {
@@ -329,11 +344,13 @@ function emit_box(ctx: CompileContext, t: Template, node: AST.RegularElement, sp
 	t.line('cui_box_begin(ui, &o);');
 	if (pointer) t.line(`cuisv_box_mark(ui, ${clickable ? 'true' : 'false'}, ${clickable || has_facet(style, 'cursor_hand') ? 'true' : 'false'}, &${pv});`);
 	if (ts_lines) t.line(`cuisv_text_push(&ts_${v});`);
+	if (node.name === 'li') emit_marker(ctx, t);
+	if (node.name === 'ol') t.line(`cuisv_ol_begin(${ol_start(ctx, t, node)});`);
 	ctx.ancestors.push(info);
-	if (node.name === 'li') emit_marker(t);
 	const inline_flow = dir === 'row' && fallback === 'row' && kids.some((k) => k.type === 'Text' && k.data.trim());
 	walk(ctx, t, kids, undefined, inline_flow);
 	ctx.ancestors.pop();
+	if (node.name === 'ol') t.line('cuisv_ol_end();');
 	if (ts_lines) t.line('cuisv_text_pop();');
 	t.line('cui_box_end(ui);');
 	emit_title_tooltip(ctx, t, node);
@@ -368,9 +385,17 @@ function emit_box(ctx: CompileContext, t: Template, node: AST.RegularElement, sp
 	t.close();
 }
 
-function emit_marker(t: Template) {
-	// the li's box is a row: marker, then the content
-	t.line('cuisv_text(ui, "\\342\\200\\242", NULL);');
+/** The li's box is a row: its marker, then the content. In an <ol> the runtime counts the items. */
+function emit_marker(ctx: CompileContext, t: Template) {
+	const list = [...ctx.ancestors].reverse().find((a) => a.tag === 'ol' || a.tag === 'ul');
+	if (list?.tag === 'ol') t.line('cuisv_text(ui, cuisv_ol_marker(), NULL);');
+	else t.line('cuisv_text(ui, "\\342\\200\\242", NULL);');
+}
+
+/** C for the number an <ol>'s first item gets: start="…", else 1. */
+function ol_start(ctx: CompileContext, t: Template, node: AST.RegularElement): string {
+	const a = attr(node, 'start');
+	return (a && typed_val(ctx, t, 'int', 'start', attr_source(ctx, a), a)?.c) || '1';
 }
 
 // ---- form controls and media ------------------------------------------------------------------
@@ -392,11 +417,12 @@ function opt_attr(ctx: CompileContext, t: Template, node: AST.RegularElement, na
 function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement) {
 	const { style } = element_style(ctx, t, node, HTML[node.name]);
 	bind_pointer(style, '((cuisv_pointer){0})');
-	const { key, name_line } = element_key(ctx, t, node);
-	const none = display_none(style, t);
 	const typeAttr = attr(node, 'type');
 	const type = typeAttr && typeAttr.value !== true ? String((attr_source(ctx, typeAttr) as { value?: unknown }).value ?? 'text') : 'text';
-	t.open(`{ /* <${node.name}${node.name === 'input' ? ` type=${type}` : ''}> ${key} */`);
+	// checkboxes, radios and sliders are CUI controls with a label (label_c below)
+	const { key, name_line } = element_key(ctx, t, node, node.name === 'input' && ['checkbox', 'radio', 'range'].includes(type));
+	const none = display_none(style, t);
+	t.open(`{ /* ${c_comment(`<${node.name}${node.name === 'input' ? ` type=${type}` : ''}> ${key}`)} */`);
 	if (name_line) t.line(name_line);
 	if (none) t.open(`if (!${none}) {`);
 	const disabled = opt_attr(ctx, t, node, 'disabled', 'bool');
@@ -407,7 +433,7 @@ function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement
 	const label = label_text(ctx, node);
 	const label_c = (fallback = '') => {
 		if (!label) return c_string(`${fallback}###${key}`);
-		if (label.kind === 'static') return c_string(`${label.value ?? ''}###${key}`);
+		if (label.kind === 'static') return c_string(`${label_part(String(label.value ?? ''))}###${key}`);
 		return `cuisv_label(${string_val(t, label).c}, ${c_string(key)})`;
 	};
 
@@ -498,7 +524,11 @@ function slot_number(ctx: CompileContext, t: Template, node: AST.RegularElement,
 	const a = attr(node, name);
 	const s = a ? attr_source(ctx, a) : null;
 	const { slot, setter, own } = value_slot(t, 'n', b, s, (js) => `Number(${js})`);
-	if (own && s?.kind === 'static' && s.value != null) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_num(s, ${slot}, ${Number(s.value)});`);
+	if (own && s?.kind === 'static' && s.value != null) {
+		const n = Number(s.value);
+		if (Number.isFinite(n)) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_num(s, ${slot}, ${n});`);
+		else warn(ctx, 'bad_value', `${name}: expected a number, got ${JSON.stringify(s.value)}`, a);
+	}
 	return { slot, setter };
 }
 
@@ -523,7 +553,7 @@ function emit_check(ctx: CompileContext, t: Template, node: AST.RegularElement, 
 		const a = attr(node, 'checked');
 		const s = a ? attr_source(ctx, a) : null;
 		const { slot, setter, own } = value_slot(t, 'b', bind(ctx, node, 'checked'), s);
-		if (own && s?.kind === 'static' && s.value !== false) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_bool(s, ${slot}, true);`);
+		if (own && s?.kind === 'static' && attr_on(s.value)) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_bool(s, ${slot}, true);`);
 		t.line(`bool p_checked = cuisv_bool(s, ${slot}); bool p_was = p_checked;`);
 		t.line(`cui_checkbox_ex(ui, ${label}, &p_checked, &o);`);
 		emit_change(ctx, t, node, 'p_checked != p_was', `cuisv_set_bool(s, ${slot}, p_checked);`, setter, 'bool', 'p_checked');
@@ -533,7 +563,7 @@ function emit_check(ctx: CompileContext, t: Template, node: AST.RegularElement, 
 		const va = attr(node, 'value');
 		const value_js = va ? js_of(attr_source(ctx, va)) : 'undefined';
 		const slot = t.slot('b', g ? `(${g.js}) === (${value_js})` : 'false');
-		const setter = g ? t.setter(slot, `() => { ${g.set.replace(/^\(__cuisv_v\) => /, '((__cuisv_v) => ')}${g.set.startsWith('(__cuisv_v)') ? ')' : ''}(${value_js}); }`) : -1;
+		const setter = g ? t.setter(slot, `() => (${g.set})(${value_js})`) : -1;
 		t.line(`int p_sel = cuisv_bool(s, ${slot}) ? 1 : 0; int p_was = p_sel;`);
 		t.line(`cui_radio_ex(ui, ${label}, &p_sel, 1, &o);`);
 		emit_change(ctx, t, node, 'p_sel != p_was && p_sel == 1', `cuisv_set_bool(s, ${slot}, true);`, setter, 'bool', 'true');
@@ -559,7 +589,7 @@ function emit_text_input(ctx: CompileContext, t: Template, node: AST.RegularElem
 	if (rows && fn === 'cui_textarea_ex') t.line(`o.height = (${rows}) * 20.0f + 16.0f;`);
 	const label = label_text(ctx, node);
 	if (label) t.line(`o.label = ${string_val(t, label).c};`);
-	t.line(`size_t cap; char *p_value = cuisv_buf(s, ${slot}, 256, &cap);`);
+	t.line(`size_t cap; char *p_value = cuisv_buf(s, ${slot}, ${edit_room()}, &cap);`);
 	t.line(`int r = ${fn}(ui, ${c_string(key)}, p_value, cap, &o);`);
 	const lines = [`cuisv_buf_changed(s, ${slot}, ${setter});`];
 	const oninput = event(ctx, node, 'oninput');
@@ -582,11 +612,11 @@ function emit_text_input(ctx: CompileContext, t: Template, node: AST.RegularElem
 	}
 }
 
-/** <select> with <option> children (static, or one {#each}). The binding is on the value. */
+/** <select> with <option> children: static ones and {#each} blocks of them, in order. The binding is on the value. */
 function emit_select(ctx: CompileContext, t: Template, node: AST.RegularElement, key: string, disabled: string | null, css: (o: string) => void) {
+	// JS array elements: one per static option, a spread per {#each}
 	const labels: string[] = [];
 	const values: string[] = [];
-	let dynamic: { labels: string; values: string } | null = null;
 	for (const n of node.fragment.nodes) {
 		if (is_blank(n)) continue;
 		if (n.type === 'RegularElement' && n.name === 'option') {
@@ -606,11 +636,13 @@ function emit_select(ctx: CompileContext, t: Template, node: AST.RegularElement,
 			const lab = text ? (text.kind === 'static' ? JSON.stringify(String(text.value)) : text.js) : '""';
 			const va = attr(opt, 'value');
 			const val = va ? js_of(attr_source(ctx, va)) : lab;
-			dynamic = { labels: `Array.from(${list}, ${params} => String(${lab}))`, values: `Array.from(${list}, ${params} => (${val}))` };
-		} else warn(ctx, 'select_children', '<select> takes <option>s (or one {#each} of them)', n as never);
+			labels.push(`...Array.from(${list}, ${params} => String(${lab}))`);
+			values.push(`...Array.from(${list}, ${params} => (${val}))`);
+		} else warn(ctx, 'select_children', '<select> takes <option>s and {#each} blocks of them', n as never);
 	}
-	const labels_js = dynamic ? dynamic.labels : `[${[...labels].join(', ')}]`;
-	const values_js = dynamic ? dynamic.values : `[${values.join(', ')}]`;
+	const array = (parts: string[]) => (parts.length === 1 && parts[0].startsWith('...') ? parts[0].slice(3) : `[${parts.join(', ')}]`);
+	const labels_js = array(labels);
+	const values_js = array(values);
 	const b = bind(ctx, node, 'value');
 	const items = t.slot('a', labels_js);
 	let index: number;

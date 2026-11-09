@@ -50,7 +50,14 @@ export function c_string(s: string): string {
 	return out + '"';
 }
 
-function c_float(n: number): string {
+/** Text for inside a C comment: markup can say anything, including the end of one. */
+export function c_comment(s: string): string {
+	return s.replace(/\*\//g, '* /').replace(/\/\*/g, '/ *');
+}
+
+/** A float literal. NaN and the infinities have none: callers warn and leave such values out,
+ * and anything that slips through is 0. */
+export function c_float(n: number): string {
 	if (!Number.isFinite(n)) return '0';
 	const s = String(n);
 	return /[.e]/.test(s) ? s + 'f' : s + '.0f';
@@ -72,6 +79,16 @@ export function c_size(kind: number, value: number): string {
 		default:
 			return 'CUI_FIT';
 	}
+}
+
+/**
+ * The visible part of a CUI label, before "##key" or "###key" goes after it. CUI shows a label
+ * up to its first "##", so a '#' that another '#' (or the suffix) follows gets a zero width
+ * non-joiner after it, as cuisv_label does at runtime. (CUI's shaper draws U+200C as nothing;
+ * text drawn unshaped shows it as a narrow blank.)
+ */
+export function label_part(visible: string): string {
+	return visible.replace(/#(?=#|$)/g, '#\u200c');
 }
 
 /** A value for C: either known at build time or read from a slot. */
@@ -173,6 +190,8 @@ export interface CompileContext {
 	records: Records;
 	/** Declarations the skeleton's script needs (state for row windows). */
 	inject: string[];
+	/** File-scope C data (static string and float arrays), in the order they were made. */
+	statics: string[];
 }
 
 export function new_template(ctx: CompileContext): Template {
@@ -229,6 +248,22 @@ export function walk(ctx: CompileContext, t: Template, nodes: Node[], text?: str
 	flush();
 }
 
+/**
+ * The children of a CUI component, built in place. A {@const} among them belongs to them, as
+ * in Svelte: then they are a template of their own, rendered here through a site, with the
+ * {@const}s before it. (Next to the enclosing template's element they could clash with a
+ * sibling's, and at the root Svelte refuses them.) `scope` holds the {@const}s, when `nodes`
+ * is a part of it.
+ */
+export function walk_children(ctx: CompileContext, t: Template, nodes: Node[], scope: Node[] = nodes) {
+	const consts = scope.filter((n) => n.type === 'ConstTag');
+	if (!consts.length) return walk(ctx, t, nodes);
+	const b = new_template(ctx);
+	for (const c of consts) b.consts.push(src(ctx, c));
+	walk(ctx, b, nodes.filter((n) => n.type !== 'ConstTag'));
+	emit_site(t, `{#if true}${b.element()}{/if}`);
+}
+
 function is_blank(nodes: Node[]) {
 	return nodes.every((n) => (n.type === 'Text' && !n.data.trim()) || n.type === 'Comment');
 }
@@ -253,10 +288,13 @@ export function text_of(ctx: CompileContext, nodes: Node[], trim_start = true, t
 	if (collapsed.length === 1 && typeof collapsed[0] !== 'string') {
 		return { kind: 'expr', js: `__cuisv_h.t(${collapsed[0].js})` };
 	}
-	const tl = collapsed
-		.map((p) => (typeof p === 'string' ? p.replace(/[`\\]/g, '\\$&').replace(/\$\{/g, '\\${') : `\${__cuisv_h.t(${p.js})}`))
-		.join('');
+	const tl = collapsed.map((p) => (typeof p === 'string' ? template_text(p) : `\${__cuisv_h.t(${p.js})}`)).join('');
 	return { kind: 'expr', js: '`' + tl + '`' };
+}
+
+/** Text for inside a JS template literal. */
+export function template_text(s: string): string {
+	return s.replace(/[`\\]/g, '\\$&').replace(/\$\{/g, '\\${');
 }
 
 function emit_text_run(ctx: CompileContext, t: Template, run: Node[], text_c?: string, trim_start = true, trim_end = true) {
@@ -474,7 +512,7 @@ export function typed_val(ctx: CompileContext, t: Template, type: string, name: 
 		const reader = type === 'float' ? 'cuisv_float' : type === 'double' ? 'cuisv_num' : 'cuisv_int';
 		if (s.kind === 'static') {
 			const n = typeof s.value === 'number' ? s.value : parse_length(s.value);
-			if (n === null || typeof n !== 'number') return fail(`expected a number, got ${JSON.stringify(s.value)}`);
+			if (n === null || !Number.isFinite(n)) return fail(`expected a number, got ${typeof s.value === 'number' ? s.value : JSON.stringify(s.value)}`);
 			return { c: type === 'float' ? c_float(n) : INT_TYPES.has(type) ? String(Math.trunc(n)) : String(n), dynamic: false };
 		}
 		return { c: `${reader}(s, ${t.slot('n', s.js)})`, dynamic: true };
@@ -494,7 +532,7 @@ export function typed_val(ctx: CompileContext, t: Template, type: string, name: 
 	}
 	if (is_enum(type)) {
 		if (s.kind === 'static') {
-			if (typeof s.value === 'number') return { c: `(${type})${Math.trunc(s.value)}`, dynamic: false };
+			if (typeof s.value === 'number') return Number.isFinite(s.value) ? { c: `(${type})${Math.trunc(s.value)}`, dynamic: false } : fail(`expected one of ${enum_names(type).join(', ')}, got ${s.value}`);
 			const k = enum_constant(type, String(s.value));
 			if (!k) return fail(`"${s.value}" is not one of ${enum_names(type).join(', ')}`);
 			return { c: k, dynamic: false };
@@ -524,7 +562,7 @@ export function typed_val(ctx: CompileContext, t: Template, type: string, name: 
 	if (type === 'const char *const *') {
 		if (s.kind === 'static') {
 			if (!Array.isArray(s.value)) return fail('expected an array of strings');
-			return { c: static_strs(s.value.map(String), /icon/.test(name)), dynamic: false };
+			return { c: static_strs(ctx, s.value.map(String), /icon/.test(name)), dynamic: false };
 		}
 		const js = /icon/.test(name) ? `__cuisv_h.icons(${s.js})` : s.js;
 		return { c: `cuisv_strs(s, ${t.slot('a', js)}, &(int){0})`, dynamic: true };
@@ -532,32 +570,25 @@ export function typed_val(ctx: CompileContext, t: Template, type: string, name: 
 	if (type === 'const float *') {
 		if (s.kind === 'static') {
 			if (!Array.isArray(s.value)) return fail('expected an array of numbers');
-			return { c: static_floats(s.value), dynamic: false };
+			return { c: static_floats(ctx, s.value), dynamic: false };
 		}
 		return { c: `cuisv_floats(s, ${t.slot('d', s.js)}, &(int){0})`, dynamic: true };
 	}
 	return fail(`${type} options are not supported yet`);
 }
 
-/** Data CUI may read after the template returns (it paints at the end of the frame), so it
- * lives at file scope rather than in a compound literal. */
-let static_counter = 0;
-export const STATICS: string[] = [];
-export function reset_statics() {
-	STATICS.length = 0;
-	static_counter = 0;
-}
-
-function static_strs(items: string[], icons: boolean): string {
+/* Data CUI may read after the template returns (it paints at the end of the frame) lives at
+ * file scope rather than in a compound literal. Names count up per compile. */
+function static_strs(ctx: CompileContext, items: string[], icons: boolean): string {
 	const parts = items.map((x) => (icons ? icon_constant(x) ?? c_string(x) : c_string(x)));
-	const name = `cuisv_strs_${static_counter++}`;
-	STATICS.push(`static const char *const ${name}[] = { ${parts.join(', ') || 'NULL'} };`);
+	const name = `cuisv_strs_${ctx.statics.length}`;
+	ctx.statics.push(`static const char *const ${name}[] = { ${parts.join(', ') || 'NULL'} };`);
 	return name;
 }
 
-function static_floats(values: unknown[]): string {
-	const name = `cuisv_floats_${static_counter++}`;
-	STATICS.push(`static const float ${name}[] = { ${values.map((x) => c_float(Number(x))).join(', ') || '0'} };`);
+function static_floats(ctx: CompileContext, values: unknown[]): string {
+	const name = `cuisv_floats_${ctx.statics.length}`;
+	ctx.statics.push(`static const float ${name}[] = { ${values.map((x) => c_float(Number(x))).join(', ') || '0'} };`);
 	return name;
 }
 
@@ -601,6 +632,14 @@ export function value_slot(t: Template, kind: string, bound: Bound | null | unde
 	}
 	const expr = given?.kind === 'expr';
 	return { slot: t.slot(kind, expr ? wrap(given.js) : null), setter: -1, own: !expr };
+}
+
+/**
+ * C for the room an editable text keeps past its length: `floor` (typing; a whole path; an
+ * editor's own edits), or what a paste inserts this frame when that is more.
+ */
+export function edit_room(floor = 256): string {
+	return `cuisv_edit_room(ui, ${floor})`;
 }
 
 /** C that sets a string slot C keeps to its first value. */
@@ -669,6 +708,9 @@ const BIND_C = {
 	double: { slot: 'n', reader: 'cuisv_num', writer: 'cuisv_set_num', emitter: 'cuisv_emit_num' }
 };
 
+/** Most values a vector has (cui_prop_vec_ex shows 1 to 4). */
+const VEC_MAX = 4;
+
 /** After the call: when the argument changed, these statements (null ones left out). */
 function on_change(arg: Arg, ...lines: (string | null)[]) {
 	const l = lines.filter((x) => x !== null);
@@ -690,7 +732,7 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 				const v = string_val(t, given);
 				arg.c = v.c;
 			} else if (children_text && !spec.params.some((q) => q.role === 'label' || q.role === 'text')) {
-				arg.c = children_text.kind === 'static' ? c_string(`${children_text.value}##${key}`) : `cuisv_fmt("%s##%s", ${string_val(t, children_text).c}, ${c_string(key)})`;
+				arg.c = children_text.kind === 'static' ? c_string(`${label_part(String(children_text.value))}##${key}`) : `cuisv_label(${string_val(t, children_text).c}, ${c_string(key)})`;
 			} else arg.c = c_string(`##${key}`);
 			return arg;
 		}
@@ -706,7 +748,7 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 				s = { kind: 'static', value: '' };
 			}
 			if (p.role === 'label') {
-				if (s.kind === 'static') arg.c = c_string(`${s.value ?? ''}###${key}`);
+				if (s.kind === 'static') arg.c = c_string(`${label_part(String(s.value ?? ''))}###${key}`);
 				else arg.c = `cuisv_label(${string_val(t, s).c}, ${c_string(key)})`;
 			} else {
 				arg.c = string_val(t, s).c;
@@ -729,7 +771,11 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 		case 'floats': {
 			const v = given ? typed_val(ctx, t, p.type, p.name, given, g.nodes.get(p.prop)) : null;
 			if (!v) {
-				arg.c = 'NULL, 0';
+				// the bools that go with a list (bind_bools) take its length from n_<name>
+				if (p.role === 'strs' && spec.params.some((q) => q.role === 'bind_bools')) {
+					arg.pre.push(`int n_${p.name} = 0;`);
+					arg.c = `NULL, n_${p.name}`;
+				} else arg.c = 'NULL, 0';
 				return arg;
 			}
 			if (v.dynamic) {
@@ -747,11 +793,13 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 			const kind = bind_kind(p.type)!;
 			const b = BIND_C[kind];
 			const { slot, setter, own } = value_slot(t, b.slot, bound, given);
-			const init = given?.kind === 'static' ? given.value : p.default;
-			if (own && init != null) {
-				const iv = kind === 'bool' ? (init === true || init === 'true' ? 'true' : 'false') : String(Number(init));
-				arg.pre.push(`if (!cuisv_has(s, ${slot})) ${b.writer}(s, ${slot}, ${iv});`);
-			}
+			// C starts from the literal markup gave, else from the spec's default (a C expression)
+			const init = given?.kind === 'static' ? given.value : null;
+			let iv: string | null = init == null ? (p.default ?? null) : null;
+			if (init != null && kind === 'bool') iv = init === true || init === 'true' ? 'true' : 'false';
+			else if (init != null && Number.isFinite(Number(init))) iv = String(Number(init));
+			else if (init != null) warn(ctx, 'bad_value', `${p.prop}: expected a number, got ${typeof init === 'number' ? init : JSON.stringify(init)}`, g.nodes.get(p.prop) as never);
+			if (own && iv !== null) arg.pre.push(`if (!cuisv_has(s, ${slot})) ${b.writer}(s, ${slot}, ${iv});`);
 			arg.pre.push(`${kind} ${local} = ${b.reader}(s, ${slot});`);
 			arg.pre.push(`${kind} ${local}_was = ${local};`);
 			arg.c = `&${local}`;
@@ -763,7 +811,7 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 		case 'buffer': {
 			const { slot, setter, own } = value_slot(t, 's', bound, given);
 			if (own && given?.kind === 'static' && given.value != null) arg.pre.push(init_str(slot, String(given.value)));
-			arg.pre.push(`size_t cap_${p.name}; char *${local} = cuisv_buf(s, ${slot}, 256, &cap_${p.name});`);
+			arg.pre.push(`size_t cap_${p.name}; char *${local} = cuisv_buf(s, ${slot}, ${edit_room(spec.buffer_room)}, &cap_${p.name});`);
 			arg.c = `${local}, cap_${p.name}`;
 			arg.local = local;
 			arg.changed = spec.buffer_changed ?? (spec.ret === 'bool' ? 'r' : '(r & CUI_CHANGED)');
@@ -826,7 +874,7 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 			const slot = t.slot('o', js === null ? null : `__cuisv_h.bools(${js})`);
 			// the list before it gives the length
 			const list = spec.params.find((q) => q.role === 'strs');
-			const n = list ? `n_${list.name}` : '0';
+			const n = list ? `n_${list.name}` : '0'; // declared by the list, given or not
 			arg.pre.push(`bool *${local} = cuisv_bools(s, ${slot}, ${n});`);
 			arg.pre.push(`bool *${local}_was = cuisv_frame_alloc((size_t)(${n} > 0 ? ${n} : 1)); memcpy(${local}_was, ${local}, (size_t)${n});`);
 			arg.c = local;
@@ -839,19 +887,31 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 			return arg;
 		}
 		case 'bind_floats': {
+			// a vector (PropVec): 1 to 4 values, as many as CUI shows; components={…} may be dynamic
 			const js = bound ? bound.js : given?.kind === 'expr' ? given.js : null;
 			const slot = t.slot('d', js);
 			const count = spec.params[spec.params.indexOf(p) + 1];
+			const comps = count ? g.props.get(count.prop) : undefined;
+			const fallback = Number(count?.default ?? 3);
+			let comps_c: string;
+			if (comps?.kind === 'expr') {
+				comps_c = `c_${p.name}`;
+				arg.pre.push(`int ${comps_c} = cuisv_int(s, ${t.slot('n', `Number((${comps.js}) ?? ${fallback})`)}); if (${comps_c} < 1 || ${comps_c} > ${VEC_MAX}) ${comps_c} = ${comps_c} < 1 ? 1 : ${VEC_MAX};`);
+			} else {
+				let k = comps?.kind === 'static' ? Number(comps.value) : fallback;
+				if (!Number.isFinite(k) || k < 1 || k > VEC_MAX) {
+					warn(ctx, 'bad_value', `${count?.prop}: ${spec.name} shows 1 to ${VEC_MAX} values, not ${JSON.stringify(comps?.kind === 'static' ? comps.value : k)}`, g.nodes.get(count?.prop ?? '') as never);
+					k = Number.isFinite(k) ? Math.min(VEC_MAX, Math.max(1, k)) : fallback;
+				}
+				comps_c = String(Math.trunc(k));
+			}
 			const n = `n_${p.name}`;
 			arg.pre.push(`int ${n} = 0; const float *src_${p.name} = cuisv_floats(s, ${slot}, &${n});`);
-			arg.pre.push(`if (${n} < 4) ${n} = 4;`);
-			arg.pre.push(`float ${local}[16] = {0}; if (src_${p.name}) memcpy(${local}, src_${p.name}, sizeof(float) * (size_t)(cuisv_slot(s, ${slot})->u.floats.count < 16 ? cuisv_slot(s, ${slot})->u.floats.count : 16));`);
-			arg.pre.push(`float ${local}_was[16]; memcpy(${local}_was, ${local}, sizeof ${local});`);
-			const comps = g.props.get(count?.prop ?? '') ;
-			const comps_c = comps?.kind === 'static' ? String(Number(comps.value)) : count?.default ?? '3';
+			arg.pre.push(`float ${local}[${VEC_MAX}] = {0}; if (src_${p.name}) memcpy(${local}, src_${p.name}, sizeof(float) * (size_t)(${n} < ${VEC_MAX} ? ${n} : ${VEC_MAX}));`);
+			arg.pre.push(`float ${local}_was[${VEC_MAX}]; memcpy(${local}_was, ${local}, sizeof ${local});`);
 			arg.c = `${local}, ${comps_c}`;
 			arg.changed = `memcmp(${local}, ${local}_was, sizeof ${local}) != 0`;
-			arg.emit = (ev) => `cuisv_emit_bytes(s, ${ev}, ${local}, (uint32_t)(sizeof(float) * (${comps_c})));`;
+			arg.emit = (ev) => `cuisv_emit_bytes(s, ${ev}, ${local}, (uint32_t)(sizeof(float) * (size_t)${comps_c}));`;
 			const decoded = 'Array.from(new Float32Array(b.slice().buffer))';
 			arg.decode = `(b) => ${decoded}`;
 			const setter = bytes_setter(slot, decoded);
@@ -861,6 +921,8 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 		case 'texture': {
 			const v = given ?? g.props.get('src');
 			if (!v) {
+				// the image's size, which image_w / image_h default to
+				if (spec.params.some((q) => q.role === 'value' && /^image_(w|h)$/.test(q.name))) arg.pre.push(`int tw_${p.name} = 0, th_${p.name} = 0;`);
 				arg.c = '0';
 				return arg;
 			}
@@ -884,7 +946,8 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 			const capg = g.props.get('capacity');
 			const rec = `rec_${p.name}`;
 			arg.pre.push(`const cuisv_records *${rec} = cuisv_records_get(s, ${slot}, ${sd});`);
-			arg.pre.push(`int cap_${p.name} = ${capg?.kind === 'static' ? Number(capg.value) : `${rec}->count + 32`}; if (cap_${p.name} < ${rec}->count) cap_${p.name} = ${rec}->count;`);
+			const cap = capg?.kind === 'static' ? typed_val(ctx, t, 'int', 'capacity', capg, g.nodes.get('capacity')) : null;
+			arg.pre.push(`int cap_${p.name} = ${cap?.c ?? `${rec}->count + 32`}; if (cap_${p.name} < ${rec}->count) cap_${p.name} = ${rec}->count;`);
 			arg.pre.push(`${T} *${local} = cuisv_frame_alloc(sizeof(${T}) * (size_t)(cap_${p.name} > 0 ? cap_${p.name} : 1)); memcpy(${local}, ${rec}->items, sizeof(${T}) * (size_t)${rec}->count);`);
 			arg.pre.push(`int n_${p.name} = ${rec}->count, n_${p.name}_was = n_${p.name};`);
 			arg.c = `${local}, &n_${p.name}, cap_${p.name}`;
@@ -914,9 +977,18 @@ function param_arg(ctx: CompileContext, t: Template, spec: Spec, p: ParamSpec, g
 		case 'skip':
 			// a count travels with its array; any other skipped parameter is its C default
 			return { c: p.count ? '' : (p.default ?? ''), pre: [], post: [] };
+		case 'bytes': {
+			// a Uint8Array, as a blob slot
+			const js = given ? js_of(given) : null;
+			const slot = t.slot('o', js === null ? null : `__cuisv_h.bytes(${js})`);
+			arg.pre.push(`const cuisv_value *blob_${p.name} = cuisv_slot(s, ${slot}); bool has_${p.name} = blob_${p.name}->kind == CUISV_BLOB;`);
+			arg.c = `has_${p.name} ? blob_${p.name}->u.blob.p : NULL, has_${p.name} ? (size_t)blob_${p.name}->u.blob.len : 0`;
+			return arg;
+		}
 		default:
 			warn(ctx, 'unsupported_param', `${spec.name}: ${p.prop} (${p.type}) is not supported yet`, node as never);
-			arg.c = zero_of(p.type);
+			// the count that travels with an array is left out of the call: give it here
+			arg.c = zero_of(p.type) + (spec.params[spec.params.indexOf(p) + 1]?.count ? ', 0' : '');
 			return arg;
 	}
 }
@@ -1041,7 +1113,7 @@ function emit_component(ctx: CompileContext, t: Template, node: AST.Component, s
 		warn(ctx, 'no_children', `<${node.name}> takes no children; they are left out`, node);
 	}
 
-	t.open(`{ /* <${node.name}> ${key} */`);
+	t.open(`{ /* ${c_comment(`<${node.name}> ${key}`)} */`);
 	if (name_line) t.line(name_line);
 	const args: Arg[] = [];
 	for (const p of spec.params) {
@@ -1076,11 +1148,13 @@ function emit_component(ctx: CompileContext, t: Template, node: AST.Component, s
 	for (const e of spec.events) {
 		const js = g.events.get(e.name);
 		if (!js) continue;
-		let when = e.when.replace(/\$changed/g, args.find((a) => a.changed)?.changed ?? 'false');
+		// $changed: any value CUI writes back changed
+		const changed = args.filter((a) => a.changed).map((a) => a.changed!);
+		let when = e.when.replace(/\$changed/g, changed.length > 1 ? changed.map((c) => `(${c})`).join(' || ') : (changed[0] ?? 'false'));
 		when = when.replace(/\$(\w+)/g, (_, n) => `p_${n}`);
 		if (e.payload?.type === 'value') {
-			const a = args.find((x) => x.emit && x.decode);
-			if (a) {
+			const a = args[spec.params.findIndex((p) => `$${p.name}` === e.payload!.expr)];
+			if (a?.emit && a.decode) {
 				const slot = t.slot('f', `(b) => (${js})((${a.decode})(b))`);
 				ev_lines.push(`if (${when}) { ${a.emit!(slot)} }`);
 			}
@@ -1098,9 +1172,9 @@ function emit_component(ctx: CompileContext, t: Template, node: AST.Component, s
 	// text style for what is inside a container
 	let ts: string | null = null;
 	if (spec.kind !== 'call') {
-		const lines = text_style(style, t, `ts_${key}`);
+		const lines = text_style(style, t, `ts_${key.replace(/\W/g, '_')}`);
 		if (lines) {
-			ts = `ts_${key}`;
+			ts = `ts_${key.replace(/\W/g, '_')}`;
 			t.line(`cuisv_text_style ${ts} = {0};`);
 			for (const l of lines) t.line(l);
 		}
@@ -1116,10 +1190,10 @@ function emit_component(ctx: CompileContext, t: Template, node: AST.Component, s
 			// <Split><A/><B/></Split>: the statement goes between the first two children
 			const real = kids.filter((k) => !(k.type === 'Text' && !k.data.trim()) && k.type !== 'Comment');
 			const at = kids.indexOf(real[1] ?? real[real.length - 1]);
-			walk(ctx, t, real.length > 1 ? kids.slice(0, at) : kids);
+			walk_children(ctx, t, real.length > 1 ? kids.slice(0, at) : kids, kids);
 			t.line(spec.between);
-			if (real.length > 1) walk(ctx, t, kids.slice(at));
-		} else walk(ctx, t, kids);
+			if (real.length > 1) walk_children(ctx, t, kids.slice(at), kids);
+		} else walk_children(ctx, t, kids);
 		ctx.ancestors.pop();
 		if (ts) t.line('cuisv_text_pop();');
 	};
@@ -1170,6 +1244,7 @@ export function event_line(t: Template, e: EventSpec, when: string, js: string):
 	if (!e.payload) return `if (${when}) cuisv_emit(s, ${t.slot('f', js)});`;
 	const expr = e.payload.expr.replace(/\$(\w+)/g, (_, n) => `p_${n}`);
 	if (e.payload.type === 'json') return `if (${when}) cuisv_emit_str(s, ${t.slot('f', `(j) => (${js})(JSON.parse(j))`)}, ${expr});`;
+	if (e.payload.type === 'num2') return `if (${when}) cuisv_emit_num2(s, ${t.slot('f', js)}, ${expr}, ${e.payload.expr2!.replace(/\$(\w+)/g, (_, n) => `p_${n}`)});`;
 	const emit = e.payload.type === 'bool' ? 'cuisv_emit_bool' : e.payload.type === 'str' ? 'cuisv_emit_str' : 'cuisv_emit_num';
 	return `if (${when}) ${emit}(s, ${t.slot('f', js)}, ${expr});`;
 }

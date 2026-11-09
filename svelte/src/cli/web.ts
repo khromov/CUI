@@ -73,7 +73,7 @@ export async function build_wasm(components: Map<string, ComponentOutput>, gen_d
 	const { cc, ld } = web_tools();
 	const shim = join(CUI_ROOT, 'web', 'shim', 'include');
 	const rt = join(PKG_ROOT, 'runtime');
-	const inc = ['-isystem', shim, '-I', join(CUI_ROOT, 'include'), '-I', join(CUI_ROOT, 'src'), '-I', rt, '-DCUISV_WEB'];
+	const inc = ['-isystem', shim, '-I', join(CUI_ROOT, 'include'), '-I', join(CUI_ROOT, 'src'), '-I', join(CUI_ROOT, 'web', 'host'), '-I', rt, '-DCUISV_WEB'];
 	const cache = join(cache_root(), 'web');
 	mkdirSync(cache, { recursive: true });
 	const headers = [join(CUI_ROOT, 'include', 'cui', 'cui.h'), join(CUI_ROOT, 'src', 'cui_internal.h'), join(shim, 'math.h'), join(rt, 'cuisv.h'), join(rt, 'cuisv_internal.h')];

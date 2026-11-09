@@ -80,7 +80,7 @@ static void cuisv_t_9c84966f(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Countdown> k0 */
         cui_countdown_opts o = {0};
-        cui_countdown_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, &o);
+        cui_countdown_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, &o);
     }
 }
 

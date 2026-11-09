@@ -62,8 +62,17 @@ function ts_type(type: string, name: string): string | null {
 	return null;
 }
 
-const payload_ts = (e: EventSpec, value_type: string) =>
-	!e.payload ? '' : e.payload.type === 'bool' ? 'value: boolean' : e.payload.type === 'str' ? 'value: string' : e.payload.type === 'num' ? 'value: number' : e.payload.type === 'json' ? 'value: any' : `value: ${value_type}`;
+/** The handler's parameters; `types` has the TS type of each bound parameter, by C name. */
+function payload_ts(e: EventSpec, spec: Spec, types: Map<string, string>): string {
+	const p = e.payload;
+	if (!p) return '';
+	if (p.type === 'num2') {
+		const prop = (expr: string) => spec.params.find((q) => `$${q.name}` === expr)?.prop ?? 'value';
+		return `${prop(p.expr)}: number, ${prop(p.expr2!)}: number`;
+	}
+	if (p.type === 'value') return `value: ${types.get(p.expr.slice(1)) ?? 'unknown'}`;
+	return p.type === 'bool' ? 'value: boolean' : p.type === 'str' ? 'value: string' : p.type === 'num' ? 'value: number' : 'value: any';
+}
 
 /** Hand-written props of components whose C is not one call (special.ts). */
 const CUSTOM: Record<string, { props: string[]; bindable: string[] }> = {
@@ -139,9 +148,11 @@ function props_of(spec: Spec): { lines: string[]; bindable: string[] } {
 		if (doc) lines.push(`\t/** ${doc.replace(/\*\//g, '* /')} */`);
 		lines.push(`\t${/^[a-z_][a-z0-9_]*$/i.test(name) ? name : JSON.stringify(name)}${required ? '' : '?'}: ${type};`);
 	};
-	let value_type = 'unknown';
+	/** The TS type of each value CUI writes back, by C parameter name (for event payloads). */
+	const types = new Map<string, string>();
 	for (const p of spec.params) {
 		const T = p.type.replace(/^const /, '').replace(/ \*$/, '');
+		let value_type = '';
 		switch (p.role) {
 			case 'id':
 				add('id', 'string', 'Identity for the state CUI keeps (scroll position, focus); findable with rect_of. Generated when left out.');
@@ -205,11 +216,14 @@ function props_of(spec: Spec): { lines: string[]; bindable: string[] } {
 				add(p.prop, 'boolean[]');
 				bindable.push(p.prop);
 				break;
-			case 'bind_floats':
+			case 'bind_floats': {
 				value_type = 'number[]';
 				add(p.prop, 'number[]');
 				bindable.push(p.prop);
+				const count = spec.params[spec.params.indexOf(p) + 1];
+				if (count?.count) add(count.prop, 'number', 'How many values: 1 to 4 (default 3).');
 				break;
+			}
 			case 'bind_u32s':
 				value_type = 'number[]';
 				add(p.prop, 'number[]', 'One bit mask of chosen options per field.');
@@ -222,6 +236,7 @@ function props_of(spec: Spec): { lines: string[]; bindable: string[] } {
 				add(p.prop, 'Uint8Array');
 				break;
 		}
+		if (value_type) types.set(p.name, value_type);
 	}
 	for (const [name, f] of spec.fields) {
 		if (f.array) continue;
@@ -238,7 +253,7 @@ function props_of(spec: Spec): { lines: string[]; bindable: string[] } {
 		const t = ts_type(f.type, f.name);
 		if (t) add(name, t, f.comment);
 	}
-	for (const e of [...spec.events, ...(spec.end_events ?? []), ...(spec.before_end?.events ?? [])]) add(e.name, `(${payload_ts(e, value_type)}) => void`);
+	for (const e of [...spec.events, ...(spec.end_events ?? []), ...(spec.before_end?.events ?? [])]) add(e.name, `(${payload_ts(e, spec, types)}) => void`);
 	for (const [name, type] of Object.entries(HTML_GLOBAL_PROPS)) add(name, type);
 	if (spec.children !== 'none') add('children', 'Snippet');
 	return { lines, bindable };

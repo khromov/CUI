@@ -25,6 +25,7 @@ import { build_wasm, write_page } from './web.ts';
 import { developer_id, make_app_bundle, notarize, run_options } from './macos.ts';
 import { compile } from '../compiler/index.ts';
 import { create } from './create.ts';
+import { project_root, triggers_rebuild } from './project.ts';
 
 const OPTIONS = {
 	release: { type: 'boolean' }, debug: { type: 'boolean' }, verbose: { type: 'boolean', short: 'v' }, web: { type: 'boolean' }, app: { type: 'boolean' },
@@ -53,20 +54,6 @@ type Args = ReturnType<typeof parse_args>;
 const dim = (s: string) => (process.stderr.isTTY ? `\x1b[2m${s}\x1b[0m` : s);
 const red = (s: string) => (process.stderr.isTTY ? `\x1b[31m${s}\x1b[0m` : s);
 const yellow = (s: string) => (process.stderr.isTTY ? `\x1b[33m${s}\x1b[0m` : s);
-
-function project_root(entry: string, given?: string): string {
-	if (given) return resolve(given);
-	let dir = dirname(resolve(entry));
-	for (let d = dir; ; d = dirname(d)) {
-		if (existsSync(join(d, 'package.json'))) {
-			dir = d;
-			break;
-		}
-		if (dirname(d) === d) break;
-	}
-	// a project inside this package (the examples) keys templates by their own folder
-	return dir === resolve(new URL('../..', import.meta.url).pathname) ? dirname(resolve(entry)) : dir;
-}
 
 interface Built {
 	ok: boolean;
@@ -178,8 +165,7 @@ async function serve_web(a: Args) {
 		if (ok) for (const c of clients) c.write('data: reload\n\n');
 	};
 	watch(root, { recursive: true }, (_e, file) => {
-		if (!file || /(^|[\\/])(\.cui-svelte|node_modules|dist|dist-web|\.git)([\\/]|$)/.test(file)) return;
-		if (!/\.(svelte|ts|js|mjs|json|css|c)$/.test(file)) return;
+		if (!triggers_rebuild(file)) return;
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(rebuild, 60);
 	});
@@ -299,8 +285,7 @@ async function cmd_dev(a: Args) {
 		}
 	};
 	watch(root, { recursive: true }, (_e, file) => {
-		if (!file || /(^|[\\/])(\.cui-svelte|node_modules|dist|\.git)([\\/]|$)/.test(file)) return;
-		if (!/\.(svelte|ts|js|mjs|json|css)$/.test(file)) return;
+		if (!triggers_rebuild(file)) return;
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(rebuild, 60);
 	});

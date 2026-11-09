@@ -1,6 +1,11 @@
+<script module lang="ts">
+	import { Column, Row, Text, Button, Switch, Slider, RangeSlider, Input, Scroll, Card, on_key } from 'cui-svelte';
+	// a top-level snippet, exported
+	export { greeting };
+</script>
+
 <script lang="ts">
 	import { setContext, onMount, untrack } from 'svelte';
-	import { Column, Row, Text, Button, Switch, Slider, Input, Scroll, on_key } from 'cui-svelte';
 	import Child from './Child.svelte';
 
 	setContext('theme', 'midnight');
@@ -17,6 +22,11 @@
 	let promise: Promise<string> = $state(new Promise((r) => setTimeout(() => r('loaded'), 30)));
 	let key = $state(0);
 	const doubled = $derived(n * 2);
+	let lo = $state(20);
+	let hi = $state(60);
+	let range_changed = $state('none');
+	// a top-level snippet, used from the script
+	const cells = [{ name: 'a', render: cell }];
 	let shortcut = $state('');
 	$effect(() => on_key((e) => (shortcut = `${e.key}${e.ctrl ? ' ctrl' : ''}`)));
 
@@ -33,6 +43,14 @@
 
 {#snippet badge(label: string)}
 	<Text>badge:{label}</Text>
+{/snippet}
+
+{#snippet cell(name: string)}
+	<Text>cell {name}</Text>
+{/snippet}
+
+{#snippet greeting(name: string)}
+	<Text>hello {name}</Text>
 {/snippet}
 
 <Column gap={2}>
@@ -90,4 +108,26 @@
 			<p>pane line {i}</p>
 		{/each}
 	</div>
+	<div id="range"><RangeSlider bind:lo bind:hi min={0} max={100} onchange={(a, b) => (range_changed = `${a}-${b}`)}>Range</RangeSlider></div>
+	<Text>range={lo}-{hi} onchange={range_changed}</Text>
+	<Card>
+		{@const tripled = n * 3}
+		<Text>tripled={tripled}</Text>
+	</Card>
+	{#each cells as c (c.name)}
+		{@render c.render(c.name)}
+	{/each}
+	{@render greeting('module')}
+	{#each items as item (item.id)}
+		<Row gap={4}>
+			<Card>
+				{@const label = `id ${item.id}`}
+				<Text>{label}</Text>
+			</Card>
+			<Card>
+				{@const label = `is ${item.label}`}
+				<Text>{label}</Text>
+			</Card>
+		</Row>
+	{/each}
 </Column>

@@ -98,7 +98,7 @@ static void cuisv_t_8c3e789c(cui_ctx *ui, cuisv_scope *s) {
     { /* <AgentPlan> k0 */
         const cuisv_records *rec_steps = cuisv_records_get(s, 1, &cuisv_sd_cui_plan_step);
         cui_agent_plan_opts o = {0};
-        int r = cui_agent_plan_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_plan_step *)rec_steps->items, rec_steps->count, &o);
+        int r = cui_agent_plan_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_plan_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
     }
 }

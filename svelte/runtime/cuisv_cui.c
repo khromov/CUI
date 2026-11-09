@@ -26,6 +26,17 @@ void cuisv_box_mark(cui_ctx *ui, bool focusable, bool hand_cursor, const cuisv_p
     if (hand_cursor && p && p->hovered) cui__set_cursor(ui, CUI_CURSOR_HAND);
 }
 
+size_t cuisv_edit_room(cui_ctx *ui, size_t floor) {
+    if (!ui) return floor;
+    size_t pending = ui->text_in_len > 0 ? (size_t)ui->text_in_len : 0;
+    /* a paste: only on the frame its shortcut is pressed */
+    if ((ui->mods & CUI_MOD_PRIMARY) && cui_key_pressed(ui, CUI_KEY_V) && ui->platform.get_clipboard) {
+        const char *clip = ui->platform.get_clipboard(ui->platform.user);
+        if (clip) pending += strlen(clip);
+    }
+    return pending > floor ? pending : floor;
+}
+
 void cuisv_clipboard_set(cui_ctx *ui, const char *text) {
     if (ui && ui->platform.set_clipboard) ui->platform.set_clipboard(ui->platform.user, text ? text : "");
 }
@@ -33,6 +44,14 @@ void cuisv_clipboard_set(cui_ctx *ui, const char *text) {
 const char *cuisv_clipboard_get(cui_ctx *ui) {
     if (ui && ui->platform.get_clipboard) return ui->platform.get_clipboard(ui->platform.user);
     return NULL;
+}
+
+/* Whether CUI still shows the toast (or is animating it out): a host stops asking about its
+ * action once it is gone. */
+bool cuisv_toast_alive(cui_ctx *ui, int handle) {
+    if (!ui) return false;
+    for (int i = 0; i < ui->toast_count; i++) if (ui->toasts[i].handle == handle) return true;
+    return false;
 }
 
 /* The ids of the nodes that scrolled in the latest frame. scroll_to writes a scroll state, and
@@ -72,8 +91,10 @@ bool cuisv_scroll_to(cui_ctx *ui, const char *name, float y) {
     return true;
 }
 
+/* rect_of(id) from JS: the layout of the latest frame. CUI keeps a rect for a while after its
+ * element is gone, so a name that was not drawn in that frame has none. */
 bool cuisv_rect_of(cui_ctx *ui, const char *name, cui_rect *out) {
-    cui_id id = cuisv_named(name);
+    cui_id id = cuisv_named_drawn(name);
     if (!ui || !id) return false;
     *out = cui_get_rect(ui, id);
     return true;

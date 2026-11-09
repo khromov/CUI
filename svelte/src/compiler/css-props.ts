@@ -168,6 +168,14 @@ export function expand(property: string, value: string): [string, string][] {
 
 const num = (value: number): FacetValue => ({ kind: 'num', value });
 
+/** A plain number ("1.5", "150%" as 1.5 when `percent`), or null when it is not one. */
+function number_of(v: string, percent = false): number | null {
+	const pct = percent && v.endsWith('%');
+	if (!/^\d*\.?\d+$/.test(pct ? v.slice(0, -1) : v)) return null;
+	const n = parseFloat(v) / (pct ? 100 : 1);
+	return Number.isFinite(n) ? n : null;
+}
+
 function length_or(property: string, v: string, problems: CssProblem[]): number | null {
 	const n = parse_length(v);
 	if (n === null) problems.push({ property, message: `${property}: ${v} is not a length CUI can use (px, rem or a number)` });
@@ -349,7 +357,9 @@ export function facets(property: string, value: string, problems: CssProblem[]):
 		case 'grid-template-columns': {
 			const rep = /^repeat\(\s*(\d+)\s*,/.exec(v);
 			const auto = /^repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*([\d.]+)(?:px)?\s*,/.exec(v);
-			if (auto) add('min_column_width', num(parseFloat(auto[1])));
+			const min = auto ? number_of(auto[1]) : null;
+			if (auto && min === null) problems.push({ property, message: `grid-template-columns: ${auto[1]} is not a length` });
+			else if (auto) add('min_column_width', num(min!));
 			else if (rep) add('columns', num(parseInt(rep[1], 10)));
 			else {
 				const cols = split_ws(v).length;
@@ -383,12 +393,11 @@ export function facets(property: string, value: string, problems: CssProblem[]):
 			break;
 		case 'line-height': {
 			if (v === 'normal') break;
-			if (/^[\d.]+$/.test(v)) add('text_line_height', num(parseFloat(v)));
-			else if (v.endsWith('%')) add('text_line_height', num(parseFloat(v) / 100));
-			else {
-				const n = parse_length(v);
-				if (n !== null) add('text_line_height_px', num(n));
-			}
+			const factor = number_of(v, true);
+			const n = factor === null ? parse_length(v) : null;
+			if (factor !== null) add('text_line_height', num(factor));
+			else if (n !== null) add('text_line_height_px', num(n));
+			else problems.push({ property, message: `line-height: ${raw} is not a number, percentage or length` });
 			break;
 		}
 		case 'white-space':

@@ -98,7 +98,7 @@ static void cuisv_t_71f8b260(cui_ctx *ui, cuisv_scope *s) {
         cui_emoji_picker_opts o = {0};
         int po_tone = cuisv_int(s, 1); int po_tone_was = po_tone;
         o.tone = &po_tone;
-        const char * r = cui_emoji_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &o);
+        const char * r = cui_emoji_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &o);
         (void)r;
         if (po_tone != po_tone_was) { cuisv_set_num(s, 1, po_tone); cuisv_emit_num(s, 2, po_tone); }
     }
@@ -184,7 +184,7 @@ static void cuisv_t_3ccaa5f6(cui_ctx *ui, cuisv_scope *s) {
     { /* <EmojiPicker> k0 */
         cui_emoji_picker_opts o = {0};
         o.width = cuisv_size(s, 1, CUI_FIT);
-        const char * r = cui_emoji_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &o);
+        const char * r = cui_emoji_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &o);
         (void)r;
     }
 }

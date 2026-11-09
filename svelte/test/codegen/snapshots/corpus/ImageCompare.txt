@@ -91,7 +91,7 @@ static void cuisv_t_4485a5f6(cui_ctx *ui, cuisv_scope *s) {
         float p_pos = cuisv_float(s, 1);
         float p_pos_was = p_pos;
         cui_compare_opts o = {0};
-        bool r = cui_image_compare_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, 0, &p_pos, &o);
+        bool r = cui_image_compare_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, 0, &p_pos, &o);
         (void)r;
         if (p_pos != p_pos_was) { cuisv_set_num(s, 1, p_pos); cuisv_emit_num(s, 2, p_pos); }
     }
@@ -174,7 +174,7 @@ static void cuisv_t_f0286b78(cui_ctx *ui, cuisv_scope *s) {
         float p_pos_was = p_pos;
         cui_compare_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        bool r = cui_image_compare_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, 0, &p_pos, &o);
+        bool r = cui_image_compare_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, 0, &p_pos, &o);
         (void)r;
         if (p_pos != p_pos_was) { cuisv_set_num(s, 1, p_pos); }
     }

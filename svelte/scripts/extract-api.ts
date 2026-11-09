@@ -171,16 +171,21 @@ function normalize_type(t: string) {
 const functions: Record<string, Fn> = {};
 {
 	const lines = header.split('\n');
+	const code = clean.split('\n');
+	// a line of nothing but comment (a prototype with a comment after it is code)
+	const comment_only = (k: number) => k >= 0 && code[k].trim() === '' && lines[k].trim() !== '';
 	for (let i = 0; i < lines.length; i++) {
 		if (!lines[i].startsWith('CUI_API ')) continue;
 		let decl = lines[i];
 		let j = i;
 		while (!/\)\s*(CUI_PRINTF\([^)]*\))?\s*;/.test(strip_comments(decl)) && j < lines.length - 1) decl += ' ' + lines[++j].trim();
-		// comment directly above
+		// the comment block directly above, from the line it opens on (not the rest of a
+		// comment that follows code on an earlier line)
 		let comment = '';
-		for (let k = i - 1; k >= 0 && /^\s*(\/\*|\*)/.test(lines[k]) || (k >= 0 && /\*\/\s*$/.test(lines[k]) && k === i - 1); k--) {
+		for (let k = i - 1; comment_only(k); k--) {
 			comment = lines[k] + '\n' + comment;
 			if (/^\s*\/\*/.test(lines[k])) break;
+			if (!comment_only(k - 1)) comment = '';
 		}
 		const d = strip_comments(decl).replace(/CUI_PRINTF\([^)]*\)/, '').replace(/^CUI_API\s+/, '').trim();
 		const m = /^(.*?)\b(\w+)\s*\((.*)\)\s*;\s*$/s.exec(d);

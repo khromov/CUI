@@ -283,7 +283,7 @@ static void cuisv_t_7edc7475(cui_ctx *ui, cuisv_scope *s) {
                     if (p_hi != p_hi_was) { cuisv_set_num(s, 16, p_hi); cuisv_emit_num(s, 17, p_hi); }
                 }
                 { /* <Input> k26 */
-                    size_t cap_buf; char *p_buf = cuisv_buf(s, 18, 256, &cap_buf);
+                    size_t cap_buf; char *p_buf = cuisv_buf(s, 18, cuisv_edit_room(ui, 256), &cap_buf);
                     cui_input_opts o = {0};
                     o.label = "Name";
                     o.placeholder = "Your name";
@@ -292,7 +292,7 @@ static void cuisv_t_7edc7475(cui_ctx *ui, cuisv_scope *s) {
                     if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 18, 19); }
                 }
                 { /* <Search> k27 */
-                    size_t cap_buf; char *p_buf = cuisv_buf(s, 20, 256, &cap_buf);
+                    size_t cap_buf; char *p_buf = cuisv_buf(s, 20, cuisv_edit_room(ui, 256), &cap_buf);
                     cui_input_opts o = {0};
                     o.placeholder = "Search";
                     int r = cui_search_ex(ui, "##k27", p_buf, cap_buf, &o);

@@ -109,7 +109,7 @@ static void cuisv_t_8c23d863(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_links = cuisv_records_get(s, 1, &cuisv_sd_cui_sankey_link);
         cui_sankey_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        int r = cui_sankey_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, (const cui_sankey_link *)rec_links->items, rec_links->count, &o);
+        int r = cui_sankey_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, (const cui_sankey_link *)rec_links->items, rec_links->count, &o);
         (void)r;
     }
 }

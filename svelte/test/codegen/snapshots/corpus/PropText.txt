@@ -17,7 +17,7 @@ static void cuisv_t_b1f91d77(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <PropText> k0 */
         if (!cuisv_has(s, 0)) cuisv_set_str(s, 0, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", 30);
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap_buf);
         cui_prop_opts o = {0};
         o.min = -2.5f;
         o.max = -2.5f;
@@ -74,7 +74,7 @@ const cuisv_template cuisv_tpl_85540d68 = { 0x85540d68u, "PropText_bind.svelte#1
 static void cuisv_t_86540efb(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <PropText> k0 */
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap_buf);
         cui_prop_opts o = {0};
         bool r = cui_prop_text_ex(ui, "Bound###k0", p_buf, cap_buf, &o);
         (void)r;
@@ -87,7 +87,7 @@ static void cuisv_t_86540efb(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_85540d68(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <PropText> k0 */
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, cuisv_edit_room(ui, 256), &cap_buf);
         cui_prop_opts o = {0};
         bool r = cui_prop_text_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_buf, cap_buf, &o);
         (void)r;
@@ -145,7 +145,7 @@ const cuisv_template cuisv_tpl_ef4f3d6e = { 0xef4f3d6eu, "PropText_dynamic.svelt
 static void cuisv_t_f04f3f01(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <PropText> k0 */
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, cuisv_edit_room(ui, 256), &cap_buf);
         cui_prop_opts o = {0};
         o.min = cuisv_float(s, 2);
         o.max = cuisv_float(s, 3);
@@ -166,7 +166,7 @@ static void cuisv_t_f04f3f01(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_ef4f3d6e(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <PropText> k0 */
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, cuisv_edit_room(ui, 256), &cap_buf);
         cui_prop_opts o = {0};
         bool r = cui_prop_text_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_buf, cap_buf, &o);
         (void)r;
@@ -235,7 +235,7 @@ static void cuisv_t_b4ca4bdc(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <PropText> k0 */
         if (!cuisv_has(s, 0)) cuisv_set_str(s, 0, "s_value", 7);
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap_buf);
         cui_prop_opts o = {0};
         o.min = 3.0f;
         o.max = 3.0f;
@@ -251,7 +251,7 @@ static void cuisv_t_b4ca4bdc(cui_ctx *ui, cuisv_scope *s) {
     }
     { /* <PropText> fixed_id */
         cuisv_name(ui, "fixed_id", "###fixed_id");
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, cuisv_edit_room(ui, 256), &cap_buf);
         cui_prop_opts o = {0};
         bool r = cui_prop_text_ex(ui, "###fixed_id", p_buf, cap_buf, &o);
         (void)r;

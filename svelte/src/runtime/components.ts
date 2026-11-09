@@ -618,7 +618,6 @@ export interface GapProps {
 	style?: string;
 	tooltip?: string;
 }
-/** CUI_API void cui_spacer(cui_ctx *ui); flexible space */
 export const Gap: Component<GapProps, {}, ''> = intrinsic("Gap");
 
 export interface SeparatorProps {
@@ -626,7 +625,6 @@ export interface SeparatorProps {
 	style?: string;
 	tooltip?: string;
 }
-/** CUI_API void cui_gap(cui_ctx *ui, float size); fixed space */
 export const Separator: Component<SeparatorProps, {}, ''> = intrinsic("Separator");
 
 export interface ButtonGroupProps {
@@ -698,7 +696,6 @@ export interface LabelProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API void cui_heading(cui_ctx *ui, const char *text, int level); 1..4 */
 export const Label: Component<LabelProps, {}, ''> = intrinsic("Label");
 
 export interface SecondaryProps {
@@ -708,7 +705,6 @@ export interface SecondaryProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API void cui_label(cui_ctx *ui, const char *text); medium weight */
 export const Secondary: Component<SecondaryProps, {}, ''> = intrinsic("Secondary");
 
 export interface MutedProps {
@@ -718,7 +714,6 @@ export interface MutedProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API void cui_secondary(cui_ctx *ui, const char *text); secondary color */
 export const Muted: Component<MutedProps, {}, ''> = intrinsic("Muted");
 
 export interface CodeProps {
@@ -728,7 +723,6 @@ export interface CodeProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API void cui_muted(cui_ctx *ui, const char *text); small, muted */
 export const Code: Component<CodeProps, {}, ''> = intrinsic("Code");
 
 export interface KbdProps {
@@ -738,7 +732,6 @@ export interface KbdProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API void cui_code(cui_ctx *ui, const char *text); inline code */
 export const Kbd: Component<KbdProps, {}, ''> = intrinsic("Kbd");
 
 export interface LinkProps {
@@ -749,7 +742,6 @@ export interface LinkProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API void cui_kbd(cui_ctx *ui, const char *keys); keyboard keycap, e.g. "Ctrl K" */
 export const Link: Component<LinkProps, {}, ''> = intrinsic("Link");
 
 export interface IconProps {
@@ -1256,7 +1248,7 @@ export interface RangeSliderProps {
 	hi?: number;
 	min?: number;
 	max?: number;
-	onchange?: (value: number) => void;
+	onchange?: (lo: number, hi: number) => void;
 	class?: string;
 	style?: string;
 	tooltip?: string;
@@ -1292,7 +1284,7 @@ export interface HistogramSliderProps {
 	max?: number;
 	height?: number;
 	format?: string;
-	onchange?: (value: number) => void;
+	onchange?: (lo: number, hi: number) => void;
 	class?: string;
 	style?: string;
 	tooltip?: string;
@@ -1778,7 +1770,7 @@ export interface TimePickerProps {
 	twelve_hour?: boolean;
 	minute_step?: number;
 	width?: Size;
-	onchange?: (value: number) => void;
+	onchange?: (hour: number, minute: number) => void;
 	class?: string;
 	style?: string;
 	tooltip?: string;
@@ -1792,7 +1784,7 @@ export interface TimeDialProps {
 	hour?: number;
 	minute?: number;
 	size?: number;
-	onchange?: (value: number) => void;
+	onchange?: (hour: number, minute: number) => void;
 	class?: string;
 	style?: string;
 	tooltip?: string;
@@ -1934,7 +1926,6 @@ export interface PaginationProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API int cui_breadcrumb(cui_ctx *ui, const char *const *items, int count); returns clicked index or -1 */
 export const Pagination: Component<PaginationProps, {}, "page"> = intrinsic("Pagination");
 
 export interface StepperProps {
@@ -1944,7 +1935,6 @@ export interface StepperProps {
 	style?: string;
 	tooltip?: string;
 }
-/** CUI_API bool cui_pagination(cui_ctx *ui, const char *id, int *page, int page_count); page is 0 based */
 export const Stepper: Component<StepperProps, {}, ''> = intrinsic("Stepper");
 
 export interface PathBarProps {
@@ -3261,7 +3251,6 @@ export interface TypingIndicatorProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API void cui_chat_divider(cui_ctx *ui, const char *label); "Today" */
 export const TypingIndicator: Component<TypingIndicatorProps, {}, ''> = intrinsic("TypingIndicator");
 
 export interface CommentProps {
@@ -3826,6 +3815,8 @@ export const PropColor: Component<PropColorProps, {}, "value"> = intrinsic("Prop
 export interface PropVecProps {
 	label?: string;
 	value?: number[];
+	/** How many values: 1 to 4 (default 3). */
+	components?: number;
 	/** number and vector rows; both 0 = unbounded */
 	min?: number;
 	/** number and vector rows; both 0 = unbounded */
@@ -3985,7 +3976,6 @@ export interface GridCellProps {
 	style?: string;
 	tooltip?: string;
 }
-/** CUI_API bool cui_data_grid_row(cui_ctx *ui, int row); true when the row was clicked */
 export const GridCell: Component<GridCellProps, {}, "value"> = intrinsic("GridCell");
 
 export interface KanbanProps {
@@ -4021,7 +4011,6 @@ export interface KanbanCardProps {
 	tooltip?: string;
 	children?: Snippet;
 }
-/** CUI_API bool cui_kanban_column_begin_ex(cui_ctx *ui, const char *title, int card_count, const cui_kanban_column_opts *opts); true: "+" clicked */
 export const KanbanCard: Component<KanbanCardProps, {}, ''> = intrinsic("KanbanCard");
 
 export interface CardStackProps {
@@ -4211,13 +4200,12 @@ export interface NodeProps {
 	title?: string;
 	width?: number;
 	icon?: IconName | (string & {});
-	onchange?: (value: number) => void;
+	onchange?: (x: number, y: number) => void;
 	class?: string;
 	style?: string;
 	tooltip?: string;
 	children?: Snippet;
 }
-/** A node at canvas position (*x, *y), updated while it is dragged. Returns true while the node is selected. typedef struct cui_node_opts { int _; float width; const char *icon; } cui_node_opts; width default 184 */
 export const Node: Component<NodeProps, {}, "x" | "y"> = intrinsic("Node");
 
 export interface NodeInputProps {
@@ -4394,7 +4382,7 @@ export interface FlameGraphProps {
 	row_height?: number;
 	/** deepest zoom in seconds, default 1e-8 */
 	min_range?: number;
-	onchange?: (value: number) => void;
+	onchange?: (value: FlameView) => void;
 	onselect?: (value: number) => void;
 	class?: string;
 	style?: string;
@@ -4411,7 +4399,7 @@ export interface FilterBarProps {
 	/** One bit mask of chosen options per field. */
 	selected?: number[];
 	search?: string;
-	onchange?: (value: string) => void;
+	onchange?: (value: number[]) => void;
 	class?: string;
 	style?: string;
 	tooltip?: string;

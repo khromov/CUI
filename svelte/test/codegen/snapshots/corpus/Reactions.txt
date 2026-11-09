@@ -98,7 +98,7 @@ static void cuisv_t_d1a50f5c(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_items = cuisv_records_get(s, 1, &cuisv_sd_cui_reaction);
         size_t sz_items = (size_t)rec_items->count * sizeof(cui_reaction);
         void *was_items = cuisv_frame_alloc(sz_items ? sz_items : 1); memcpy(was_items, rec_items->items, sz_items);
-        int r = cui_reactions(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (cui_reaction *)rec_items->items, rec_items->count);
+        int r = cui_reactions(ui, cuisv_label(cuisv_str(s, 0), "k0"), (cui_reaction *)rec_items->items, rec_items->count);
         (void)r;
         if (memcmp(was_items, rec_items->items, sz_items) != 0) { cuisv_emit_records(s, 2, &cuisv_sd_cui_reaction, rec_items->items, rec_items->count); }
     }
@@ -179,7 +179,7 @@ static void cuisv_t_db259be2(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_items = cuisv_records_get(s, 1, &cuisv_sd_cui_reaction);
         size_t sz_items = (size_t)rec_items->count * sizeof(cui_reaction);
         void *was_items = cuisv_frame_alloc(sz_items ? sz_items : 1); memcpy(was_items, rec_items->items, sz_items);
-        int r = cui_reactions(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (cui_reaction *)rec_items->items, rec_items->count);
+        int r = cui_reactions(ui, cuisv_label(cuisv_str(s, 0), "k0"), (cui_reaction *)rec_items->items, rec_items->count);
         (void)r;
     }
 }

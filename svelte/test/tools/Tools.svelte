@@ -1,7 +1,8 @@
 <script lang="ts">
 	import {
 		Column, Row, Text, LogView, Terminal, CurveEditor, GradientEditor, FlameGraph, FilterBar, OtpInput,
-		Reorder, ReorderItem, TreeTable, TreeName, GridCell, Box, LogBuffer, TerminalBuffer
+		Reorder, ReorderItem, TreeTable, TreeName, GridCell, Box, LogBuffer, TerminalBuffer, PropVec, Button,
+		MultiSelect, ToggleGroup, Slider, HexView, ImageViewer
 	} from 'cui-svelte';
 
 	const log = new LogBuffer();
@@ -39,6 +40,11 @@
 	]);
 	const columns = [{ title: 'Name', width: 220 }, { title: 'Kind', width: 120 }];
 	let activated = $state(-1);
+	let vec = $state([1, 2, 3, 4]);
+	let dims = $state(2);
+	let picked = $state([]);
+	let toggles = $state([]);
+	const hex = new Uint8Array([0x43, 0x55, 0x49, 0x21]);
 </script>
 
 <Column gap={8} pad={8}>
@@ -54,7 +60,7 @@
 	<FilterBar fields={fields} bind:selected={masks} bind:search={search} />
 	<OtpInput id="otp" bind:value={code} length={4} oncomplete={(c) => (completed = c)} />
 	<Text>code={code} completed={completed} masks={masks.join(',')} keys={keys.length} stops={stops.length}</Text>
-	<Reorder bind:order>
+	<Reorder id="fruits" bind:order>
 		{#each order as idx (idx)}
 			<ReorderItem><Text>{fruit[idx]}</Text></ReorderItem>
 		{/each}
@@ -68,4 +74,16 @@
 		</TreeTable>
 	</Box>
 	<Text>activated={activated} flags={tree.map((x) => x.flags).join(',')}</Text>
+	<Row gap={8}>
+		<Box width={400}><PropVec label="vec" bind:value={vec} components={dims} /></Box>
+		<Button onclick={() => (dims = dims === 2 ? 9 : 2)}>dims</Button>
+	</Row>
+	<!-- markup that once made C that did not compile -->
+	<Row gap={8}>
+		<MultiSelect id="multi" bind:value={picked} />
+		<ToggleGroup id="toggles" bind:value={toggles} />
+		<Slider value={1e999}>slider</Slider>
+	</Row>
+	<HexView id="hex" data={hex} height={60} />
+	<ImageViewer id="viewer" height={40} />
 </Column>

@@ -74,7 +74,7 @@ for (const [group, names] of GROUPS) {
 		out.push(`### ${n}`, '');
 		out.push(`\`${spec.fn}\`${spec.end ? ` … \`${spec.end}\`` : ''}${spec.children === 'container' ? ' · takes children' : spec.children === 'label' || spec.children === 'text' ? ' · text children are its label' : ''}`, '');
 		if (plain.length) out.push(plain.map((p) => (bind.has(p.prop) ? `**${p.prop}**` : p.prop) + `: \`${short(p.type)}\``).join(' · '), '');
-		if (events.length) out.push('Events: ' + events.map((e) => `\`${e.prop}${e.type.startsWith('()') ? '' : e.type.replace(/^\((\w+): ([^)]*)\).*$/, '($1)')}\``).join(', '), '');
+		if (events.length) out.push('Events: ' + events.map((e) => `\`${e.prop}${e.type.startsWith('()') ? '' : e.type.replace(/^\((\w+): [^,)]*(?:, (\w+): [^,)]*)?\).*$/, (_, a: string, b?: string) => `(${b ? `${a}, ${b}` : a})`)}\``).join(', '), '');
 	}
 }
 writeFileSync(join(root, 'docs', 'component-reference.md'), out.join('\n') + '\n');

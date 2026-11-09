@@ -92,7 +92,7 @@ static void cuisv_t_44e4fd0a(cui_ctx *ui, cuisv_scope *s) {
     { /* <Counter> k0 */
         cui_counter_opts o = {0};
         o.color = ((cui_color){ 255, 0, 0, 255 });
-        cui_counter_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, &o);
+        cui_counter_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, &o);
     }
 }
 

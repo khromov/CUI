@@ -1,7 +1,8 @@
 // @ts-nocheck
 /**
  * Instantiates an app's wasm module: the imports CUI's libc shim and web host need (from
- * CUI's web/site/js/runtime.js), plus the cui-svelte ones (JS painting, links).
+ * CUI's web/site/js/runtime.js), plus the cui-svelte ones (JS painting, links). `extra.paint`
+ * and `extra.clipboard` (CUI copied text) go to the page's bridge.
  */
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -92,6 +93,7 @@ export async function instantiate(url, extra = {}) {
     },
     js_clipboard_set(p, n) {
       const text = str(p, n);
+      extra.clipboard?.(text);
       navigator.clipboard?.writeText(text).catch(() => {});
     },
     cuisv_js_paint: (...a) => extra.paint?.(...a),

@@ -108,7 +108,7 @@ static void cuisv_t_7ead51b4(cui_ctx *ui, cuisv_scope *s) {
     { /* <RadarChart> k0 */
         const cuisv_records *rec_series = cuisv_records_get(s, 1, &cuisv_sd_cui_series);
         cui_radar_opts o = {0};
-        int r = cui_radar_chart_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_series *)rec_series->items, rec_series->count, NULL, 0, &o);
+        int r = cui_radar_chart_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_series *)rec_series->items, rec_series->count, NULL, 0, &o);
         (void)r;
     }
 }

@@ -98,7 +98,7 @@ static void cuisv_t_613e1c0f(cui_ctx *ui, cuisv_scope *s) {
     { /* <PromptSuggestions> k0 */
         const cuisv_records *rec_items = cuisv_records_get(s, 1, &cuisv_sd_cui_prompt_suggestion);
         cui_prompt_suggestions_opts o = {0};
-        int r = cui_prompt_suggestions_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_prompt_suggestion *)rec_items->items, rec_items->count, &o);
+        int r = cui_prompt_suggestions_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_prompt_suggestion *)rec_items->items, rec_items->count, &o);
         (void)r;
     }
 }

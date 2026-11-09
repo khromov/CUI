@@ -117,7 +117,7 @@ static void cuisv_t_36fa14e6(cui_ctx *ui, cuisv_scope *s) {
         size_t sz_tasks = (size_t)rec_tasks->count * sizeof(cui_gantt_task);
         void *was_tasks = cuisv_frame_alloc(sz_tasks ? sz_tasks : 1); memcpy(was_tasks, rec_tasks->items, sz_tasks);
         cui_gantt_opts o = {0};
-        int r = cui_gantt_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (cui_gantt_task *)rec_tasks->items, rec_tasks->count, cui_date_today(), 0, &o);
+        int r = cui_gantt_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (cui_gantt_task *)rec_tasks->items, rec_tasks->count, cui_date_today(), 0, &o);
         (void)r;
         if (memcmp(was_tasks, rec_tasks->items, sz_tasks) != 0) { cuisv_emit_records(s, 2, &cuisv_sd_cui_gantt_task, rec_tasks->items, rec_tasks->count); }
     }
@@ -214,7 +214,7 @@ static void cuisv_t_96103fe8(cui_ctx *ui, cuisv_scope *s) {
         size_t sz_tasks = (size_t)rec_tasks->count * sizeof(cui_gantt_task);
         void *was_tasks = cuisv_frame_alloc(sz_tasks ? sz_tasks : 1); memcpy(was_tasks, rec_tasks->items, sz_tasks);
         cui_gantt_opts o = {0};
-        int r = cui_gantt_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (cui_gantt_task *)rec_tasks->items, rec_tasks->count, cui_date_today(), 0, &o);
+        int r = cui_gantt_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (cui_gantt_task *)rec_tasks->items, rec_tasks->count, cui_date_today(), 0, &o);
         (void)r;
     }
 }

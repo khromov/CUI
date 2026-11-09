@@ -86,7 +86,7 @@ static void cuisv_t_eae569bd(cui_ctx *ui, cuisv_scope *s) {
         cui_node_end(ui);
         if (p_x != p_x_was) { cuisv_set_num(s, 0, p_x); cuisv_emit_num(s, 1, p_x); }
         if (p_y != p_y_was) { cuisv_set_num(s, 2, p_y); cuisv_emit_num(s, 3, p_y); }
-        if (p_x != p_x_was) cuisv_emit_num(s, 4, p_x);
+        if ((p_x != p_x_was) || (p_y != p_y_was)) cuisv_emit_num2(s, 4, p_x, p_y);
     }
     cuisv_render_site(ui, s, 0);
 }
@@ -171,7 +171,7 @@ static void cuisv_t_2624b70f(cui_ctx *ui, cuisv_scope *s) {
         cui_node_end(ui);
         if (p_x != p_x_was) { cuisv_set_num(s, 1, p_x); }
         if (p_y != p_y_was) { cuisv_set_num(s, 2, p_y); }
-        if (p_x != p_x_was) cuisv_emit_num(s, 6, p_x);
+        if ((p_x != p_x_was) || (p_y != p_y_was)) cuisv_emit_num2(s, 6, p_x, p_y);
     }
     cuisv_render_site(ui, s, 0);
 }

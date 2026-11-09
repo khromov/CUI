@@ -14,7 +14,7 @@
 import type { Component } from 'svelte';
 import { flushSync } from 'svelte';
 import { run, type RunOptions } from './index.ts';
-import { native } from './bridge.ts';
+import { hooks, native } from './bridge.ts';
 import { ENUMS } from './tables.ts';
 
 export interface Rect {
@@ -161,9 +161,12 @@ export function test(name: string, fn: TestFn) {
 	}
 }
 
+let current: string | null = null;
+
 async function run_tests() {
 	let failed = 0;
 	for (const t of tests) {
+		current = t.name;
 		try {
 			await t.fn();
 			flushSync();
@@ -174,9 +177,15 @@ async function run_tests() {
 			console.error(`  FAIL ${t.name}\n       ${msg.split('\n').join('\n       ')}`);
 		}
 	}
+	current = null;
 	console.log(`${tests.length - failed}/${tests.length} passed`);
 	(native().test_exit as (code: number) => void)(failed ? 1 : 0);
 }
+
+// the host ends a test file that stops making progress (or runs too long): name the test
+hooks().unfinished = () => {
+	if (current) console.error(`  FAIL ${current}\n       did not finish`);
+};
 
 class Expect {
 	private actual: unknown;

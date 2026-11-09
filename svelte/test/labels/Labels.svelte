@@ -1,4 +1,7 @@
-<script>import { Link, Button, HoldButton, ConfirmButton, StatusButton, SplitButton, Checkbox, Switch, Radio, Slider, RangeSlider, RulerSlider, HistogramSlider, Scrub, Chip, ControlTile, NavItem, NavSection, Alert, ProgressRing, EmptyState, Metric, Meter, TimelineItem, Accordion, ExpandableCard, Tree, TreeCell, ListItem, Gauge, ChatDivider, StatusBarItem, DockItem, InspectorGroup, PropFloat, PropInt, PropText, PropBool, PropEnum, PropVec, Text, Scroll } from 'cui-svelte';</script>
+<script>import { Link, Button, HoldButton, ConfirmButton, StatusButton, SplitButton, Checkbox, Switch, Radio, Slider, RangeSlider, RulerSlider, HistogramSlider, Scrub, Chip, ControlTile, NavItem, NavSection, Alert, ProgressRing, EmptyState, Metric, Meter, TimelineItem, Accordion, ExpandableCard, Tree, TreeCell, ListItem, Gauge, ChatDivider, StatusBarItem, DockItem, InspectorGroup, PropFloat, PropInt, PropText, PropBool, PropEnum, PropVec, Text, Scroll, Knob } from 'cui-svelte';
+	let notes = $state('## Release notes');
+	let caption = $state('Gain ##2');
+</script>
 <Scroll>
 <Link text="L_Link" />
 <Button label="L_Button" />
@@ -40,4 +43,10 @@
 <PropBool label="L_PropBool" />
 <PropEnum label="L_PropEnum" />
 <PropVec label="L_PropVec" />
+<Button>{"Ticket ##42"}</Button>
+<Checkbox label={notes} />
+<Button label="C#" />
+<Button label="Static ##7" />
+<Knob>{"Knob ##1"}</Knob>
+<Knob>{caption}</Knob>
 </Scroll>

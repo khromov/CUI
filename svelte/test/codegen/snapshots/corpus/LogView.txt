@@ -87,7 +87,7 @@ static void cuisv_t_96ed2493(cui_ctx *ui, cuisv_scope *s) {
     { /* <LogView> k0 */
         cui_log_view_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        cui_log_view_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), cuisv_log_buffer(cuisv_num(s, 1)), &o);
+        cui_log_view_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), cuisv_log_buffer(cuisv_num(s, 1)), &o);
     }
 }
 

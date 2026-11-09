@@ -23,3 +23,11 @@ test('dynamic class strings, display: none and style: update', () => {
 	expect(app.rect('dyn')!.h).toBeCloseTo(20, 1);
 	expect(app.text()).not.toContain('maybe');
 });
+
+test("a component's own :global rule", () => {
+	const app = mount_test(Css, { width: 800, height: 600 });
+	const outer = app.rect('glob')!, inner = app.rect('inner')!;
+	expect(inner.y - outer.y).toBeCloseTo(3, 0.5);
+	expect(inner.x - outer.x).toBeCloseTo(5, 0.5);
+	expect(outer.h).toBeCloseTo(inner.h + 6, 0.5);
+});

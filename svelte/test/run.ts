@@ -1,6 +1,6 @@
 /**
- * Checks the compiler's output against its snapshots (test/codegen), then runs every
- * test/**\/*.test.ts headlessly (cui-svelte test <file>), one after another.
+ * Checks the compiler's output against its snapshots (test/codegen) and the CLI (test/cli),
+ * then runs every test/**\/*.test.ts headlessly (cui-svelte test <file>), one after another.
  *   node test/run.ts [filter]
  */
 import { spawnSync } from 'node:child_process';
@@ -16,8 +16,9 @@ const files = ['test', 'examples']
 	.filter((p) => !filter || p.includes(filter));
 
 const jobs = files.sort().map((f) => ({ name: relative(root, f), argv: [join(root, 'bin', 'cui-svelte.js'), 'test', f] }));
-const codegen = join(root, 'test', 'codegen', 'codegen.ts');
-if (!filter || codegen.includes(filter)) jobs.unshift({ name: relative(root, codegen), argv: [codegen] });
+// node scripts first: the compiler's output against its snapshots, then the CLI
+const scripts = ['codegen/codegen.ts', 'cli/cli.ts'].map((f) => join(root, 'test', f)).filter((p) => !filter || p.includes(filter));
+jobs.unshift(...scripts.map((p) => ({ name: relative(root, p), argv: [p] })));
 
 let failed = 0;
 for (const { name, argv } of jobs) {

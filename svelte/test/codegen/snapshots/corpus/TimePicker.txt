@@ -86,7 +86,7 @@ static void cuisv_t_dd363b86(cui_ctx *ui, cuisv_scope *s) {
         (void)r;
         if (p_hour != p_hour_was) { cuisv_set_num(s, 0, p_hour); cuisv_emit_num(s, 1, p_hour); }
         if (p_minute != p_minute_was) { cuisv_set_num(s, 2, p_minute); cuisv_emit_num(s, 3, p_minute); }
-        if (p_hour != p_hour_was) cuisv_emit_num(s, 4, p_hour);
+        if ((p_hour != p_hour_was) || (p_minute != p_minute_was)) cuisv_emit_num2(s, 4, p_hour, p_minute);
     }
     cuisv_render_site(ui, s, 0);
 }
@@ -99,7 +99,7 @@ static void cuisv_t_de363d19(cui_ctx *ui, cuisv_scope *s) {
         int p_minute = cuisv_int(s, 3);
         int p_minute_was = p_minute;
         cui_time_opts o = {0};
-        bool r = cui_time_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_hour, &p_minute, &o);
+        bool r = cui_time_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_hour, &p_minute, &o);
         (void)r;
         if (p_hour != p_hour_was) { cuisv_set_num(s, 1, p_hour); cuisv_emit_num(s, 2, p_hour); }
         if (p_minute != p_minute_was) { cuisv_set_num(s, 3, p_minute); cuisv_emit_num(s, 4, p_minute); }
@@ -171,7 +171,7 @@ static void cuisv_t_5306a6ea(cui_ctx *ui, cuisv_scope *s) {
         cui_tooltip(ui, cuisv_str(s, 9));
         if (p_hour != p_hour_was) { cuisv_set_num(s, 2, p_hour); }
         if (p_minute != p_minute_was) { cuisv_set_num(s, 3, p_minute); }
-        if (p_hour != p_hour_was) cuisv_emit_num(s, 8, p_hour);
+        if ((p_hour != p_hour_was) || (p_minute != p_minute_was)) cuisv_emit_num2(s, 8, p_hour, p_minute);
     }
     cuisv_render_site(ui, s, 0);
 }
@@ -185,7 +185,7 @@ static void cuisv_t_5406a87d(cui_ctx *ui, cuisv_scope *s) {
         int p_minute_was = p_minute;
         cui_time_opts o = {0};
         o.width = cuisv_size(s, 3, CUI_FIT);
-        bool r = cui_time_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_hour, &p_minute, &o);
+        bool r = cui_time_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_hour, &p_minute, &o);
         (void)r;
         if (p_hour != p_hour_was) { cuisv_set_num(s, 1, p_hour); }
         if (p_minute != p_minute_was) { cuisv_set_num(s, 2, p_minute); }

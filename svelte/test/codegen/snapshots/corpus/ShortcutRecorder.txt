@@ -99,7 +99,7 @@ static void cuisv_t_b8465de2(cui_ctx *ui, cuisv_scope *s) {
         cui_key_combo p_combo; cuisv_record_read(s, 1, &cuisv_sd_cui_key_combo, &p_combo);
         cui_key_combo p_combo_was = p_combo;
         cui_shortcut_recorder_opts o = {0};
-        bool r = cui_shortcut_recorder_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_combo, &o);
+        bool r = cui_shortcut_recorder_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_combo, &o);
         (void)r;
         if (memcmp(&p_combo, &p_combo_was, sizeof p_combo) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_key_combo, &p_combo); }
     }
@@ -183,7 +183,7 @@ static void cuisv_t_6afaa464(cui_ctx *ui, cuisv_scope *s) {
         cui_key_combo p_combo_was = p_combo;
         cui_shortcut_recorder_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        bool r = cui_shortcut_recorder_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_combo, &o);
+        bool r = cui_shortcut_recorder_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_combo, &o);
         (void)r;
         if (memcmp(&p_combo, &p_combo_was, sizeof p_combo) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_key_combo, &p_combo); }
     }

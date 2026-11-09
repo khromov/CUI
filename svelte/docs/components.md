@@ -75,7 +75,7 @@ What CUI reports becomes an event prop:
 | CUI | Event |
 |---|---|
 | a button's `true` | `onclick` |
-| a bound value changed | `onchange(value)` |
+| a bound value changed | `onchange(value)`; `onchange(lo, hi)` when the two values are numbers (a range, an hour and minute, a node's position) |
 | text fields' flags | `oninput(text)`, `onsubmit(text)`, `onfocus`, `onblur` |
 | an index or -1 (charts, menus, palettes) | `onselect(index)` |
 | results (`cui_path_bar_result`, `cui_doc_tabs_result`…) | named events: `onclose(i)`, `onpick(path)`… |

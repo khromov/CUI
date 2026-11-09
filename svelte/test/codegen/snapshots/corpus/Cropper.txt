@@ -25,6 +25,7 @@ static void cuisv_t_e6787d7c(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Cropper> k0 */
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
+        int tw_tex = 0, th_tex = 0;
         cui_rect p_crop; cuisv_record_read(s, 0, &cuisv_sd_cui_rect, &p_crop);
         cui_rect p_crop_was = p_crop;
         cui_cropper_opts o = {0};
@@ -89,6 +90,7 @@ const cuisv_template cuisv_tpl_5e261471 = { 0x5e261471u, "Cropper_bind.svelte#1"
 static void cuisv_t_5d2612de(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Cropper> k0 */
+        int tw_tex = 0, th_tex = 0;
         cui_rect p_crop; cuisv_record_read(s, 0, &cuisv_sd_cui_rect, &p_crop);
         cui_rect p_crop_was = p_crop;
         cui_cropper_opts o = {0};
@@ -103,10 +105,11 @@ static void cuisv_t_5d2612de(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_5e261471(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Cropper> k0 */
+        int tw_tex = 0, th_tex = 0;
         cui_rect p_crop; cuisv_record_read(s, 1, &cuisv_sd_cui_rect, &p_crop);
         cui_rect p_crop_was = p_crop;
         cui_cropper_opts o = {0};
-        bool r = cui_cropper_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_crop, &o);
+        bool r = cui_cropper_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_crop, &o);
         (void)r;
         if (memcmp(&p_crop, &p_crop_was, sizeof p_crop) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_rect, &p_crop); }
     }
@@ -192,11 +195,12 @@ static void cuisv_t_2fe26492(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_30e26625(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Cropper> k0 */
+        int tw_tex = 0, th_tex = 0;
         cui_rect p_crop; cuisv_record_read(s, 1, &cuisv_sd_cui_rect, &p_crop);
         cui_rect p_crop_was = p_crop;
         cui_cropper_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        bool r = cui_cropper_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_crop, &o);
+        bool r = cui_cropper_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, tw_tex, th_tex, &p_crop, &o);
         (void)r;
         if (memcmp(&p_crop, &p_crop_was, sizeof p_crop) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_rect, &p_crop); }
     }
@@ -265,6 +269,7 @@ static void cuisv_t_36626701(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Cropper> k0 */
         cuisv_name(ui, "s_id", "s_id");
+        int tw_tex = 0, th_tex = 0;
         cui_rect p_crop; cuisv_record_read(s, 0, &cuisv_sd_cui_rect, &p_crop);
         cui_rect p_crop_was = p_crop;
         cui_cropper_opts o = {0};
@@ -280,6 +285,7 @@ static void cuisv_t_36626701(cui_ctx *ui, cuisv_scope *s) {
     }
     { /* <Cropper> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
+        int tw_tex = 0, th_tex = 0;
         cui_rect p_crop; cuisv_record_read(s, 1, &cuisv_sd_cui_rect, &p_crop);
         cui_rect p_crop_was = p_crop;
         cui_cropper_opts o = {0};

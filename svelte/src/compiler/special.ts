@@ -7,6 +7,7 @@ import type { Spec } from './specs.ts';
 import {
 	c_string,
 	each_site,
+	edit_room,
 	gather,
 	js_of,
 	new_template,
@@ -16,6 +17,7 @@ import {
 	typed_val,
 	value_slot,
 	walk,
+	walk_children,
 	warn,
 	type CompileContext,
 	type Template
@@ -66,7 +68,7 @@ const table_cell: Emitter = (ctx, t, node) => {
 	}
 	t.open('{');
 	t.line('cui_table_cell(ui);');
-	walk(ctx, t, kids);
+	walk_children(ctx, t, kids);
 	t.close();
 };
 
@@ -79,7 +81,7 @@ const grid_cell: Emitter = (ctx, t, node) => {
 		const slot = t.slot('s', bound.js);
 		const setter = t.setter(slot, bound.set);
 		t.open('{');
-		t.line(`size_t cap; char *buf = cuisv_buf(s, ${slot}, 256, &cap);`);
+		t.line(`size_t cap; char *buf = cuisv_buf(s, ${slot}, ${edit_room()}, &cap);`);
 		t.line(`if (cui_data_grid_cell_edit(ui, buf, cap)) cuisv_buf_changed(s, ${slot}, ${setter});`);
 		t.close();
 		return;
@@ -92,7 +94,7 @@ const grid_cell: Emitter = (ctx, t, node) => {
 	}
 	t.open('{');
 	t.line('cui_data_grid_cell(ui);');
-	walk(ctx, t, kids);
+	walk_children(ctx, t, kids);
 	t.close();
 };
 
@@ -214,7 +216,7 @@ const popover: Emitter = (ctx, t, node, spec) => {
 	t.line('cui_popover_opts o = {0};');
 	set_opts(ctx, t, node, spec, g);
 	t.open('if (cui_popover_begin(ui, pid, &o)) {');
-	walk(ctx, t, node.fragment.nodes);
+	walk_children(ctx, t, node.fragment.nodes);
 	t.line('cui_popover_end(ui);');
 	t.close();
 	t.line('bool now = cui_popover_is_open(ui, pid);');
@@ -242,6 +244,7 @@ const canvas: Emitter = (ctx, t, node, spec) => {
 	let fn = 'NULL';
 	if (paint) {
 		if (paint.kind !== 'static') warn(ctx, 'canvas_paint', 'paint= names a C function from <script lang="c">, so it is written as text: paint="draw_meter"', node);
+		else if (!/^[A-Za-z_]\w*$/.test(String(paint.value))) warn(ctx, 'canvas_paint', `paint= names a C function; ${JSON.stringify(paint.value)} is not a C name`, node);
 		else fn = `(cuisv_paint_fn)${String(paint.value)}`;
 	}
 	const js_slot = onpaint ? t.slot('f', onpaint) : -1;
@@ -307,6 +310,7 @@ const reorder: Emitter = (ctx, t, node, spec) => {
 	const each = kids.length === 1 && kids[0].type === 'EachBlock' ? (kids[0] as AST.EachBlock) : null;
 	const site = each ? each_site(ctx, t, each) : -1;
 	t.open(`{ /* <Reorder> ${key} */`);
+	register_id(t, g, id_c);
 	t.line(`int n = 0; const float *src = cuisv_floats(s, ${slot}, &n);`);
 	t.line('int *order = cuisv_frame_alloc(sizeof(int) * (size_t)(n > 0 ? n : 1));');
 	if (each) {
@@ -319,7 +323,7 @@ const reorder: Emitter = (ctx, t, node, spec) => {
 	t.line(`cui_reorder_begin(ui, ${id_c}, order, n);`);
 	t.line('cuisv_reorder_push();');
 	if (each) t.line(`if (by_row) cuisv_reorder_rows(ui, rows, n, order); else cuisv_render_site(ui, s, ${site});`);
-	else walk(ctx, t, node.fragment.nodes);
+	else walk_children(ctx, t, node.fragment.nodes);
 	t.line('cuisv_reorder_pop();');
 	t.open('if (cui_reorder_end(ui)) {');
 	t.line('float *f = cuisv_frame_alloc(sizeof(float) * (size_t)(n > 0 ? n : 1));');

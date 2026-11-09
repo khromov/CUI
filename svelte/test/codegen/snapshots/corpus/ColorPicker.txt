@@ -88,7 +88,7 @@ static void cuisv_t_9f8dfe5d(cui_ctx *ui, cuisv_scope *s) {
     { /* <ColorPicker> k0 */
         cui_color p_value; cuisv_record_read(s, 1, &cuisv_sd_cui_color, &p_value);
         cui_color p_value_was = p_value;
-        bool r = cui_color_picker(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value);
+        bool r = cui_color_picker(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value);
         (void)r;
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_color, &p_value); }
     }
@@ -164,7 +164,7 @@ static void cuisv_t_8e6686e1(cui_ctx *ui, cuisv_scope *s) {
     { /* <ColorPicker> k0 */
         cui_color p_value; cuisv_record_read(s, 1, &cuisv_sd_cui_color, &p_value);
         cui_color p_value_was = p_value;
-        bool r = cui_color_picker(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value);
+        bool r = cui_color_picker(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value);
         (void)r;
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_color, &p_value); }
     }

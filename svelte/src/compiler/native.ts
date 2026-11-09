@@ -69,9 +69,12 @@ export function native_wrappers(fns: NativeFn[], table: string): { c: string; er
 			errors.push(`${f.name}: returns ${f.ret}; exported functions return double, float, int, bool, const char * or void`);
 			continue;
 		}
-		const pre: string[] = [];
+		// an argument that does not convert (a Symbol, a throwing valueOf) makes the call throw,
+		// with the strings converted so far freed: no exception is left pending behind a value
+		const decls: string[] = [];
+		const convert: string[] = [];
 		const args: string[] = [];
-		const post: string[] = [];
+		const free: string[] = [];
 		let ok = true;
 		f.params.forEach((p, i) => {
 			const k = TYPES[p.type];
@@ -81,24 +84,38 @@ export function native_wrappers(fns: NativeFn[], table: string): { c: string; er
 				ok = false;
 				return;
 			}
-			if (k === 'num') pre.push(`double ${v} = 0; if (argc > ${i}) JS_ToFloat64(c, &${v}, argv[${i}]);`);
-			else if (k === 'int') pre.push(`int32_t ${v} = 0; if (argc > ${i}) JS_ToInt32(c, &${v}, argv[${i}]);`);
-			else if (k === 'bool') pre.push(`bool ${v} = argc > ${i} && JS_ToBool(c, argv[${i}]) > 0;`);
-			else {
-				pre.push(`const char *${v} = argc > ${i} ? JS_ToCString(c, argv[${i}]) : NULL;`);
-				post.push(`if (${v}) JS_FreeCString(c, ${v});`);
+			if (k === 'num') {
+				decls.push(`double ${v} = 0;`);
+				convert.push(`if (argc > ${i} && JS_ToFloat64(c, &${v}, argv[${i}]) < 0) goto done;`);
+			} else if (k === 'int') {
+				decls.push(`int32_t ${v} = 0;`);
+				convert.push(`if (argc > ${i} && JS_ToInt32(c, &${v}, argv[${i}]) < 0) goto done;`);
+			} else if (k === 'bool') {
+				decls.push(`int ${v} = 0;`);
+				convert.push(`if (argc > ${i} && (${v} = JS_ToBool(c, argv[${i}])) < 0) goto done;`);
+			} else {
+				decls.push(`const char *${v} = NULL;`);
+				convert.push(`if (argc > ${i} && !(${v} = JS_ToCString(c, argv[${i}]))) goto done;`);
+				free.push(`if (${v}) JS_FreeCString(c, ${v});`);
 			}
-			args.push(k === 'str' ? `${v} ? ${v} : ""` : `(${p.type})${v}`);
+			args.push(k === 'str' ? `${v} ? ${v} : ""` : k === 'bool' ? `${v} > 0` : `(${p.type})${v}`);
 		});
 		if (!ok) continue;
 		const call = `${f.name}(${args.join(', ')})`;
+		const result =
+			rk === 'void' ? `${call}; out = JS_UNDEFINED;`
+			: rk === 'str' ? `const char *r = ${call}; out = r ? JS_NewString(c, r) : JS_NULL;`
+			: rk === 'bool' ? `bool r = ${call}; out = JS_NewBool(c, r);`
+			: `double r = (double)${call}; out = JS_NewFloat64(c, r);`;
 		lines.push(`static JSValue cuisv_native_${f.name}(JSContext *c, JSValueConst this_val, int argc, JSValueConst *argv) {`);
 		lines.push('    (void)this_val; (void)argc; (void)argv;');
-		lines.push(...pre.map((l) => '    ' + l));
-		if (rk === 'void') lines.push(`    ${call};`, ...post.map((l) => '    ' + l), '    return JS_UNDEFINED;');
-		else if (rk === 'str') lines.push(`    const char *r = ${call};`, '    JSValue out = r ? JS_NewString(c, r) : JS_NULL;', ...post.map((l) => '    ' + l), '    return out;');
-		else if (rk === 'bool') lines.push(`    bool r = ${call};`, ...post.map((l) => '    ' + l), '    return JS_NewBool(c, r);');
-		else lines.push(`    double r = (double)${call};`, ...post.map((l) => '    ' + l), '    return JS_NewFloat64(c, r);');
+		lines.push(...decls.map((l) => '    ' + l));
+		lines.push('    JSValue out = JS_EXCEPTION;');
+		lines.push(...convert.map((l) => '    ' + l));
+		lines.push(`    { ${result} }`);
+		if (convert.length) lines.push('done:');
+		lines.push(...free.map((l) => '    ' + l));
+		lines.push('    return out;');
 		lines.push('}');
 	}
 	const ok_fns = fns.filter((f) => !errors.some((e) => e.startsWith(f.name + ':')));

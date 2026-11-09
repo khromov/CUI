@@ -99,7 +99,7 @@ static void cuisv_t_d1cabc7a(cui_ctx *ui, cuisv_scope *s) {
     { /* <Ticker> k0 */
         const cuisv_records *rec_items = cuisv_records_get(s, 1, &cuisv_sd_cui_ticker_item);
         cui_ticker_opts o = {0};
-        cui_ticker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_ticker_item *)rec_items->items, rec_items->count, &o);
+        cui_ticker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_ticker_item *)rec_items->items, rec_items->count, &o);
     }
 }
 

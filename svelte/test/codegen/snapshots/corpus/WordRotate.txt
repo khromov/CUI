@@ -103,7 +103,7 @@ static void cuisv_t_5966f549(cui_ctx *ui, cuisv_scope *s) {
         cui_text_fx_opts o = {0};
         o.width = cuisv_size(s, 1, CUI_FIT);
         o.color = ((cui_color){ 255, 0, 0, 255 });
-        cui_word_rotate_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, 2.0f, &o);
+        cui_word_rotate_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, 2.0f, &o);
     }
 }
 

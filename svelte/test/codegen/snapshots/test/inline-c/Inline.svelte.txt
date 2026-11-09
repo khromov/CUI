@@ -13,6 +13,13 @@
 /* ---- <script lang="c"> ---- */
 
 	cuisv_export double triple(double x) { return x * 3; }
+	cuisv_export int len(const char *s) { return (int)strlen(s); }
+	cuisv_export const char *join(const char *a, const char *b) {
+		static char buf[64];
+		snprintf(buf, sizeof buf, "%s%s", a, b);
+		return buf;
+	}
+	cuisv_export bool odd(int n, bool flip) { return (n % 2 != 0) != flip; }
 
 
 /* ---- end ---- */
@@ -20,21 +27,59 @@
 #ifndef CUISV_WEB
 static JSValue cuisv_native_triple(JSContext *c, JSValueConst this_val, int argc, JSValueConst *argv) {
     (void)this_val; (void)argc; (void)argv;
-    double a0 = 0; if (argc > 0) JS_ToFloat64(c, &a0, argv[0]);
-    double r = (double)triple((double)a0);
-    return JS_NewFloat64(c, r);
+    double a0 = 0;
+    JSValue out = JS_EXCEPTION;
+    if (argc > 0 && JS_ToFloat64(c, &a0, argv[0]) < 0) goto done;
+    { double r = (double)triple((double)a0); out = JS_NewFloat64(c, r); }
+done:
+    return out;
 }
-const cuisv_native cuisv_natives_9286643e[] = { { "triple", (void *)cuisv_native_triple, 1 } };
-const int cuisv_natives_9286643e_count = 1;
+static JSValue cuisv_native_len(JSContext *c, JSValueConst this_val, int argc, JSValueConst *argv) {
+    (void)this_val; (void)argc; (void)argv;
+    const char *a0 = NULL;
+    JSValue out = JS_EXCEPTION;
+    if (argc > 0 && !(a0 = JS_ToCString(c, argv[0]))) goto done;
+    { double r = (double)len(a0 ? a0 : ""); out = JS_NewFloat64(c, r); }
+done:
+    if (a0) JS_FreeCString(c, a0);
+    return out;
+}
+static JSValue cuisv_native_join(JSContext *c, JSValueConst this_val, int argc, JSValueConst *argv) {
+    (void)this_val; (void)argc; (void)argv;
+    const char *a0 = NULL;
+    const char *a1 = NULL;
+    JSValue out = JS_EXCEPTION;
+    if (argc > 0 && !(a0 = JS_ToCString(c, argv[0]))) goto done;
+    if (argc > 1 && !(a1 = JS_ToCString(c, argv[1]))) goto done;
+    { const char *r = join(a0 ? a0 : "", a1 ? a1 : ""); out = r ? JS_NewString(c, r) : JS_NULL; }
+done:
+    if (a0) JS_FreeCString(c, a0);
+    if (a1) JS_FreeCString(c, a1);
+    return out;
+}
+static JSValue cuisv_native_odd(JSContext *c, JSValueConst this_val, int argc, JSValueConst *argv) {
+    (void)this_val; (void)argc; (void)argv;
+    int32_t a0 = 0;
+    int a1 = 0;
+    JSValue out = JS_EXCEPTION;
+    if (argc > 0 && JS_ToInt32(c, &a0, argv[0]) < 0) goto done;
+    if (argc > 1 && (a1 = JS_ToBool(c, argv[1])) < 0) goto done;
+    { bool r = odd((int)a0, a1 > 0); out = JS_NewBool(c, r); }
+done:
+    return out;
+}
+const cuisv_native cuisv_natives_9286643e[] = { { "triple", (void *)cuisv_native_triple, 1 }, { "len", (void *)cuisv_native_len, 1 }, { "join", (void *)cuisv_native_join, 2 }, { "odd", (void *)cuisv_native_odd, 2 } };
+const int cuisv_natives_9286643e_count = 4;
 #else
 __attribute__((export_name("cuisv_native_triple"))) double cuisv_wnative_triple(double a0) { return (double)triple((double)a0); }
+__attribute__((export_name("cuisv_native_odd"))) double cuisv_wnative_odd(double a0, double a1) { return (double)odd((int)a0, (bool)a1); }
 const cuisv_native cuisv_natives_9286643e[] = { { NULL, NULL, 0 } };
 const int cuisv_natives_9286643e_count = 0;
 #endif
 
 static void cuisv_t_9286643e(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_9286643e = { 0x9286643eu, "Inline.svelte#0", cuisv_t_9286643e, 1, 0 };
+const cuisv_template cuisv_tpl_9286643e = { 0x9286643eu, "Inline.svelte#0", cuisv_t_9286643e, 7, 0 };
 
 static void cuisv_t_9286643e(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
@@ -43,13 +88,40 @@ static void cuisv_t_9286643e(cui_ctx *ui, cuisv_scope *s) {
         cuisv_text_inherit(&o);
         cui_text_ex(ui, cuisv_str(s, 0), &o);
     }
+    { /* <input type=radio> k1 */
+        cui_check_opts o = {0};
+        int p_sel = cuisv_bool(s, 1) ? 1 : 0; int p_was = p_sel;
+        cui_radio_ex(ui, "Snug###k1", &p_sel, 1, &o);
+        if (p_sel != p_was && p_sel == 1) { cuisv_set_bool(s, 1, true); cuisv_emit_bool(s, 2, true); }
+    }
+    { /* <input type=radio> k2 */
+        cui_check_opts o = {0};
+        int p_sel = cuisv_bool(s, 3) ? 1 : 0; int p_was = p_sel;
+        cui_radio_ex(ui, "Loose###k2", &p_sel, 1, &o);
+        if (p_sel != p_was && p_sel == 1) { cuisv_set_bool(s, 3, true); cuisv_emit_bool(s, 4, true); }
+    }
+    { /* <Text> k3 */
+        cui_text_opts o = {0};
+        cuisv_text_inherit(&o);
+        cui_text_ex(ui, cuisv_str(s, 5), &o);
+    }
+    { /* <Slider> slider * / end */
+        cuisv_name(ui, "slider */ end", "###slider */ end");
+        float p_value = cuisv_float(s, 6);
+        float p_value_was = p_value;
+        cui_slider_opts o = {0};
+        bool r = cui_slider_ex(ui, "slider###slider */ end", &p_value, 0, 100, &o);
+        (void)r;
+        if (p_value != p_value_was) { cuisv_set_num(s, 6, p_value); }
+    }
 }
 
 ---- skeleton ----
 <script>import * as __cuisv_h from 'cui-svelte/helpers';
-	import { Text, native } from 'cui-svelte';
+	import { Text, Slider, native } from 'cui-svelte';
+	let fit = $state('loose');
 </script>
-<t2458281022 s0={`triple=${__cuisv_h.t(native.triple(7))}`}></t2458281022>
+<t2458281022 s0={`triple=${__cuisv_h.t(native.triple(7))}`} b1={((() => fit)()) === ("snug")} g2v1={() => ((v) => (fit = v))("snug")} b3={((() => fit)()) === ("loose")} g4v3={() => ((v) => (fit = v))("loose")} s5={`fit=${__cuisv_h.t(fit)}`}></t2458281022>
 
 ---- metadata ----
 {
@@ -58,7 +130,7 @@ static void cuisv_t_9286643e(cui_ctx *ui, cuisv_scope *s) {
    "id": 2458281022,
    "symbol": "cuisv_tpl_9286643e",
    "name": "Inline.svelte#0",
-   "slots": 1,
+   "slots": 7,
    "sites": 0
   }
  ],

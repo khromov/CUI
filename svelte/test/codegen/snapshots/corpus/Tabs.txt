@@ -91,7 +91,7 @@ static void cuisv_t_df543c0a(cui_ctx *ui, cuisv_scope *s) {
         int p_index = cuisv_int(s, 1);
         int p_index_was = p_index;
         cui_tabs_opts o = {0};
-        bool r = cui_tabs_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, &p_index, &o);
+        bool r = cui_tabs_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, &p_index, &o);
         (void)r;
         if (p_index != p_index_was) { cuisv_set_num(s, 1, p_index); cuisv_emit_num(s, 2, p_index); }
     }
@@ -171,7 +171,7 @@ static void cuisv_t_5076395c(cui_ctx *ui, cuisv_scope *s) {
         int p_index = cuisv_int(s, 1);
         int p_index_was = p_index;
         cui_tabs_opts o = {0};
-        bool r = cui_tabs_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, &p_index, &o);
+        bool r = cui_tabs_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, &p_index, &o);
         (void)r;
         if (p_index != p_index_was) { cuisv_set_num(s, 1, p_index); }
     }

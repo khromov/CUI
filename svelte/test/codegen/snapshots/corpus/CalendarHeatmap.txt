@@ -94,7 +94,7 @@ static void cuisv_t_c82635f8(cui_ctx *ui, cuisv_scope *s) {
     { /* <CalendarHeatmap> k0 */
         cui_calendar_heatmap_opts o = {0};
         o.color = ((cui_color){ 255, 0, 0, 255 });
-        int r = cui_calendar_heatmap_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), cui_date_today(), NULL, 0, &o);
+        int r = cui_calendar_heatmap_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), cui_date_today(), NULL, 0, &o);
         (void)r;
     }
 }

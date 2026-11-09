@@ -91,7 +91,7 @@ static void cuisv_t_eceb139f(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ConfirmPopover> k0 */
         cui_confirm_popover_opts o = {0};
-        bool r = cui_confirm_popover_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &o);
+        bool r = cui_confirm_popover_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &o);
         (void)r;
     }
 }

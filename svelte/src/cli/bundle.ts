@@ -4,12 +4,13 @@
  * to this package's own copies (svelte is the vendored custom renderer build).
  */
 import * as esbuild from 'esbuild';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compileModule } from 'svelte/compiler';
 import { compile, type CompileResult, type Warning } from '../compiler/index.ts';
-import { collect_globals } from '../compiler/styles.ts';
+import { collect_globals, type GlobalRules } from '../compiler/styles.ts';
 
 export const PKG_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const SVELTE_DIR = dirname(fileURLToPath(import.meta.resolve('svelte/package.json')));
@@ -43,7 +44,7 @@ export interface BundleOptions {
 	root: string;
 	dev: boolean;
 	minify?: boolean;
-	/** Previous results to reuse when a .svelte file did not change. */
+	/** Previous results to reuse when a .svelte file, its .svelte.c and the project's global styles did not change. */
 	cache?: Map<string, { source: string; out: ComponentOutput }>;
 	/** 'web': for the browser build (boots the wasm module first; no QuickJS globals). */
 	target?: 'native' | 'web';
@@ -86,14 +87,17 @@ export function svelte_plugin(opts: BundleOptions, components: Map<string, Compo
 				const source = readFileSync(args.path, 'utf8');
 				const sibling = existsSync(args.path + '.c') ? readFileSync(args.path + '.c', 'utf8') : undefined;
 				const key = key_of(opts.root, args.path);
+				const globals = globals_for(opts);
+				// what the output depends on: the file, its C, and the project's :global and :root rules
+				const inputs = `${globals.hash}\n${source}\n${sibling ?? ''}`;
 				const cached = opts.cache?.get(args.path);
 				let out: ComponentOutput;
-				if (cached && cached.source === source + (sibling ?? '')) {
+				if (cached && cached.source === inputs) {
 					out = cached.out;
 				} else {
-					const result = compile(source, { filename: args.path, key, dev: opts.dev, globals: globals_for(opts), c_source: sibling });
+					const result = compile(source, { filename: args.path, key, dev: opts.dev, globals: globals.rules, c_source: sibling });
 					out = { file: args.path, key, result };
-					opts.cache?.set(args.path, { source: source + (sibling ?? ''), out });
+					opts.cache?.set(args.path, { source: inputs, out });
 				}
 				for (const w of out.result.warnings) warnings.push(format_warning(key, source, w));
 				components.set(args.path, out);
@@ -109,9 +113,22 @@ export function svelte_plugin(opts: BundleOptions, components: Map<string, Compo
 	};
 }
 
-let globals_cache: { root: string; value: ReturnType<typeof collect_globals> } | null = null;
-function globals_for(opts: BundleOptions) {
-	if (globals_cache?.root !== opts.root) globals_cache = { root: opts.root, value: collect_globals(opts.root) };
+interface Globals {
+	rules: GlobalRules;
+	/** Of the rules' content: a component compiled with other globals is compiled again. */
+	hash: string;
+}
+
+let globals_cache: { root: string; value: Globals } | null = null;
+function globals_for(opts: BundleOptions): Globals {
+	if (globals_cache?.root !== opts.root) {
+		const rules = collect_globals(opts.root);
+		// `order` counts every rule ever parsed, so it differs between two collections of the same rules
+		const hash = createHash('sha1')
+			.update(JSON.stringify(rules.map(({ order: _, ...rule }) => rule)))
+			.digest('hex');
+		globals_cache = { root: opts.root, value: { rules, hash } };
+	}
 	return globals_cache.value;
 }
 

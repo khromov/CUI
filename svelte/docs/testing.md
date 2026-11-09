@@ -44,7 +44,9 @@ timer that comes due during `frame()`, or `onpaint`.
 `test(name, fn)` takes sync or async functions (timers and promises run while you `await`).
 `expect(x)` has `toBe`, `toEqual`, `toContain`, `toBeTruthy`, `toBeGreaterThan`,
 `toBeLessThan`, `toBeCloseTo` and `.not`. The process exits with 1 when a test fails, so
-`cui-svelte test` works in CI.
+`cui-svelte test` works in CI. It also exits with 1, naming the test, when the tests stop
+before they finish: an `await` that never settles leaves nothing to run, and a file runs
+for at most 60 seconds (`CUISV_TEST_TIMEOUT`, in seconds).
 
 Text drawn by painting (a log view's lines, chart labels, a canvas) is not in `text()`;
 check those with a screenshot.
@@ -52,7 +54,7 @@ check those with a screenshot.
 ## This package's own tests
 
 ```sh
-npm test                 # every test/**/*.test.ts and examples/**/*.test.ts
+npm test                 # test/codegen and test/cli (in node), then every test/**/*.test.ts and examples/**/*.test.ts
 node test/run.ts css     # the ones whose path contains "css"
 VERBOSE=1 npm test       # with each file's output
 npm run typecheck        # tsc and svelte-check

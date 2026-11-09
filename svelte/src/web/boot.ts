@@ -3,8 +3,8 @@
  * the JS half (Svelte, the app's scripts) runs in the page's own engine. This installs the
  * same `__cuisv` bridge QuickJS has natively, over the module's exports, and drives frames:
  *
- *   each animation frame: the last frame's events go to JS, then CUI builds (the templates
- *   read the slots JS set) and paints into the canvas.
+ *   each animation frame: the last frame's events go to JS, scopes that left the tree are
+ *   freed, then CUI builds (the templates read the slots JS set) and paints into the canvas.
  *
  * Bundled first by `cui-svelte build --web`; the app's main.ts runs after boot() resolves.
  */
@@ -40,8 +40,11 @@ export async function boot(o: BootOptions) {
 		schedule();
 	};
 	const instantiate = instantiate_js as unknown as (url: string, extra: object) => Promise<{ exports: unknown; memory(): WebAssembly.Memory }>;
+	let clip = '';
 	const mod = await instantiate(String(o.wasm), {
-		paint: (handle: number, slot: number, x: number, y: number, w: number, h: number) => hooks().paint?.(handle, slot, x, y, w, h)
+		paint: (handle: number, slot: number, x: number, y: number, w: number, h: number) => hooks().paint?.(handle, slot, x, y, w, h),
+		// CUI copied (an input's selection, a copy button): clipboard.read() returns it
+		clipboard: (text: string) => (clip = text)
 	});
 	const x = mod.exports as Exports;
 	const u8 = () => new Uint8Array(mod.memory().buffer);
@@ -100,10 +103,10 @@ export async function boot(o: BootOptions) {
 	const canvas = o.canvas ?? make_canvas();
 	const ctx2d = canvas.getContext('2d')!;
 	let inst = 0;
-	let clip = '';
 	const ratio = () => window.devicePixelRatio || 1;
 	const css = () => ({ w: canvas.clientWidth || window.innerWidth, h: canvas.clientHeight || window.innerHeight });
 
+	/** Toasts with an action, until it is clicked or the toast is gone. */
 	const toasts = new Set<number>();
 	const natives: Record<string, unknown> = {};
 	for (const name of Object.keys(x)) if (name.startsWith('cuisv_native_')) natives[name.slice(13)] = x[name];
@@ -162,7 +165,8 @@ export async function boot(o: BootOptions) {
 		},
 		clipboard_write: (t: string) => {
 			clip = t;
-			navigator.clipboard?.writeText(t).catch(() => {});
+			// through CUI when it runs, so its own paste has the text too; it also reaches the system clipboard
+			if (!with_str(t, (p) => x.cuisv_w_clipboard_set(p))) navigator.clipboard?.writeText(t).catch(() => {});
 		},
 		clipboard_read: () => clip,
 		open_url: (u: string) => !!window.open(u, '_blank', 'noopener'),
@@ -241,7 +245,6 @@ export async function boot(o: BootOptions) {
 		}
 		x.cuisv_w_events_clear();
 		for (const args of events) hooks().dispatch?.(...(args as [number, number, ...unknown[]]));
-		hooks().commit?.();
 		return true;
 	}
 	function frame(now: number) {
@@ -255,7 +258,7 @@ export async function boot(o: BootOptions) {
 			if (x.cuisv_w_toast_clicked(h)) {
 				toasts.delete(h);
 				hooks().toast_action?.(h);
-			}
+			} else if (!x.cuisv_w_toast_alive(h)) toasts.delete(h);
 		}
 		const [w, h] = (bridge.viewport as () => number[])();
 		if (w !== last_w || h !== last_h) {
@@ -263,6 +266,9 @@ export async function boot(o: BootOptions) {
 			last_h = h;
 			hooks().resize?.(w, h);
 		}
+		// scopes that left the tree since the last frame are freed now, whatever removed them:
+		// an event, the hooks above, or JS that ran on its own (a timer, a promise)
+		hooks().commit?.();
 		const wake = x.inst_next_wakeup(inst);
 		if (!dirty && !x.inst_needs_redraw(inst) && !(wake >= 0 && wake < 0.02)) {
 			if (wake >= 0) setTimeout(schedule, wake * 1000);

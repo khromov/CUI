@@ -105,7 +105,7 @@ static void cuisv_t_2c42d366(cui_ctx *ui, cuisv_scope *s) {
                 cui_input_opts o = {0};
                 o.placeholder = "Your name";
                 o.label = "Name";
-                size_t cap; char *p_value = cuisv_buf(s, 0, 256, &cap);
+                size_t cap; char *p_value = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap);
                 int r = cui_input_ex(ui, "k7", p_value, cap, &o);
                 if (r & CUI_CHANGED) { cuisv_buf_changed(s, 0, 1); }
             }

@@ -18,7 +18,7 @@ static void cuisv_t_805394be(cui_ctx *ui, cuisv_scope *s) {
     { /* <InlineEdit> k0 */
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (!cuisv_has(s, 0)) cuisv_set_str(s, 0, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", 30);
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap_buf);
         cui_inline_edit_opts o = {0};
         o.size = -2.5f;
         o.placeholder = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
@@ -78,7 +78,7 @@ const cuisv_template cuisv_tpl_64c5b0ef = { 0x64c5b0efu, "InlineEdit_bind.svelte
 static void cuisv_t_63c5af5c(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <InlineEdit> k0 */
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap_buf);
         cui_inline_edit_opts o = {0};
         int r = cui_inline_edit_ex(ui, "Bound##k0", p_buf, cap_buf, &o);
         (void)r;
@@ -91,9 +91,9 @@ static void cuisv_t_63c5af5c(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_64c5b0ef(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <InlineEdit> k0 */
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, cuisv_edit_room(ui, 256), &cap_buf);
         cui_inline_edit_opts o = {0};
-        int r = cui_inline_edit_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), p_buf, cap_buf, &o);
+        int r = cui_inline_edit_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_buf, cap_buf, &o);
         (void)r;
         if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 1, 2); }
     }
@@ -150,7 +150,7 @@ static void cuisv_t_4370fcac(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <InlineEdit> k0 */
         cuisv_name(ui, cuisv_str(s, 0), cuisv_str(s, 0));
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 2, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 2, cuisv_edit_room(ui, 256), &cap_buf);
         cui_inline_edit_opts o = {0};
         o.size = cuisv_float(s, 3);
         o.placeholder = cuisv_cstr(s, 4);
@@ -167,10 +167,10 @@ static void cuisv_t_4370fcac(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_4470fe3f(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <InlineEdit> k0 */
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, cuisv_edit_room(ui, 256), &cap_buf);
         cui_inline_edit_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        int r = cui_inline_edit_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), p_buf, cap_buf, &o);
+        int r = cui_inline_edit_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_buf, cap_buf, &o);
         (void)r;
         if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 1, -1); }
     }
@@ -238,7 +238,7 @@ static void cuisv_t_5894ec2f(cui_ctx *ui, cuisv_scope *s) {
     { /* <InlineEdit> k0 */
         cuisv_name(ui, "s_id", "s_id");
         if (!cuisv_has(s, 0)) cuisv_set_str(s, 0, "s_value", 7);
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 0, cuisv_edit_room(ui, 256), &cap_buf);
         cui_inline_edit_opts o = {0};
         o.size = 3.0f;
         o.placeholder = "s_placeholder";
@@ -250,7 +250,7 @@ static void cuisv_t_5894ec2f(cui_ctx *ui, cuisv_scope *s) {
     }
     { /* <InlineEdit> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
-        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, 256, &cap_buf);
+        size_t cap_buf; char *p_buf = cuisv_buf(s, 1, cuisv_edit_room(ui, 256), &cap_buf);
         cui_inline_edit_opts o = {0};
         int r = cui_inline_edit_ex(ui, "fixed_id", p_buf, cap_buf, &o);
         (void)r;

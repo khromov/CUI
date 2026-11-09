@@ -91,7 +91,7 @@ static void cuisv_t_7ddb6188(cui_ctx *ui, cuisv_scope *s) {
     { /* <Terminal> k0 */
         cui_terminal_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        cui_terminal_result r = cui_terminal_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), cuisv_terminal_buffer(cuisv_num(s, 1)), &o);
+        cui_terminal_result r = cui_terminal_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), cuisv_terminal_buffer(cuisv_num(s, 1)), &o);
         (void)r;
     }
 }

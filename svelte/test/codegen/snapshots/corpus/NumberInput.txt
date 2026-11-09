@@ -92,7 +92,7 @@ static void cuisv_t_bda4978b(cui_ctx *ui, cuisv_scope *s) {
         double p_value = cuisv_num(s, 1);
         double p_value_was = p_value;
         cui_number_opts o = {0};
-        bool r = cui_number_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value, -1e300, 1e300, &o);
+        bool r = cui_number_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value, -1e300, 1e300, &o);
         (void)r;
         if (p_value != p_value_was) { cuisv_set_num(s, 1, p_value); cuisv_emit_num(s, 2, p_value); }
     }
@@ -174,7 +174,7 @@ static void cuisv_t_6186374b(cui_ctx *ui, cuisv_scope *s) {
         double p_value_was = p_value;
         cui_number_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        bool r = cui_number_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_value, -1e300, 1e300, &o);
+        bool r = cui_number_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_value, -1e300, 1e300, &o);
         (void)r;
         if (p_value != p_value_was) { cuisv_set_num(s, 1, p_value); }
     }

@@ -109,7 +109,7 @@ static void cuisv_t_ee8bbf1a(cui_ctx *ui, cuisv_scope *s) {
         int p_selected = cuisv_int(s, 2);
         int p_selected_was = p_selected;
         cui_doc_tabs_opts o = {0};
-        cui_doc_tabs_result r = cui_doc_tabs_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
+        cui_doc_tabs_result r = cui_doc_tabs_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
         (void)r;
         if (p_selected != p_selected_was) { cuisv_set_num(s, 2, p_selected); cuisv_emit_num(s, 3, p_selected); }
     }
@@ -198,7 +198,7 @@ static void cuisv_t_f3f9bc6c(cui_ctx *ui, cuisv_scope *s) {
         int p_selected = cuisv_int(s, 2);
         int p_selected_was = p_selected;
         cui_doc_tabs_opts o = {0};
-        cui_doc_tabs_result r = cui_doc_tabs_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
+        cui_doc_tabs_result r = cui_doc_tabs_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
         (void)r;
         if (p_selected != p_selected_was) { cuisv_set_num(s, 2, p_selected); }
     }

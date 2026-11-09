@@ -83,7 +83,7 @@ static void cuisv_t_3d03bb2e(cui_ctx *ui, cuisv_scope *s) {
     { /* <Pagination> k0 */
         int p_page = cuisv_int(s, 1);
         int p_page_was = p_page;
-        bool r = cui_pagination(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_page, 0);
+        bool r = cui_pagination(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_page, 0);
         (void)r;
         if (p_page != p_page_was) { cuisv_set_num(s, 1, p_page); cuisv_emit_num(s, 2, p_page); }
     }
@@ -156,7 +156,7 @@ static void cuisv_t_24f45220(cui_ctx *ui, cuisv_scope *s) {
     { /* <Pagination> k0 */
         int p_page = cuisv_int(s, 1);
         int p_page_was = p_page;
-        bool r = cui_pagination(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_page, 0);
+        bool r = cui_pagination(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_page, 0);
         (void)r;
         if (p_page != p_page_was) { cuisv_set_num(s, 1, p_page); }
     }

@@ -7,7 +7,7 @@
 
 static void cuisv_t_4d757ce8(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_4d757ce8 = { 0x4d757ce8u, "Labels.svelte#0", cuisv_t_4d757ce8, 23, 0 };
+const cuisv_template cuisv_tpl_4d757ce8 = { 0x4d757ce8u, "Labels.svelte#0", cuisv_t_4d757ce8, 30, 0 };
 
 static void cuisv_t_4d757ce8(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
@@ -253,7 +253,7 @@ static void cuisv_t_4d757ce8(cui_ctx *ui, cuisv_scope *s) {
             if (p_value != p_value_was) { cuisv_set_num(s, 18, p_value); }
         }
         { /* <PropText> k40 */
-            size_t cap_buf; char *p_buf = cuisv_buf(s, 19, 256, &cap_buf);
+            size_t cap_buf; char *p_buf = cuisv_buf(s, 19, cuisv_edit_room(ui, 256), &cap_buf);
             cui_prop_opts o = {0};
             bool r = cui_prop_text_ex(ui, "L_PropText###k40", p_buf, cap_buf, &o);
             (void)r;
@@ -277,21 +277,62 @@ static void cuisv_t_4d757ce8(cui_ctx *ui, cuisv_scope *s) {
         }
         { /* <PropVec> k43 */
             int n_value = 0; const float *src_value = cuisv_floats(s, 22, &n_value);
-            if (n_value < 4) n_value = 4;
-            float p_value[16] = {0}; if (src_value) memcpy(p_value, src_value, sizeof(float) * (size_t)(cuisv_slot(s, 22)->u.floats.count < 16 ? cuisv_slot(s, 22)->u.floats.count : 16));
-            float p_value_was[16]; memcpy(p_value_was, p_value, sizeof p_value);
+            float p_value[4] = {0}; if (src_value) memcpy(p_value, src_value, sizeof(float) * (size_t)(n_value < 4 ? n_value : 4));
+            float p_value_was[4]; memcpy(p_value_was, p_value, sizeof p_value);
             cui_prop_opts o = {0};
             bool r = cui_prop_vec_ex(ui, "L_PropVec###k43", p_value, 3, &o);
             (void)r;
             if (memcmp(p_value, p_value_was, sizeof p_value) != 0) { cuisv_slot_floats_set(s, 22, p_value, 3); }
+        }
+        { /* <Button> k44 */
+            cui_button_opts o = {0};
+            bool r = cui_button_ex(ui, cuisv_label(cuisv_str(s, 23), "k44"), &o);
+            (void)r;
+        }
+        { /* <Checkbox> k45 */
+            bool p_value = cuisv_bool(s, 25);
+            bool p_value_was = p_value;
+            cui_check_opts o = {0};
+            bool r = cui_checkbox_ex(ui, cuisv_label(cuisv_str(s, 24), "k45"), &p_value, &o);
+            (void)r;
+            if (p_value != p_value_was) { cuisv_set_bool(s, 25, p_value); }
+        }
+        { /* <Button> k46 */
+            cui_button_opts o = {0};
+            bool r = cui_button_ex(ui, "C#\342\200\214###k46", &o);
+            (void)r;
+        }
+        { /* <Button> k47 */
+            cui_button_opts o = {0};
+            bool r = cui_button_ex(ui, "Static #\342\200\214#7###k47", &o);
+            (void)r;
+        }
+        { /* <Knob> k48 */
+            float p_value = cuisv_float(s, 27);
+            float p_value_was = p_value;
+            cui_knob_opts o = {0};
+            bool r = cui_knob_ex(ui, cuisv_label(cuisv_str(s, 26), "k48"), &p_value, 0, 1, &o);
+            (void)r;
+            if (p_value != p_value_was) { cuisv_set_num(s, 27, p_value); }
+        }
+        { /* <Knob> k49 */
+            float p_value = cuisv_float(s, 29);
+            float p_value_was = p_value;
+            cui_knob_opts o = {0};
+            bool r = cui_knob_ex(ui, cuisv_label(cuisv_str(s, 28), "k49"), &p_value, 0, 1, &o);
+            (void)r;
+            if (p_value != p_value_was) { cuisv_set_num(s, 29, p_value); }
         }
         cui_scroll_end(ui);
     }
 }
 
 ---- skeleton ----
-<script>import * as __cuisv_h from 'cui-svelte/helpers';import { Link, Button, HoldButton, ConfirmButton, StatusButton, SplitButton, Checkbox, Switch, Radio, Slider, RangeSlider, RulerSlider, HistogramSlider, Scrub, Chip, ControlTile, NavItem, NavSection, Alert, ProgressRing, EmptyState, Metric, Meter, TimelineItem, Accordion, ExpandableCard, Tree, TreeCell, ListItem, Gauge, ChatDivider, StatusBarItem, DockItem, InspectorGroup, PropFloat, PropInt, PropText, PropBool, PropEnum, PropVec, Text, Scroll } from 'cui-svelte';</script>
-<t1299545320></t1299545320>
+<script>import * as __cuisv_h from 'cui-svelte/helpers';import { Link, Button, HoldButton, ConfirmButton, StatusButton, SplitButton, Checkbox, Switch, Radio, Slider, RangeSlider, RulerSlider, HistogramSlider, Scrub, Chip, ControlTile, NavItem, NavSection, Alert, ProgressRing, EmptyState, Metric, Meter, TimelineItem, Accordion, ExpandableCard, Tree, TreeCell, ListItem, Gauge, ChatDivider, StatusBarItem, DockItem, InspectorGroup, PropFloat, PropInt, PropText, PropBool, PropEnum, PropVec, Text, Scroll, Knob } from 'cui-svelte';
+	let notes = $state('## Release notes');
+	let caption = $state('Gain ##2');
+</script>
+<t1299545320 s23={__cuisv_h.t("Ticket ##42")} s24={notes} s26={__cuisv_h.t("Knob ##1")} s28={__cuisv_h.t(caption)}></t1299545320>
 
 ---- metadata ----
 {
@@ -300,7 +341,7 @@ static void cuisv_t_4d757ce8(cui_ctx *ui, cuisv_scope *s) {
    "id": 1299545320,
    "symbol": "cuisv_tpl_4d757ce8",
    "name": "Labels.svelte#0",
-   "slots": 23,
+   "slots": 30,
    "sites": 0
   }
  ],

@@ -2,7 +2,7 @@
  * (web/host/web_host.c), and exports for the JS bridge (src/web/bridge.ts), which plays the
  * part QuickJS plays natively. The browser's own JS engine runs the bundle. */
 #include "cuisv_internal.h"
-#include "../../web/host/web_host.h"
+#include "web_host.h"   /* CUI's web/host, on the include path (src/cli/web.ts) */
 #include <cui/cui_render.h>
 
 #include <stdlib.h>
@@ -48,6 +48,13 @@ void cuisv_host_open_url(const char *url) { js_open_url(url, (int)strlen(url)); 
 cui_texture cuisv_host_load_image(cui_ctx *ui, const char *path, int *w, int *h) { (void)ui; (void)path; *w = *h = 0; return 0; }
 double cuisv_host_now_ms(void) { return js_perf_now(); }
 void cuisv_clipboard_set(cui_ctx *ui, const char *text);
+
+/* clipboard.write() from JS: through CUI, whose own paste then reads it too. 0 before the first frame. */
+EXPORT(cuisv_w_clipboard_set) int cuisv_w_clipboard_set(const char *text) {
+    if (!g_ui) return 0;
+    cuisv_clipboard_set(g_ui, text);
+    return 1;
+}
 
 /* ---- boot and size ---------------------------------------------------------------------- */
 
@@ -136,10 +143,8 @@ EXPORT(cuisv_w_events_clear) void cuisv_w_events_clear(void) { cuisv_events_clea
 /* ---- elements by id, theme, toasts --------------------------------------------------------- */
 
 EXPORT(cuisv_w_rect) int cuisv_w_rect(const char *name, float *out) {
-    if (!g_ui) return 0;
-    cui_id id = cuisv_named(name);
-    if (!id) return 0;
-    cui_rect r = cui_get_rect(g_ui, id);
+    cui_rect r;
+    if (!cuisv_rect_of(g_ui, name, &r)) return 0;
     out[0] = r.x; out[1] = r.y; out[2] = r.w; out[3] = r.h;
     return 1;
 }
@@ -163,6 +168,8 @@ EXPORT(cuisv_w_toast) int cuisv_w_toast(const char *title, const char *desc, int
     return cui_toast_ex(g_ui, title, &o);
 }
 EXPORT(cuisv_w_toast_clicked) int cuisv_w_toast_clicked(int h) { return g_ui && cui_toast_action_clicked(g_ui, h); }
+bool cuisv_toast_alive(cui_ctx *ui, int handle);
+EXPORT(cuisv_w_toast_alive) int cuisv_w_toast_alive(int h) { return cuisv_toast_alive(g_ui, h); }
 EXPORT(cuisv_w_toast_dismiss) void cuisv_w_toast_dismiss(int h) { if (g_ui) cui_toast_dismiss(g_ui, h); }
 EXPORT(cuisv_w_theme_dark) int cuisv_w_theme_dark(void) { return g_ui && cui_get_theme_mode(g_ui) == CUI_THEME_DARK; }
 

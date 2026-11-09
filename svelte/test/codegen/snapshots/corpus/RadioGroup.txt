@@ -86,7 +86,7 @@ static void cuisv_t_6748ba40(cui_ctx *ui, cuisv_scope *s) {
     { /* <RadioGroup> k0 */
         int p_index = cuisv_int(s, 1);
         int p_index_was = p_index;
-        bool r = cui_radio_group(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, &p_index);
+        bool r = cui_radio_group(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, &p_index);
         (void)r;
         if (p_index != p_index_was) { cuisv_set_num(s, 1, p_index); cuisv_emit_num(s, 2, p_index); }
     }
@@ -160,7 +160,7 @@ static void cuisv_t_963277d6(cui_ctx *ui, cuisv_scope *s) {
     { /* <RadioGroup> k0 */
         int p_index = cuisv_int(s, 1);
         int p_index_was = p_index;
-        bool r = cui_radio_group(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, &p_index);
+        bool r = cui_radio_group(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, &p_index);
         (void)r;
         if (p_index != p_index_was) { cuisv_set_num(s, 1, p_index); }
     }

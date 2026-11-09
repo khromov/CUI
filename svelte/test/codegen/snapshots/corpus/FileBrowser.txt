@@ -20,7 +20,7 @@ static void cuisv_t_7d40cd81(cui_ctx *ui, cuisv_scope *s) {
     { /* <FileBrowser> k0 */
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (!cuisv_has(s, 0)) cuisv_set_str(s, 0, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", 30);
-        size_t cap_path; char *p_path = cuisv_buf(s, 0, 256, &cap_path);
+        size_t cap_path; char *p_path = cuisv_buf(s, 0, cuisv_edit_room(ui, 4096), &cap_path);
         cui_file_browser_opts o = {0};
         o.width = CUI_PCT(50.0f);
         o.height = CUI_PCT(50.0f);
@@ -80,7 +80,7 @@ const cuisv_template cuisv_tpl_d073edce = { 0xd073edceu, "FileBrowser_bind.svelt
 static void cuisv_t_d173ef61(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <FileBrowser> k0 */
-        size_t cap_path; char *p_path = cuisv_buf(s, 0, 256, &cap_path);
+        size_t cap_path; char *p_path = cuisv_buf(s, 0, cuisv_edit_room(ui, 4096), &cap_path);
         cui_file_browser_opts o = {0};
         cui_file_browser_result r = cui_file_browser_ex(ui, "Bound##k0", p_path, cap_path, &o);
         (void)r;
@@ -95,9 +95,9 @@ static void cuisv_t_d173ef61(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_d073edce(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <FileBrowser> k0 */
-        size_t cap_path; char *p_path = cuisv_buf(s, 1, 256, &cap_path);
+        size_t cap_path; char *p_path = cuisv_buf(s, 1, cuisv_edit_room(ui, 4096), &cap_path);
         cui_file_browser_opts o = {0};
-        cui_file_browser_result r = cui_file_browser_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), p_path, cap_path, &o);
+        cui_file_browser_result r = cui_file_browser_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_path, cap_path, &o);
         (void)r;
         if (r.navigated) { cuisv_buf_changed(s, 1, 2); }
     }
@@ -154,7 +154,7 @@ static void cuisv_t_1931b853(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <FileBrowser> k0 */
         cuisv_name(ui, cuisv_str(s, 0), cuisv_str(s, 0));
-        size_t cap_path; char *p_path = cuisv_buf(s, 2, 256, &cap_path);
+        size_t cap_path; char *p_path = cuisv_buf(s, 2, cuisv_edit_room(ui, 4096), &cap_path);
         cui_file_browser_opts o = {0};
         o.width = cuisv_size(s, 3, CUI_FIT);
         o.height = cuisv_size(s, 4, CUI_FIT);
@@ -181,10 +181,10 @@ static void cuisv_t_1931b853(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_1831b6c0(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <FileBrowser> k0 */
-        size_t cap_path; char *p_path = cuisv_buf(s, 1, 256, &cap_path);
+        size_t cap_path; char *p_path = cuisv_buf(s, 1, cuisv_edit_room(ui, 4096), &cap_path);
         cui_file_browser_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        cui_file_browser_result r = cui_file_browser_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), p_path, cap_path, &o);
+        cui_file_browser_result r = cui_file_browser_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_path, cap_path, &o);
         (void)r;
         if (r.navigated) { cuisv_buf_changed(s, 1, -1); }
     }
@@ -248,7 +248,7 @@ static void cuisv_t_c2e547d2(cui_ctx *ui, cuisv_scope *s) {
     { /* <FileBrowser> k0 */
         cuisv_name(ui, "s_id", "s_id");
         if (!cuisv_has(s, 0)) cuisv_set_str(s, 0, "s_path", 6);
-        size_t cap_path; char *p_path = cuisv_buf(s, 0, 256, &cap_path);
+        size_t cap_path; char *p_path = cuisv_buf(s, 0, cuisv_edit_room(ui, 4096), &cap_path);
         cui_file_browser_opts o = {0};
         o.width = CUI_PX(120.0f);
         o.height = CUI_PX(120.0f);
@@ -267,7 +267,7 @@ static void cuisv_t_c2e547d2(cui_ctx *ui, cuisv_scope *s) {
     }
     { /* <FileBrowser> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
-        size_t cap_path; char *p_path = cuisv_buf(s, 1, 256, &cap_path);
+        size_t cap_path; char *p_path = cuisv_buf(s, 1, cuisv_edit_room(ui, 4096), &cap_path);
         cui_file_browser_opts o = {0};
         cui_file_browser_result r = cui_file_browser_ex(ui, "fixed_id", p_path, cap_path, &o);
         (void)r;

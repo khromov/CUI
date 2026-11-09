@@ -358,7 +358,7 @@ Events: `onchange(value)`
 
 label: `string` · **lo**: `number` · **hi**: `number` · min: `number` · max: `number`
 
-Events: `onchange(value)`
+Events: `onchange(lo, hi)`
 
 ### RulerSlider
 
@@ -374,7 +374,7 @@ Events: `onchange(value)`
 
 label: `string` · bins: `ArrayLike<number>` · **lo**: `number` · **hi**: `number` · min: `number` · max: `number` · height: `number` · format: `string`
 
-Events: `onchange(value)`
+Events: `onchange(lo, hi)`
 
 ### Scrub
 
@@ -570,7 +570,7 @@ Events: `onchange(value)`
 
 id: `string` · **hour**: `number` · **minute**: `number` · label: `string` · twelve_hour: `boolean` · minute_step: `number` · width: `Size`
 
-Events: `onchange(value)`
+Events: `onchange(hour, minute)`
 
 ### TimeDial
 
@@ -578,7 +578,7 @@ Events: `onchange(value)`
 
 id: `string` · **hour**: `number` · **minute**: `number` · size: `number`
 
-Events: `onchange(value)`
+Events: `onchange(hour, minute)`
 
 ### ColorPicker
 
@@ -1626,7 +1626,7 @@ Events: `onchange(value)`
 
 `cui_prop_vec_ex` · text children are its label
 
-label: `string` · **value**: `number[]` · min: `number` · max: `number` · step: `number` · format: `string` · suffix: `string` · placeholder: `string` · disabled: `boolean` · checkbox: `boolean`
+label: `string` · **value**: `number[]` · components: `number` · min: `number` · max: `number` · step: `number` · format: `string` · suffix: `string` · placeholder: `string` · disabled: `boolean` · checkbox: `boolean`
 
 Events: `onchange(value)`
 
@@ -1658,7 +1658,7 @@ Events: `onchange(value)`, `onconnect(value)`, `ondisconnect(value)`, `ondelete(
 
 id: `number` · **x**: `number` · **y**: `number` · title: `string` · width: `number` · icon: `IconName`
 
-Events: `onchange(value)`
+Events: `onchange(x, y)`
 
 ### NodeInput
 
@@ -1732,5 +1732,5 @@ Events: `onpick(value)`
 
 width: `Size` · height: `Size` · paint: `string` · data: `ArrayLike<number>` · id: `string` · user_size: `number`
 
-Events: `onpaint(g)`, `onclick(x)`, `onpress(x)`, `onhover(x)`
+Events: `onpaint(g)`, `onclick(x, y)`, `onpress(x, y)`, `onhover(x, y)`
 

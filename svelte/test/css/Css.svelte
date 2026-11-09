@@ -15,6 +15,8 @@
 	<div id="dyn" class="tile {kind}">tile</div>
 	<div id="gone" class:none={hidden}>maybe</div>
 	<Button id="wide" class="wide">Wide</Button>
+	<div id="glob" class="glob"><div id="inner" class="cell"></div></div>
+	<div id="hue" class="hue">hue</div>
 	<button onclick={() => { progress = 1; kind = 'small'; hidden = true; }}>change</button>
 </div>
 
@@ -33,4 +35,8 @@
 	.tile.small { height: 20px; }
 	.none { display: none; }
 	.wide { width: 300px; }
+	/* a component's own :global rule applies once */
+	:global(.glob) { padding: 3px 5px; }
+	/* "none" in a color is 0 (it once made an invalid C literal) */
+	.hue { background: hsl(none 50% 50%); }
 </style>

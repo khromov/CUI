@@ -36,6 +36,7 @@ interface Selector {
 export interface Rule {
 	selectors: Selector[];
 	decls: { property: string; value: string }[];
+	/** Source order in the cascade: a component's own rules come after every global rule. */
 	order: number;
 	global: boolean;
 	file: string;
@@ -44,8 +45,6 @@ export interface Rule {
 }
 
 export type GlobalRules = Rule[];
-
-let order_counter = 0;
 
 /** :root, html and body are the window. */
 const is_root = (parts: Compound[]) => parts.length === 1 && [':root', 'html', 'body'].includes(parts[0].tag ?? '');
@@ -114,8 +113,10 @@ function compound_of(rel: AST.CSS.RelativeSelector, warn: (m: string) => void, s
 	return c;
 }
 
-function rules_of(ast: AST.Root, file: string, warn: (m: string) => void, only_global: boolean): Rule[] {
+/** The rules of a component, numbered in source order from `first_order`. */
+function rules_of(ast: AST.Root, file: string, warn: (m: string) => void, only_global: boolean, first_order = 0): Rule[] {
 	const out: Rule[] = [];
+	let order = first_order;
 	if (!ast.css) return out;
 	const visit = (children: AST.CSS.StyleSheet['children'], in_global: boolean, scheme?: 'dark' | 'light') => {
 		for (const node of children) {
@@ -165,11 +166,16 @@ function rules_of(ast: AST.Root, file: string, warn: (m: string) => void, only_g
 				if (d.type === 'Declaration') decls.push({ property: d.property, value: d.value });
 				else warn('nested rules are not supported');
 			}
-			if (selectors.length && (!only_global || global)) out.push({ selectors, decls, order: order_counter++, global, file, scheme });
+			if (selectors.length && (!only_global || global)) out.push({ selectors, decls, order: order++, global, file, scheme });
 		}
 	};
 	visit(ast.css.children, false);
 	return out;
+}
+
+/** What a rule says, apart from where it was written. */
+function rule_key(r: Rule): string {
+	return JSON.stringify([r.selectors, r.decls, r.scheme ?? null]);
 }
 
 /** :global rules from every .svelte file under root, which apply to all components. */
@@ -180,7 +186,7 @@ export function collect_globals(root: string): GlobalRules {
 		const src = readFileSync(p, 'utf8');
 		if (!src.includes(':global') && !src.includes(':root')) continue;
 		try {
-			out.push(...rules_of(parse(src, { modern: true, filename: p }), p, () => {}, true).filter((r) => r.global));
+			out.push(...rules_of(parse(src, { modern: true, filename: p }), p, () => {}, true, out.length).filter((r) => r.global));
 		} catch {
 			/* the file's own compile reports it */
 		}
@@ -271,8 +277,11 @@ export function create_style_resolver(ast: AST.Root, globals: GlobalRules | unde
 		warned.add(m);
 		warnings.push({ code: 'css_unsupported', message: m });
 	};
-	const own = rules_of(ast, '', warn, false);
-	const all = [...(globals ?? []).filter((g) => !own.some((o) => o.order === g.order)), ...own];
+	const own = rules_of(ast, '', warn, false, (globals ?? []).reduce((n, g) => Math.max(n, g.order + 1), 0));
+	// the component's own :global rules are among the globals too: keep its copy, which comes
+	// later in the cascade (another file's identical rule changes nothing next to it either)
+	const own_globals = new Set(own.filter((r) => r.global).map(rule_key));
+	const all = [...(globals ?? []).filter((g) => !own_globals.has(rule_key(g))), ...own];
 	const problems_warned = new Set<string>();
 
 	function info(node: AST.RegularElement | AST.Component, t: Template, ctx: CompileContext, tag: string | null): ElementInfo {

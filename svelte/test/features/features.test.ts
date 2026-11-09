@@ -1,5 +1,9 @@
 import { mount_test, test, expect } from 'cui-svelte/test';
+import { clipboard, platform } from 'cui-svelte';
 import Features from './Features.svelte';
+import Child from './Child.svelte';
+// (svelte's *.svelte module type only has the default export)
+import * as features_module from './Features.svelte';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -16,6 +20,45 @@ test('bind:value on an input, typing', () => {
 	app.key('end');
 	app.type(' Lovelace');
 	expect(app.text()).toContain('name=Ada Lovelace');
+});
+
+test('bind:value on an input keeps a long paste whole', () => {
+	const app = mount_test(Features, { width: 700, height: 900 });
+	app.click(app.rect('name')!);
+	app.key('a', platform() === 'macos' ? 'cmd' : 'ctrl');
+	clipboard.write('0123456789'.repeat(500));
+	app.key('v', platform() === 'macos' ? 'cmd' : 'ctrl');
+	expect(app.find(/^name=/)!.text).toBe(`name=${'0123456789'.repeat(500)}`);
+});
+
+test('onchange of a control with two values fires when the second one changes', () => {
+	const app = mount_test(Features, { width: 700, height: 1400 });
+	const r = app.rect('range')!;
+	const state = () => /^range=([\d.]+)-([\d.]+) onchange=(.*)$/.exec(app.find(/^range=/)!.text)!;
+	expect(Math.round(Number(state()[2]))).toBe(60);
+	// the high thumb jumps to a click near the right end; the low one stays
+	app.click({ x: r.x + r.w - 6, y: r.y + r.h - 8 });
+	app.frame(2);
+	const [, lo, hi, changed] = state();
+	expect(Math.round(Number(lo))).toBe(20);
+	expect(Number(hi)).toBeGreaterThan(90);
+	expect(changed).toBe(`${lo}-${hi}`);
+});
+
+test('{@const} inside a CUI component belongs to its children', () => {
+	const app = mount_test(Features, { width: 700, height: 1600 });
+	expect(app.text()).toContain('tripled=0');
+	expect(app.text()).toContain('id 1\nis apple');
+	expect(app.text()).toContain('id 3\nis cherry');
+	app.click('inc');
+	expect(app.text()).toContain('tripled=3');
+});
+
+test('top-level snippets: used from <script>, exported from <script module>', () => {
+	const app = mount_test(Features, { width: 700, height: 1600 });
+	expect(app.text()).toContain('cell a');
+	expect(app.text()).toContain('hello module');
+	expect(typeof (features_module as unknown as { greeting?: unknown }).greeting).toBe('function');
 });
 
 test('derived, effect, onMount, if / else if / else', () => {
@@ -91,6 +134,25 @@ test('rect_of and scroll_to', async () => {
 	expect(r!.w).toBeGreaterThan(50);
 	expect(scroll_to('nope', 10)).toBe(false);
 	void app;
+});
+
+test('rect_of and app.rect: null once the element is gone', async () => {
+	const { rect_of } = await import('cui-svelte');
+	const app = mount_test(Features, { width: 700, height: 900 });
+	const r = rect_of('name');
+	expect(r!.w).toBeGreaterThan(50);
+	expect(app.rect('name')).toEqual(r);
+	// another root replaces Features: CUI still keeps the old rects for a while, rect_of must not
+	const child = mount_test(Child, { width: 700, height: 900, props: { title: 'B' } });
+	expect(child.text()).toContain('Child B');
+	expect(rect_of('name')).toBe(null);
+	expect(rect_of('list')).toBe(null);
+	expect(child.rect('name')).toBe(null);
+	// past the registry's pruning (every 64 frames), the names come back with their elements
+	child.frame(130);
+	mount_test(Features, { width: 700, height: 900 });
+	expect(rect_of('name')).toEqual(r);
+	expect(rect_of('list')).toBeTruthy();
 });
 
 test('scroll_to scrolls scroll areas and leaves other elements alone', async () => {

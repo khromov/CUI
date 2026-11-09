@@ -20,8 +20,7 @@ static void cuisv_t_a15c3ef9(cui_ctx *ui, cuisv_scope *s) {
     { /* <Canvas> k0 */
         const float *data = cuisv_floats_0; int n_data = 1;
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
-        cui_canvas_result r = cuisv_canvas(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", CUI_PCT(50.0f), CUI_PCT(50.0f), (cuisv_paint_fn)line one
-üñí "q" ??= \ tab	, s, -1, data, n_data);
+        cui_canvas_result r = cuisv_canvas(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", CUI_PCT(50.0f), CUI_PCT(50.0f), NULL, s, -1, data, n_data);
         (void)r;
     }
 }
@@ -41,7 +40,14 @@ static void cuisv_t_a15c3ef9(cui_ctx *ui, cuisv_scope *s) {
    "sites": 0
   }
  ],
- "warnings": [],
+ "warnings": [
+  {
+   "code": "canvas_paint",
+   "message": "paint= names a C function; \"line one\\nüñí \\\"q\\\" ??= \\\\ tab\\t\" is not a C name",
+   "start": 70,
+   "end": 270
+  }
+ ],
  "natives": null
 }
 ======== Canvas_dynamic.svelte ========

@@ -28,7 +28,7 @@ static void cuisv_t_1128caf5(cui_ctx *ui, cuisv_scope *s) {
     { /* <CurveEditor> k0 */
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         const cuisv_records *rec_keys = cuisv_records_get(s, 0, &cuisv_sd_cui_curve_key);
-        int cap_keys = -2.5; if (cap_keys < rec_keys->count) cap_keys = rec_keys->count;
+        int cap_keys = -2; if (cap_keys < rec_keys->count) cap_keys = rec_keys->count;
         cui_curve_key *p_keys = cuisv_frame_alloc(sizeof(cui_curve_key) * (size_t)(cap_keys > 0 ? cap_keys : 1)); memcpy(p_keys, rec_keys->items, sizeof(cui_curve_key) * (size_t)rec_keys->count);
         int n_keys = rec_keys->count, n_keys_was = n_keys;
         cui_curve_opts o = {0};
@@ -132,7 +132,7 @@ static void cuisv_t_1d2a85ca(cui_ctx *ui, cuisv_scope *s) {
         cui_curve_opts o = {0};
         int po_selected = cuisv_int(s, 3); int po_selected_was = po_selected;
         o.selected = &po_selected;
-        cui_curve_result r = cui_curve_editor_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), p_keys, &n_keys, cap_keys, &o);
+        cui_curve_result r = cui_curve_editor_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_keys, &n_keys, cap_keys, &o);
         (void)r;
         if ((n_keys != n_keys_was || memcmp(p_keys, rec_keys->items, sizeof(cui_curve_key) * (size_t)n_keys) != 0)) { cuisv_records_store(s, 1, &cuisv_sd_cui_curve_key, p_keys, n_keys); cuisv_emit_records(s, 2, &cuisv_sd_cui_curve_key, p_keys, n_keys); }
         if (po_selected != po_selected_was) { cuisv_set_num(s, 3, po_selected); cuisv_emit_num(s, 4, po_selected); }
@@ -239,7 +239,7 @@ static void cuisv_t_5c96291c(cui_ctx *ui, cuisv_scope *s) {
         int n_keys = rec_keys->count, n_keys_was = n_keys;
         cui_curve_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        cui_curve_result r = cui_curve_editor_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), p_keys, &n_keys, cap_keys, &o);
+        cui_curve_result r = cui_curve_editor_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), p_keys, &n_keys, cap_keys, &o);
         (void)r;
         if ((n_keys != n_keys_was || memcmp(p_keys, rec_keys->items, sizeof(cui_curve_key) * (size_t)n_keys) != 0)) { cuisv_records_store(s, 1, &cuisv_sd_cui_curve_key, p_keys, n_keys); }
     }

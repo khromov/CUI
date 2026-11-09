@@ -103,7 +103,7 @@ static void cuisv_t_999e7138(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_items = cuisv_records_get(s, 1, &cuisv_sd_cui_viz_item);
         cui_treemap_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        int r = cui_treemap_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_viz_item *)rec_items->items, rec_items->count, &o);
+        int r = cui_treemap_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_viz_item *)rec_items->items, rec_items->count, &o);
         (void)r;
     }
 }

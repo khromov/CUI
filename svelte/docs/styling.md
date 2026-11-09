@@ -40,10 +40,10 @@ Rules that depend on a dynamic class or on the pointer become C conditions.
 
 | Elements | In CUI |
 |---|---|
-| `div`, `section`, `article`, `header`, `footer`, `main`, `nav`, `aside`, `form`, `figure`, `ul`, `ol`, `li`, `table`, `tr`, `td`, `th` | A box. A block stacks its children like the browser does (a column, children full width). When every child is inline it flows them in a wrapping row. `display: flex` and `grid` follow CSS. |
+| `div`, `section`, `article`, `header`, `footer`, `main`, `nav`, `aside`, `form`, `figure`, `ul`, `ol`, `li`, `table`, `tr`, `td`, `th` | A box. A block stacks its children like the browser does (a column, children full width). When every child is inline it flows them in a wrapping row. `display: flex` and `grid` follow CSS. An `li` has a bullet, or its number in an `ol` (from `start`, counting items from `{#each}` too). |
 | `p`, `span`, `label`, `strong`, `b`, `em`, `small`, `code`, `kbd`, `pre`, `a`, `h1`…`h6` | Text, styled by the element (headings are larger, `strong` is bolder, `code` is monospace) and by CSS. Text with elements inside (`<p>Hello <strong>you</strong></p>`) flows as a row of runs. |
 | `button`, `a href`, anything with `onclick` | A clickable box, with a hover tint and a hand cursor. `a href` opens the link when nothing handles the click. |
-| `input` (text, password, email, search, url, tel, number, checkbox, radio, range), `textarea`, `select` with `option`s | CUI's controls, with `bind:value` / `bind:checked` / `bind:group`, `placeholder`, `disabled`, `readonly`, `min`, `max`, `step`, `rows`. `<label>text <input></label>` labels the control. Enter in a field submits its `<form>`. |
+| `input` (text, password, email, search, url, tel, number, checkbox, radio, range), `textarea`, `select` with `option`s (written out, from `{#each}`, or both) | CUI's controls, with `bind:value` / `bind:checked` / `bind:group`, `placeholder`, `disabled`, `readonly`, `min`, `max`, `step`, `rows`. `<label>text <input></label>` labels the control. Enter in a field submits its `<form>`. |
 | `img src` | An image (a file path; not in the browser build yet). |
 | `hr` | A separator. |
 | `progress`, `meter` | A progress bar. |

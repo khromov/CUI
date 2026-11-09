@@ -452,6 +452,15 @@ export function rows(win: [number, number], count: number, overscan = 24): numbe
 	return out;
 }
 
+/** Bytes for C (a hex view's data): a Uint8Array as it is, or any array of byte values. */
+export function bytes(v: unknown): Uint8Array | undefined {
+	if (v == null) return undefined;
+	if (v instanceof Uint8Array) return v;
+	if (ArrayBuffer.isView(v)) return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+	if (v instanceof ArrayBuffer) return new Uint8Array(v);
+	return Uint8Array.from(v as ArrayLike<number>, (x) => Number(x) & 255);
+}
+
 /** uint32 masks for C (filter bar selections), little endian like the rest. */
 export function u32s(v: unknown): Uint8Array | undefined {
 	if (v == null) return undefined;

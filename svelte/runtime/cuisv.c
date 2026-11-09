@@ -244,6 +244,26 @@ int cuisv_reorder_next(void) {
     return reorder_pos[reorder_depth - 1]++;
 }
 
+/* ---- <ol> ------------------------------------------------------------------------------------ */
+
+/* Each <li> takes the next number of the innermost <ol> as it is built, so items from {#each},
+ * {#if} or a child component count like the browser's. */
+#define OL_DEPTH 16
+static int ol_next[OL_DEPTH];
+static int ol_depth;
+
+void cuisv_ol_begin(int start) {
+    if (ol_depth < OL_DEPTH) ol_next[ol_depth] = start;
+    ol_depth++;
+}
+
+void cuisv_ol_end(void) { if (ol_depth > 0) ol_depth--; }
+
+const char *cuisv_ol_marker(void) {
+    if (ol_depth <= 0 || ol_depth > OL_DEPTH) return "\xE2\x80\xA2";
+    return cuisv_fmt("%d.", ol_next[ol_depth - 1]++);
+}
+
 static int row_index(cuisv_scope **rows, int n, int key) {
     for (int k = 0; k < n; k++) if ((int)rows[k]->handle == key) return k;
     return -1;
@@ -529,10 +549,13 @@ void *cuisv_frame_alloc(size_t size) {
 }
 
 static int text_depth;   /* the inherited text style stack, below */
+static void names_frame(void);   /* the id registry, below */
 
 void cuisv_frame_reset(void) {
     text_depth = 0;   /* a frame always starts outside every styled element */
     reorder_depth = 0;
+    names_frame();
+    ol_depth = 0;
     /* keep the newest (largest) block, free the rest */
     if (!arena_head) return;
     arena_block *b = arena_head->next;
@@ -545,14 +568,24 @@ void cuisv_frame_reset(void) {
     arena_head->used = 0;
 }
 
+/* A '#' of the label that another '#' (or the "###") follows gets U+200C after it: CUI shows a
+ * label up to its first "##". */
+static bool label_hash_split(const char *label, size_t i) {
+    return label[i] == '#' && (label[i + 1] == '#' || label[i + 1] == 0);
+}
+
 const char *cuisv_label(const char *label, const char *key) {
     if (!key) return label ? label : "";
     if (!label) label = "";
-    size_t a = strlen(label), b = strlen(key);
-    char *out = cuisv_frame_alloc(a + 3 + b + 1);
-    memcpy(out, label, a);
-    memcpy(out + a, "###", 3);
-    memcpy(out + a + 3, key, b + 1);
+    size_t a = strlen(label), b = strlen(key), splits = 0;
+    for (size_t i = 0; i < a; i++) splits += label_hash_split(label, i);
+    char *out = cuisv_frame_alloc(a + splits * 3 + 3 + b + 1), *o = out;
+    for (size_t i = 0; i < a; i++) {
+        *o++ = label[i];
+        if (label_hash_split(label, i)) { memcpy(o, "\xE2\x80\x8C", 3); o += 3; }
+    }
+    memcpy(o, "###", 3);
+    memcpy(o + 3, key, b + 1);
     return out;
 }
 
@@ -631,9 +664,14 @@ void cuisv_text(cui_ctx *ui, const char *text, const cuisv_text_style *own) {
 
 /* ---- names --------------------------------------------------------------------------------- */
 
-typedef struct name_entry { char *name; cui_id id; } name_entry;
+/* Each name keeps the frame it was last drawn in. rect_of answers for the latest frame only,
+ * and a name that was not drawn in the latest frame (or, while a frame is built, the one
+ * before) is gone: lookups miss it and the table drops it the next time it is rebuilt, which
+ * happens as it grows and every 64 frames, so ids that come and go do not pile up. */
+typedef struct name_entry { char *name; cui_id id; uint32_t seen; } name_entry;
 static name_entry *names;
 static int name_count, name_cap;
+static uint32_t name_now;   /* counts frames: the one being built, or the latest between frames */
 
 static uint32_t name_hash(const char *s) {
     uint32_t h = 2166136261u;
@@ -641,50 +679,70 @@ static uint32_t name_hash(const char *s) {
     return h ? h : 1;
 }
 
-static name_entry *name_slot(const char *name, bool create) {
-    if (!name_cap) {
-        if (!create) return NULL;
-        name_cap = 64;
-        names = xcalloc((size_t)name_cap, sizeof *names);
-    }
-    if (create && (name_count + 1) * 2 > name_cap) {
-        name_entry *old = names;
-        int old_cap = name_cap;
-        name_cap *= 2;
-        names = xcalloc((size_t)name_cap, sizeof *names);
-        name_count = 0;
-        for (int i = 0; i < old_cap; i++) {
-            if (!old[i].name) continue;
-            name_entry *e = name_slot(old[i].name, true);
-            e->name = old[i].name;
-            e->id = old[i].id;
-            name_count++;
-        }
-        free(old);
-    }
-    uint32_t i = name_hash(name) & (uint32_t)(name_cap - 1);
+static bool name_live(const name_entry *e) { return name_now - e->seen <= 1; }
+
+static name_entry *name_find(name_entry *table, int cap, const char *name) {
+    uint32_t i = name_hash(name) & (uint32_t)(cap - 1);
     for (;;) {
-        if (!names[i].name) return create ? &names[i] : NULL;
-        if (strcmp(names[i].name, name) == 0) return &names[i];
-        i = (i + 1) & (uint32_t)(name_cap - 1);
+        if (!table[i].name || strcmp(table[i].name, name) == 0) return &table[i];
+        i = (i + 1) & (uint32_t)(cap - 1);
     }
+}
+
+/* A new table with the live names (the others are freed), at most half full with `extra` more. */
+static void names_rebuild(int extra) {
+    int live = 0;
+    for (int i = 0; i < name_cap; i++) if (names[i].name && name_live(&names[i])) live++;
+    int cap = 64;
+    while (cap < (live + extra) * 2) cap *= 2;
+    name_entry *table = xcalloc((size_t)cap, sizeof *table);
+    for (int i = 0; i < name_cap; i++) {
+        if (!names[i].name) continue;
+        if (name_live(&names[i])) *name_find(table, cap, names[i].name) = names[i];
+        else free(names[i].name);
+    }
+    free(names);
+    names = table;
+    name_cap = cap;
+    name_count = live;
+}
+
+static void names_frame(void) {
+    name_now++;
+    if (name_count && name_now % 64 == 0) names_rebuild(0);
 }
 
 void cuisv_name(cui_ctx *ui, const char *name, const char *idstr) {
     if (!name || !*name) return;
-    name_entry *e = name_slot(name, true);
+    if (!name_cap) {
+        name_cap = 64;
+        names = xcalloc((size_t)name_cap, sizeof *names);
+    }
+    name_entry *e = name_find(names, name_cap, name);
     if (!e->name) {
+        if ((name_count + 1) * 2 > name_cap) {
+            names_rebuild(1);
+            e = name_find(names, name_cap, name);
+        }
         size_t n = strlen(name);
         e->name = xmalloc(n + 1);
         memcpy(e->name, name, n + 1);
         name_count++;
     }
     e->id = cui_make_id(ui, idstr ? idstr : name);
+    e->seen = name_now;
 }
 
 cui_id cuisv_named(const char *name) {
-    name_entry *e = name ? name_slot(name, false) : NULL;
-    return e ? e->id : 0;
+    if (!name || !name_cap) return 0;
+    name_entry *e = name_find(names, name_cap, name);
+    return e->name && name_live(e) ? e->id : 0;
+}
+
+cui_id cuisv_named_drawn(const char *name) {
+    if (!name || !name_cap) return 0;
+    name_entry *e = name_find(names, name_cap, name);
+    return e->name && e->seen == name_now ? e->id : 0;
 }
 
 /* ---- lifetime ----------------------------------------------------------------------------- */

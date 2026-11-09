@@ -129,7 +129,7 @@ static void cuisv_t_2f99ad28(cui_ctx *ui, cuisv_scope *s) {
         cui_month_opts o = {0};
         cui_date po_selected; cuisv_record_read(s, 4, &cuisv_sd_cui_date, &po_selected); cui_date po_selected_was = po_selected;
         o.selected = &po_selected;
-        cui_month_result r = cui_month_calendar_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_month, (const cui_month_event *)rec_events->items, rec_events->count, &o);
+        cui_month_result r = cui_month_calendar_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_month, (const cui_month_event *)rec_events->items, rec_events->count, &o);
         (void)r;
         if (memcmp(&p_month, &p_month_was, sizeof p_month) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_date, &p_month); }
         if (memcmp(&po_selected, &po_selected_was, sizeof po_selected) != 0) { cuisv_record_write(s, 4, 5, &cuisv_sd_cui_date, &po_selected); }
@@ -231,7 +231,7 @@ static void cuisv_t_40df912e(cui_ctx *ui, cuisv_scope *s) {
         cui_date p_month_was = p_month;
         const cuisv_records *rec_events = cuisv_records_get(s, 2, &cuisv_sd_cui_month_event);
         cui_month_opts o = {0};
-        cui_month_result r = cui_month_calendar_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_month, (const cui_month_event *)rec_events->items, rec_events->count, &o);
+        cui_month_result r = cui_month_calendar_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_month, (const cui_month_event *)rec_events->items, rec_events->count, &o);
         (void)r;
         if (memcmp(&p_month, &p_month_was, sizeof p_month) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_date, &p_month); }
     }

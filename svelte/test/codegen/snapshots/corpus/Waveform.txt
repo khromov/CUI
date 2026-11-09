@@ -94,7 +94,7 @@ static void cuisv_t_1ed04bb5(cui_ctx *ui, cuisv_scope *s) {
         float p_progress = cuisv_float(s, 1);
         float p_progress_was = p_progress;
         cui_waveform_opts o = {0};
-        bool r = cui_waveform_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, &p_progress, &o);
+        bool r = cui_waveform_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, &p_progress, &o);
         (void)r;
         if (p_progress != p_progress_was) { cuisv_set_num(s, 1, p_progress); cuisv_emit_num(s, 2, p_progress); }
     }
@@ -177,7 +177,7 @@ static void cuisv_t_4e21c649(cui_ctx *ui, cuisv_scope *s) {
         cui_waveform_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
         o.color = ((cui_color){ 255, 0, 0, 255 });
-        bool r = cui_waveform_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, &p_progress, &o);
+        bool r = cui_waveform_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, &p_progress, &o);
         (void)r;
         if (p_progress != p_progress_was) { cuisv_set_num(s, 1, p_progress); }
     }

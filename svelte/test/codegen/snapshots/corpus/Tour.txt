@@ -113,7 +113,7 @@ static void cuisv_t_d8fadfd4(cui_ctx *ui, cuisv_scope *s) {
         int p_step = cuisv_int(s, 2);
         int p_step_was = p_step;
         cui_tour_opts o = {0};
-        int r = cui_tour_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
+        int r = cui_tour_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
         (void)r;
         if (p_step != p_step_was) { cuisv_set_num(s, 2, p_step); cuisv_emit_num(s, 3, p_step); }
     }
@@ -207,7 +207,7 @@ static void cuisv_t_2b16b84a(cui_ctx *ui, cuisv_scope *s) {
         int p_step_was = p_step;
         cui_tour_opts o = {0};
         o.width = cuisv_float(s, 3);
-        int r = cui_tour_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
+        int r = cui_tour_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
         (void)r;
         if (p_step != p_step_was) { cuisv_set_num(s, 2, p_step); }
     }

@@ -93,7 +93,7 @@ static void cuisv_t_69f2308f(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <SourceList> k0 */
         const cuisv_records *rec_sources = cuisv_records_get(s, 1, &cuisv_sd_cui_source);
-        int r = cui_source_list(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_source *)rec_sources->items, rec_sources->count);
+        int r = cui_source_list(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_source *)rec_sources->items, rec_sources->count);
         (void)r;
     }
 }

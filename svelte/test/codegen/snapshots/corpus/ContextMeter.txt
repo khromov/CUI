@@ -80,7 +80,7 @@ static void cuisv_t_681b4bb4(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ContextMeter> k0 */
         cui_context_opts o = {0};
-        cui_context_meter_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), 0, 0, &o);
+        cui_context_meter_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), 0, 0, &o);
     }
 }
 

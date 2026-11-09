@@ -176,7 +176,7 @@ static void cuisv_t_83552edd(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_82552d4a(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <Split> k0 */
-        if (!cuisv_has(s, 0)) cuisv_set_num(s, 0, NaN);
+        if (!cuisv_has(s, 0)) cuisv_set_num(s, 0, 0.5f);
         float p_ratio = cuisv_float(s, 0);
         float p_ratio_was = p_ratio;
         cui_split_opts o = {0};
@@ -271,7 +271,7 @@ static void cuisv_t_a31658a8(cui_ctx *ui, cuisv_scope *s) {
     }
     { /* <Split> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
-        if (!cuisv_has(s, 1)) cuisv_set_num(s, 1, NaN);
+        if (!cuisv_has(s, 1)) cuisv_set_num(s, 1, 0.5f);
         float p_ratio = cuisv_float(s, 1);
         float p_ratio_was = p_ratio;
         cui_split_opts o = {0};

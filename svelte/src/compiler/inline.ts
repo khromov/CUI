@@ -6,7 +6,7 @@
 import type { AST } from 'svelte/compiler';
 import { expand, facets, type Facet, type FacetValue, type CssProblem } from './css-props.ts';
 import type { Layer } from './styles.ts';
-import { src, type CompileContext } from './template.ts';
+import { src, template_text, type CompileContext } from './template.ts';
 
 /** How a property's runtime value is packed, and the facets it sets. */
 const DYNAMIC: Record<string, { as: 'num' | 'size' | 'color' | 'bool'; helper: string; facets: string[] }> = {
@@ -82,8 +82,8 @@ export function inline_layer(ctx: CompileContext, node: AST.RegularElement | AST
 				const value = decl.slice(i + 1).trim();
 				if (!property || !value || property.startsWith('--')) continue;
 				if (value.includes('\u0000')) {
-					// "{w}px" -> `${w}px`
-					const js = '`' + value.replace(/\u0000(\d+)\u0000/g, (_, n) => `\${${exprs[Number(n)]}}`).replace(/`/g, '\\`') + '`';
+					// "{w}px" -> `${w}px`: the text escaped, the expressions as written
+					const js = '`' + value.split(/\u0000(\d+)\u0000/).map((p, i) => (i % 2 ? `\${${exprs[Number(p)]}}` : template_text(p))).join('') + '`';
 					const only = /^\u0000(\d+)\u0000$/.exec(value);
 					out.push(...dynamic_facets(property, only ? exprs[Number(only[1])] : js, warn));
 				} else {
@@ -97,7 +97,7 @@ export function inline_layer(ctx: CompileContext, node: AST.RegularElement | AST
 				const value = parts.map((p) => p.text).join('');
 				for (const [p, v] of expand(property, value)) out.push(...facets(p, v, problems));
 			} else {
-				const js = parts.length === 1 ? parts[0].js! : '`' + parts.map((p) => (p.text !== undefined ? p.text.replace(/[`\\]/g, '\\$&') : `\${${p.js}}`)).join('') + '`';
+				const js = parts.length === 1 ? parts[0].js! : '`' + parts.map((p) => (p.text !== undefined ? template_text(p.text) : `\${${p.js}}`)).join('') + '`';
 				out.push(...dynamic_facets(property, js, warn));
 			}
 		}

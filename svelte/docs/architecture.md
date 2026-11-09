@@ -164,7 +164,11 @@ npm test && npm run typecheck
 
 **`native.ts`.**
 - Writes `.cui-svelte/<mode>/gen/*.c`, `registry.c` and `bundle.c`, plus a `CMakeLists.txt`
-  with the app's targets.
+  with the app's targets. Files are rewritten only when their content changes, and the
+  CMakeLists.txt names each source, so adding or removing a component configures again.
+- Make compares modification times, and Apple's make 3.81 sees whole seconds. Each source
+  that differs from what the last successful build compiled (`.built.json`) gets a time in a
+  second after the last build ended, so a rebuild right after another still compiles it.
 - All apps build inside one CMake tree per configuration in the user's cache folder, which
   also builds CUI, QuickJS and the runtime once.
 - A configure that failed leaves no marker, so the next build configures again.

@@ -7,7 +7,7 @@
 
 static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_99504b12 = { 0x99504b12u, "Css.svelte#0", cuisv_t_99504b12, 18, 0 };
+const cuisv_template cuisv_tpl_99504b12 = { 0x99504b12u, "Css.svelte#0", cuisv_t_99504b12, 20, 0 };
 
 static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
@@ -166,18 +166,20 @@ static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
                 cui_box o = {0};
                 o.id = "dyn";
                 o.dir = CUI_COLUMN;
-                if (cuisv_bool(s, 4)) { o.pad_top = 10.0f; o.pad_right = 10.0f; o.pad_bottom = 10.0f; o.pad_left = 10.0f; o.gap = 10.0f; o.width = CUI_PX(600.0f); }
-                if (cuisv_bool(s, 5)) { o.height = CUI_PX(10.0f); o.bg = ((cui_color){ 238, 238, 238, 255 }); }
-                if (cuisv_bool(s, 6)) { o.height = CUI_PX(10.0f); o.bg = ((cui_color){ 51, 51, 51, 255 }); }
-                if (cuisv_bool(s, 7)) { o.gap = 0.0f; }
-                if (cuisv_bool(s, 8)) { o.height = CUI_GROW(1.0f); o.height = CUI_PX(20.0f); }
-                if (cuisv_bool(s, 9)) { o.height = CUI_GROW(2.0f); }
-                if (cuisv_bool(s, 10)) { o.min_column_width = 130.0f; o.gap = 10.0f; }
-                if (cuisv_bool(s, 11)) { o.height = CUI_PX(20.0f); }
+                if (cuisv_bool(s, 4)) { o.pad_top = 3.0f; o.pad_right = 5.0f; o.pad_bottom = 3.0f; o.pad_left = 5.0f; }
+                if (cuisv_bool(s, 5)) { o.pad_top = 10.0f; o.pad_right = 10.0f; o.pad_bottom = 10.0f; o.pad_left = 10.0f; o.gap = 10.0f; o.width = CUI_PX(600.0f); }
+                if (cuisv_bool(s, 6)) { o.height = CUI_PX(10.0f); o.bg = ((cui_color){ 238, 238, 238, 255 }); }
+                if (cuisv_bool(s, 7)) { o.height = CUI_PX(10.0f); o.bg = ((cui_color){ 51, 51, 51, 255 }); }
+                if (cuisv_bool(s, 8)) { o.gap = 0.0f; }
+                if (cuisv_bool(s, 9)) { o.height = CUI_GROW(1.0f); o.height = CUI_PX(20.0f); }
+                if (cuisv_bool(s, 10)) { o.height = CUI_GROW(2.0f); }
+                if (cuisv_bool(s, 11)) { o.min_column_width = 130.0f; o.gap = 10.0f; }
+                if (cuisv_bool(s, 12)) { o.height = CUI_PX(20.0f); }
                 if (cuisv_bool(s, 3)) { o.width = CUI_PX(100.0f); o.height = CUI_PX(30.0f); }
-                if (cuisv_bool(s, 12)) { o.width = CUI_PX(300.0f); }
-                if ((cuisv_bool(s, 13) && cuisv_bool(s, 14))) { o.height = CUI_PX(60.0f); }
-                if ((cuisv_bool(s, 13) && cuisv_bool(s, 15))) { o.height = CUI_PX(20.0f); }
+                if (cuisv_bool(s, 13)) { o.width = CUI_PX(300.0f); }
+                if (cuisv_bool(s, 14)) { o.bg = ((cui_color){ 191, 64, 64, 255 }); }
+                if ((cuisv_bool(s, 15) && cuisv_bool(s, 16))) { o.height = CUI_PX(60.0f); }
+                if ((cuisv_bool(s, 15) && cuisv_bool(s, 17))) { o.height = CUI_PX(20.0f); }
                 cui_box_begin(ui, &o);
                 cuisv_text(ui, "tile", NULL);
                 cui_box_end(ui);
@@ -186,7 +188,7 @@ static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
         }
         { /* <div> gone */
             cuisv_name(ui, "gone", "gone");
-            if (!(cuisv_bool(s, 16))) {
+            if (!(cuisv_bool(s, 18))) {
                 cui_box o = {0};
                 o.id = "gone";
                 o.dir = CUI_COLUMN;
@@ -201,6 +203,37 @@ static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
             o.width = CUI_PX(300.0f);
             bool r = cui_button_ex(ui, "Wide###wide", &o);
             (void)r;
+        }
+        { /* <div> glob */
+            cuisv_name(ui, "glob", "glob");
+            cui_box o = {0};
+            o.id = "glob";
+            o.dir = CUI_COLUMN;
+            o.pad_top = 3.0f;
+            o.pad_right = 5.0f;
+            o.pad_bottom = 3.0f;
+            o.pad_left = 5.0f;
+            cui_box_begin(ui, &o);
+            { /* <div> inner */
+                cuisv_name(ui, "inner", "inner");
+                cui_box o = {0};
+                o.id = "inner";
+                o.dir = CUI_COLUMN;
+                o.height = CUI_PX(20.0f);
+                cui_box_begin(ui, &o);
+                cui_box_end(ui);
+            }
+            cui_box_end(ui);
+        }
+        { /* <div> hue */
+            cuisv_name(ui, "hue", "hue");
+            cui_box o = {0};
+            o.id = "hue";
+            o.dir = CUI_COLUMN;
+            o.bg = ((cui_color){ 191, 64, 64, 255 });
+            cui_box_begin(ui, &o);
+            cuisv_text(ui, "hue", NULL);
+            cui_box_end(ui);
         }
         { /* <button> k2 */
             cuisv_pointer pt_k2 = cuisv_box_pointer(ui, "k2", true);
@@ -223,7 +256,7 @@ static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
             cuisv_box_mark(ui, true, true, &pt_k2);
             cuisv_text(ui, "change", NULL);
             cui_box_end(ui);
-            if (pt_k2.clicked) cuisv_emit(s, 17);
+            if (pt_k2.clicked) cuisv_emit(s, 19);
         }
         cui_box_end(ui);
     }
@@ -236,7 +269,7 @@ static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
 	let kind = $state('big');
 	let hidden = $state(false);
 </script>
-<t2572176146 n0={__cuisv_h.size(`${progress * 100}%`)} b1={__cuisv_h.has_class("tile " + " " + (kind), "none")} b2={__cuisv_h.has_class("tile " + " " + (kind), "center")} b3={__cuisv_h.has_class("tile " + " " + (kind), "box")} b4={__cuisv_h.has_class("tile " + " " + (kind), "page")} b5={__cuisv_h.has_class("tile " + " " + (kind), "track")} b6={__cuisv_h.has_class("tile " + " " + (kind), "bar")} b7={__cuisv_h.has_class("tile " + " " + (kind), "row")} b8={__cuisv_h.has_class("tile " + " " + (kind), "grow")} b9={__cuisv_h.has_class("tile " + " " + (kind), "two")} b10={__cuisv_h.has_class("tile " + " " + (kind), "grid")} b11={__cuisv_h.has_class("tile " + " " + (kind), "cell")} b12={__cuisv_h.has_class("tile " + " " + (kind), "wide")} b13={__cuisv_h.has_class("tile " + " " + (kind), "tile")} b14={__cuisv_h.has_class("tile " + " " + (kind), "big")} b15={__cuisv_h.has_class("tile " + " " + (kind), "small")} b16={!!(hidden)} f17={__cuisv_h.dom_click(() => { progress = 1; kind = 'small'; hidden = true; }, "click")}></t2572176146>
+<t2572176146 n0={__cuisv_h.size(`${progress * 100}%`)} b1={__cuisv_h.has_class("tile " + " " + (kind), "none")} b2={__cuisv_h.has_class("tile " + " " + (kind), "center")} b3={__cuisv_h.has_class("tile " + " " + (kind), "box")} b4={__cuisv_h.has_class("tile " + " " + (kind), "glob")} b5={__cuisv_h.has_class("tile " + " " + (kind), "page")} b6={__cuisv_h.has_class("tile " + " " + (kind), "track")} b7={__cuisv_h.has_class("tile " + " " + (kind), "bar")} b8={__cuisv_h.has_class("tile " + " " + (kind), "row")} b9={__cuisv_h.has_class("tile " + " " + (kind), "grow")} b10={__cuisv_h.has_class("tile " + " " + (kind), "two")} b11={__cuisv_h.has_class("tile " + " " + (kind), "grid")} b12={__cuisv_h.has_class("tile " + " " + (kind), "cell")} b13={__cuisv_h.has_class("tile " + " " + (kind), "wide")} b14={__cuisv_h.has_class("tile " + " " + (kind), "hue")} b15={__cuisv_h.has_class("tile " + " " + (kind), "tile")} b16={__cuisv_h.has_class("tile " + " " + (kind), "big")} b17={__cuisv_h.has_class("tile " + " " + (kind), "small")} b18={!!(hidden)} f19={__cuisv_h.dom_click(() => { progress = 1; kind = 'small'; hidden = true; }, "click")}></t2572176146>
 
 ---- metadata ----
 {
@@ -245,7 +278,7 @@ static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
    "id": 2572176146,
    "symbol": "cuisv_tpl_99504b12",
    "name": "Css.svelte#0",
-   "slots": 18,
+   "slots": 20,
    "sites": 0
   }
  ],

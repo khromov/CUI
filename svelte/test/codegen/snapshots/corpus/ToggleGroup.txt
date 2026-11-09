@@ -74,10 +74,11 @@ const cuisv_template cuisv_tpl_ba5eb7a3 = { 0xba5eb7a3u, "ToggleGroup_bind.svelt
 static void cuisv_t_b95eb610(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ToggleGroup> k0 */
+        int n_labels = 0;
         bool *p_values = cuisv_bools(s, 0, n_labels);
         bool *p_values_was = cuisv_frame_alloc((size_t)(n_labels > 0 ? n_labels : 1)); memcpy(p_values_was, p_values, (size_t)n_labels);
         cui_toggle_group_opts o = {0};
-        bool r = cui_toggle_group_ex(ui, "Bound##k0", NULL, 0, p_values, &o);
+        bool r = cui_toggle_group_ex(ui, "Bound##k0", NULL, n_labels, p_values, &o);
         (void)r;
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 0, p_values, n_labels); cuisv_emit_bytes(s, 1, p_values, (uint32_t)n_labels); }
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_emit_bytes(s, 2, p_values, (uint32_t)n_labels); }
@@ -88,10 +89,11 @@ static void cuisv_t_b95eb610(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_ba5eb7a3(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ToggleGroup> k0 */
+        int n_labels = 0;
         bool *p_values = cuisv_bools(s, 1, n_labels);
         bool *p_values_was = cuisv_frame_alloc((size_t)(n_labels > 0 ? n_labels : 1)); memcpy(p_values_was, p_values, (size_t)n_labels);
         cui_toggle_group_opts o = {0};
-        bool r = cui_toggle_group_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, p_values, &o);
+        bool r = cui_toggle_group_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, n_labels, p_values, &o);
         (void)r;
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 1, p_values, n_labels); cuisv_emit_bytes(s, 2, p_values, (uint32_t)n_labels); }
     }
@@ -169,10 +171,11 @@ static void cuisv_t_ac539320(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_ad5394b3(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ToggleGroup> k0 */
+        int n_labels = 0;
         bool *p_values = cuisv_bools(s, 1, n_labels);
         bool *p_values_was = cuisv_frame_alloc((size_t)(n_labels > 0 ? n_labels : 1)); memcpy(p_values_was, p_values, (size_t)n_labels);
         cui_toggle_group_opts o = {0};
-        bool r = cui_toggle_group_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, p_values, &o);
+        bool r = cui_toggle_group_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, n_labels, p_values, &o);
         (void)r;
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 1, p_values, n_labels); }
     }
@@ -249,10 +252,11 @@ static void cuisv_t_bac587f3(cui_ctx *ui, cuisv_scope *s) {
     }
     { /* <ToggleGroup> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
+        int n_labels = 0;
         bool *p_values = cuisv_bools(s, 1, n_labels);
         bool *p_values_was = cuisv_frame_alloc((size_t)(n_labels > 0 ? n_labels : 1)); memcpy(p_values_was, p_values, (size_t)n_labels);
         cui_toggle_group_opts o = {0};
-        bool r = cui_toggle_group_ex(ui, "fixed_id", NULL, 0, p_values, &o);
+        bool r = cui_toggle_group_ex(ui, "fixed_id", NULL, n_labels, p_values, &o);
         (void)r;
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 1, p_values, n_labels); }
     }

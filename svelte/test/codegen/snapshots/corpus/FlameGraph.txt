@@ -117,7 +117,7 @@ static void cuisv_t_19cc2158(cui_ctx *ui, cuisv_scope *s) {
         (void)r;
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 3, p_selected); cuisv_emit_num(s, 4, p_selected); }
-        if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_emit_records(s, 5, &cuisv_sd_cui_flame_view, &p_view, 1); }
+        if ((memcmp(&p_view, &p_view_was, sizeof p_view) != 0) || (p_selected != p_selected_was)) { cuisv_emit_records(s, 5, &cuisv_sd_cui_flame_view, &p_view, 1); }
         if (r.selection_changed) cuisv_emit_num(s, 6, p_selected);
     }
     cuisv_render_site(ui, s, 0);
@@ -132,7 +132,7 @@ static void cuisv_t_1acc22eb(cui_ctx *ui, cuisv_scope *s) {
         int p_selected = cuisv_int(s, 4);
         int p_selected_was = p_selected;
         cui_flame_opts o = {0};
-        cui_flame_result r = cui_flame_graph_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
+        cui_flame_result r = cui_flame_graph_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
         (void)r;
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 2, 3, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 4, p_selected); cuisv_emit_num(s, 5, p_selected); }
@@ -220,7 +220,7 @@ static void cuisv_t_c9d2e598(cui_ctx *ui, cuisv_scope *s) {
         cui_tooltip(ui, cuisv_str(s, 11));
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 3, -1, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 4, p_selected); }
-        if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_emit_records(s, 9, &cuisv_sd_cui_flame_view, &p_view, 1); }
+        if ((memcmp(&p_view, &p_view_was, sizeof p_view) != 0) || (p_selected != p_selected_was)) { cuisv_emit_records(s, 9, &cuisv_sd_cui_flame_view, &p_view, 1); }
         if (r.selection_changed) cuisv_emit_num(s, 10, p_selected);
     }
     cuisv_render_site(ui, s, 0);
@@ -236,7 +236,7 @@ static void cuisv_t_cad2e72b(cui_ctx *ui, cuisv_scope *s) {
         int p_selected_was = p_selected;
         cui_flame_opts o = {0};
         o.width = cuisv_size(s, 4, CUI_FIT);
-        cui_flame_result r = cui_flame_graph_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
+        cui_flame_result r = cui_flame_graph_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
         (void)r;
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 2, -1, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 3, p_selected); }

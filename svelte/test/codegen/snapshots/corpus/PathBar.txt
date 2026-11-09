@@ -99,7 +99,7 @@ static void cuisv_t_9ffbeafe(cui_ctx *ui, cuisv_scope *s) {
     { /* <PathBar> k0 */
         cui_path_bar_opts o = {0};
         o.width = cuisv_size(s, 1, CUI_FIT);
-        cui_path_bar_result r = cui_path_bar_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, 0, &o);
+        cui_path_bar_result r = cui_path_bar_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), NULL, 0, &o);
         (void)r;
     }
 }

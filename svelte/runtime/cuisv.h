@@ -155,6 +155,9 @@ static inline cui_size cuisv_size(cuisv_scope *s, int i, cui_size fallback) {
  * (-1: no event). */
 char *cuisv_buf(cuisv_scope *s, int i, size_t reserve, size_t *cap);
 void cuisv_buf_changed(cuisv_scope *s, int i, int event_slot);
+/* The room to reserve for an editable text this frame: at least `floor`, and enough for what
+ * may be inserted at once (a paste, an input method's text). CUI keeps only what fits. */
+size_t cuisv_edit_room(cui_ctx *ui, size_t floor);
 
 /* Packed record arrays (BLOB slots) are unpacked by generated readers and cached until the
  * slot changes. `unpack` fills `*out` (heap, freed with `free_fn`) and returns the count. */
@@ -246,6 +249,11 @@ int cuisv_site_scopes(cuisv_scope *s, int site, cuisv_scope ***out);
 void cuisv_reorder_push(void);
 void cuisv_reorder_pop(void);
 int cuisv_reorder_next(void);
+/* <ol>: its <li>s are numbered from `start` in the order they are built; the marker of the
+ * next one is "1.", "2."… (a bullet outside an <ol>). */
+void cuisv_ol_begin(int start);
+void cuisv_ol_end(void);
+const char *cuisv_ol_marker(void);
 /* Draws rows in the order of `keys` (row handles). */
 void cuisv_reorder_rows(cui_ctx *ui, cuisv_scope **rows, int n, const int *keys);
 /* The new order in JS's terms: out[p] = js[k] for the row k whose handle is keys[p]. */
@@ -256,7 +264,8 @@ void cuisv_reorder_back(cuisv_scope **rows, int n, const float *js, const int *k
 /* Memory valid until the end of the frame. */
 void *cuisv_frame_alloc(size_t size);
 /* "label###key": shows label, keeps the identity of key, so a label that changes (a count,
- * a translation) keeps its component's state and focus. */
+ * a translation) keeps its component's state and focus. A "##" in label is split by U+200C,
+ * or CUI would show only what comes before it. */
 const char *cuisv_label(const char *label, const char *key);
 const char *cuisv_fmt(const char *fmt, ...);
 
@@ -309,10 +318,14 @@ void cuisv_open_url(const char *url);
 /* Records that markup id `name` is the CUI id `cui_make_id(ui, idstr)` under the current id
  * stack, so JS can find the element (scroll_to, rect_of, tests) from outside the frame. */
 void cuisv_name(cui_ctx *ui, const char *name, const char *idstr);
-/* The CUI id of a named element from the latest frame, 0 when unknown. */
+/* The CUI id of a named element from the latest frame (or, while a frame is built, from the
+ * one before), 0 when unknown. */
 cui_id cuisv_named(const char *name);
-/* scroll_to / rect_of for JS: false when no element has that id (scroll_to: when that element
- * did not scroll in the latest frame, since its state is not a scroll position). */
+/* The CUI id of the element drawn under `name` in the latest frame, 0 when none was. */
+cui_id cuisv_named_drawn(const char *name);
+/* scroll_to / rect_of for JS: false when no element has that id (rect_of: none was drawn in
+ * the latest frame; scroll_to: when that element did not scroll in the latest frame, since
+ * its state is not a scroll position). */
 bool cuisv_scroll_to(cui_ctx *ui, const char *name, float y);
 bool cuisv_rect_of(cui_ctx *ui, const char *name, cui_rect *out);
 /* After the templates: notes which nodes scroll, for scroll_to. */

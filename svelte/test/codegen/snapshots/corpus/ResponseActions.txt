@@ -88,7 +88,7 @@ static void cuisv_t_eda96f12(cui_ctx *ui, cuisv_scope *s) {
         cui_response_actions_opts o = {0};
         int po_vote = cuisv_int(s, 1); int po_vote_was = po_vote;
         o.vote = &po_vote;
-        int r = cui_response_actions_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &o);
+        int r = cui_response_actions_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &o);
         (void)r;
         if (po_vote != po_vote_was) { cuisv_set_num(s, 1, po_vote); cuisv_emit_num(s, 2, po_vote); }
     }
@@ -164,7 +164,7 @@ static void cuisv_t_26e82054(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <ResponseActions> k0 */
         cui_response_actions_opts o = {0};
-        int r = cui_response_actions_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &o);
+        int r = cui_response_actions_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &o);
         (void)r;
     }
 }

@@ -106,7 +106,7 @@ static void cuisv_t_2357d55e(cui_ctx *ui, cuisv_scope *s) {
     { /* <ActivityRings> k0 */
         const cuisv_records *rec_rings = cuisv_records_get(s, 1, &cuisv_sd_cui_viz_item);
         cui_rings_opts o = {0};
-        int r = cui_activity_rings_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_viz_item *)rec_rings->items, rec_rings->count, &o);
+        int r = cui_activity_rings_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_viz_item *)rec_rings->items, rec_rings->count, &o);
         (void)r;
     }
 }

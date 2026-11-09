@@ -61,7 +61,7 @@ static void cuisv_t_2c42d366(cui_ctx *ui, cuisv_scope *s) {
             (void)r;
             { /* <Input> k7 */
                 cuisv_name(ui, "new", "new");
-                size_t cap_buf; char *p_buf = cuisv_buf(s, 3, 256, &cap_buf);
+                size_t cap_buf; char *p_buf = cuisv_buf(s, 3, cuisv_edit_room(ui, 256), &cap_buf);
                 cui_input_opts o = {0};
                 o.placeholder = "What needs doing\?";
                 o.icon = CUI_ICON_PLUS;

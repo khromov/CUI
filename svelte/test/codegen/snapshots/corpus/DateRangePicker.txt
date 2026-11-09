@@ -101,7 +101,7 @@ static void cuisv_t_4bf72193(cui_ctx *ui, cuisv_scope *s) {
         cui_date_range p_range; cuisv_record_read(s, 1, &cuisv_sd_cui_date_range, &p_range);
         cui_date_range p_range_was = p_range;
         cui_date_range_opts o = {0};
-        bool r = cui_date_range_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_range, &o);
+        bool r = cui_date_range_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_range, &o);
         (void)r;
         if (memcmp(&p_range, &p_range_was, sizeof p_range) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_date_range, &p_range); }
     }
@@ -187,7 +187,7 @@ static void cuisv_t_6b81cda3(cui_ctx *ui, cuisv_scope *s) {
         cui_date_range p_range_was = p_range;
         cui_date_range_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        bool r = cui_date_range_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_range, &o);
+        bool r = cui_date_range_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_range, &o);
         (void)r;
         if (memcmp(&p_range, &p_range_was, sizeof p_range) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_date_range, &p_range); }
     }

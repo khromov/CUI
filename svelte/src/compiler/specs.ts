@@ -52,7 +52,8 @@ export interface EventSpec {
 	when: string;
 	/** C expression for the payload, or null for none. 'num' | 'str' | 'bool' typed. */
 	/** 'value': the bound value as JS sees it (after its setter ran), whatever its type. */
-	payload?: { type: 'num' | 'str' | 'bool' | 'value' | 'json'; expr: string };
+	/** 'num2': two numbers, `expr` and `expr2` (a range's ends, an hour and a minute). */
+	payload?: { type: 'num' | 'str' | 'bool' | 'value' | 'json' | 'num2'; expr: string; expr2?: string };
 }
 
 export interface Spec {
@@ -70,6 +71,8 @@ export interface Spec {
 	doc?: string;
 	/** C condition (over `r`) that a text buffer changed, for results that are not flags. */
 	buffer_changed?: string;
+	/** Room a text buffer keeps past its text for what CUI writes itself (cuisv_edit_room adds a paste). */
+	buffer_room: number;
 	/** The end function's arguments after ui, statements before it, and events on its result `e`. */
 	end_args?: string;
 	end_pre?: string;
@@ -96,6 +99,8 @@ interface Override {
 	fn?: string;
 	/** C condition (over `r`) that a text buffer changed, for results that are not flags. */
 	buffer_changed?: string;
+	/** Room a text buffer keeps past its text, besides a paste (default 256: typing). */
+	buffer_room?: number;
 	/** Extra events, added to the inferred ones. */
 	more_events?: EventSpec[];
 	/** Containers CUI has no scope macro for: the begin and end functions. */
@@ -198,8 +203,15 @@ function infer_params(params: Param[], o: Override, fn_name = ''): ParamSpec[] {
  * frame started with); `$name` in a payload is the local holding parameter `name`.
  */
 function infer_events(ret: string, params: ParamSpec[]): EventSpec[] {
-	const bound = params.find((p) => BOUND.has(p.role));
-	if (bound && bound.role !== 'buffer') return [{ name: 'onchange', when: '$changed', payload: payload_of(bound) }];
+	const all = params.filter((p) => BOUND.has(p.role));
+	const bound = all[0];
+	if (bound && bound.role !== 'buffer') {
+		// $changed: any of them changed. Two numbers (lo and hi, hour and minute, x and y) both
+		// go to the handler; otherwise it gets the first.
+		const num = (p?: ParamSpec) => p?.role === 'bind' && bind_kind(p.type) !== 'bool';
+		if (all.length === 2 && num(all[0]) && num(all[1])) return [{ name: 'onchange', when: '$changed', payload: { type: 'num2', expr: `$${all[0].name}`, expr2: `$${all[1].name}` } }];
+		return [{ name: 'onchange', when: '$changed', payload: payload_of(bound) }];
+	}
 	if (ret === 'bool') return [{ name: 'onclick', when: 'r' }];
 	if (ret === 'int' && bound?.role === 'buffer') {
 		return [
@@ -261,6 +273,7 @@ function make(name: string, source: string, o: Override = {}): Spec {
 		fields,
 		doc: fn.comment,
 		buffer_changed: o.buffer_changed,
+		buffer_room: o.buffer_room ?? 256,
 		end_args: o.end_args,
 		end_pre: o.end_pre,
 		end_events: o.end_events,
@@ -420,7 +433,8 @@ const ENTRIES: Entry[] = [
 	['CodeBlock', 'cui_code_block'],
 	['JsonView', 'cui_json_view', { events: [] }],
 	['Markdown', 'cui_markdown', { events: [] }],
-	['CodeEditor', 'cui_code_editor', { buffer_changed: 'r.changed', events: [ev('oninput', 'r.changed', str('$buf'))] }],
+	// an editor's own edits (replace all, indenting a selection) can add more than a paste
+	['CodeEditor', 'cui_code_editor', { buffer_changed: 'r.changed', buffer_room: 65536, events: [ev('oninput', 'r.changed', str('$buf'))] }],
 	['DiffView', 'cui_diff_view', { events: [] }],
 	// ---- charts
 	['LineChart', 'cui_line_chart'],
@@ -515,8 +529,9 @@ const ENTRIES: Entry[] = [
 	['Popover', 'cui_popover', { custom: 'popover' }],
 	['MonthCalendar', 'cui_month_calendar', { props: { month: 'month' }, events: [ev('onselect', 'r.event >= 0', num('r.event')), ev('onchange', 'r.month_changed')] }],
 	['DocTabs', 'cui_doc_tabs', { props: { selected: 'value' }, events: [ev('onchange', '$changed', num('$selected')), ev('onclose', 'r.close >= 0', num('r.close'))] }],
-	['FileBrowser', 'cui_file_browser', { props: { path: 'path' }, buffer_changed: 'r.navigated', events: [ev('onpick', 'r.picked != NULL', str('r.picked')), ev('onselect', 'r.selected != NULL', str('r.selected')), ev('onnavigate', 'r.navigated', str('$path'))] }],
-	['FilePicker', 'cui_file_picker', { props: { out: 'value' }, buffer_changed: 'r', events: [ev('onpick', 'r', str('$out'))] }],
+	// paths: the browser writes a whole one
+	['FileBrowser', 'cui_file_browser', { props: { path: 'path' }, buffer_changed: 'r.navigated', buffer_room: 4096, events: [ev('onpick', 'r.picked != NULL', str('r.picked')), ev('onselect', 'r.selected != NULL', str('r.selected')), ev('onnavigate', 'r.navigated', str('$path'))] }],
+	['FilePicker', 'cui_file_picker', { props: { out: 'value' }, buffer_changed: 'r', buffer_room: 4096, events: [ev('onpick', 'r', str('$out'))] }],
 	['NodeEditor', 'cui_node_editor_begin', {
 		kind: 'scope',
 		end: 'cui_node_editor_end',

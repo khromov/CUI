@@ -148,7 +148,7 @@ Show them with `<LogView buffer={log}>` and `<Terminal buffer={term} oncommand={
 ```ts
 import { rect_of, scroll_to } from 'cui-svelte';
 
-rect_of('preview');            // { x, y, w, h } from the latest layout, or null
+rect_of('preview');            // { x, y, w, h } from the latest layout, or null when it was not drawn
 scroll_to('messages', 0);      // a <Scroll id="messages"> or an element with overflow
 ```
 

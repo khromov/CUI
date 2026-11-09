@@ -7892,8 +7892,7 @@
 					"name": "ui",
 					"type": "cui_ctx *"
 				}
-			],
-			"comment": "CUI_API float cui_delta_time(cui_ctx *ui); seconds since the last frame"
+			]
 		},
 		"cui_input_mouse_move": {
 			"name": "cui_input_mouse_move",
@@ -7979,8 +7978,7 @@
 					"name": "mods",
 					"type": "int"
 				}
-			],
-			"comment": "CUI_API void cui_input_scroll(cui_ctx *ui, float dx, float dy); in lines; +dy scrolls up"
+			]
 		},
 		"cui_input_text": {
 			"name": "cui_input_text",
@@ -8145,8 +8143,7 @@
 					"name": "key",
 					"type": "cui_key"
 				}
-			],
-			"comment": "Queries, useful for app level shortcuts. CUI_API bool cui_key_pressed(cui_ctx *ui, cui_key key); pressed this frame (with repeat)"
+			]
 		},
 		"cui_shortcut": {
 			"name": "cui_shortcut",
@@ -8174,8 +8171,7 @@
 					"name": "ui",
 					"type": "cui_ctx *"
 				}
-			],
-			"comment": "CUI_API bool cui_shortcut(cui_ctx *ui, int mods, cui_key key); e.g. cui_shortcut(ui, CUI_MOD_PRIMARY, CUI_KEY_K)"
+			]
 		},
 		"cui_mouse_pos": {
 			"name": "cui_mouse_pos",
@@ -8359,8 +8355,7 @@
 					"name": "token",
 					"type": "cui_token"
 				}
-			],
-			"comment": "CUI_API const cui_strings *cui_get_strings(cui_ctx *ui); what was set, or NULL"
+			]
 		},
 		"cui_accent_name": {
 			"name": "cui_accent_name",
@@ -8603,8 +8598,7 @@
 					"name": "size",
 					"type": "float"
 				}
-			],
-			"comment": "CUI_API void cui_spacer(cui_ctx *ui); flexible space"
+			]
 		},
 		"cui_separator": {
 			"name": "cui_separator",
@@ -8614,8 +8608,7 @@
 					"name": "ui",
 					"type": "cui_ctx *"
 				}
-			],
-			"comment": "CUI_API void cui_gap(cui_ctx *ui, float size); fixed space"
+			]
 		},
 		"cui_card_begin": {
 			"name": "cui_card_begin",
@@ -8639,8 +8632,7 @@
 					"name": "ui",
 					"type": "cui_ctx *"
 				}
-			],
-			"comment": "CUI_API bool cui_card_begin(cui_ctx *ui, const cui_card_opts *opts); returns true when clicked (hoverable)"
+			]
 		},
 		"cui_scroll_begin": {
 			"name": "cui_scroll_begin",
@@ -8924,8 +8916,7 @@
 					"name": "text",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_heading(cui_ctx *ui, const char *text, int level); 1..4"
+			]
 		},
 		"cui_secondary": {
 			"name": "cui_secondary",
@@ -8939,8 +8930,7 @@
 					"name": "text",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_label(cui_ctx *ui, const char *text); medium weight"
+			]
 		},
 		"cui_muted": {
 			"name": "cui_muted",
@@ -8954,8 +8944,7 @@
 					"name": "text",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_secondary(cui_ctx *ui, const char *text); secondary color"
+			]
 		},
 		"cui_code": {
 			"name": "cui_code",
@@ -8969,8 +8958,7 @@
 					"name": "text",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_muted(cui_ctx *ui, const char *text); small, muted"
+			]
 		},
 		"cui_kbd": {
 			"name": "cui_kbd",
@@ -8984,8 +8972,7 @@
 					"name": "keys",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_code(cui_ctx *ui, const char *text); inline code"
+			]
 		},
 		"cui_link": {
 			"name": "cui_link",
@@ -8999,8 +8986,7 @@
 					"name": "text",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_kbd(cui_ctx *ui, const char *keys); keyboard keycap, e.g. \"Ctrl K\""
+			]
 		},
 		"cui_icon": {
 			"name": "cui_icon",
@@ -9436,8 +9422,7 @@
 		"cui_date_today": {
 			"name": "cui_date_today",
 			"ret": "cui_date",
-			"params": [],
-			"comment": "typedef struct cui_date { int year, month, day; } cui_date; month 1..12"
+			"params": []
 		},
 		"cui_calendar": {
 			"name": "cui_calendar",
@@ -9597,8 +9582,7 @@
 					"name": "page_count",
 					"type": "int"
 				}
-			],
-			"comment": "CUI_API int cui_breadcrumb(cui_ctx *ui, const char *const *items, int count); returns clicked index or -1"
+			]
 		},
 		"cui_stepper": {
 			"name": "cui_stepper",
@@ -9620,8 +9604,7 @@
 					"name": "current",
 					"type": "int"
 				}
-			],
-			"comment": "CUI_API bool cui_pagination(cui_ctx *ui, const char *id, int *page, int page_count); page is 0 based"
+			]
 		},
 		"cui_popover_begin": {
 			"name": "cui_popover_begin",
@@ -10598,8 +10581,7 @@
 					"name": "tex",
 					"type": "cui_texture"
 				}
-			],
-			"comment": "CUI_API cui_texture cui_image_load(cui_ctx *ui, const char *path, int *w, int *h); PNG/JPEG via stb_image"
+			]
 		},
 		"cui_image_ex": {
 			"name": "cui_image_ex",
@@ -11264,8 +11246,7 @@
 					"name": "ui",
 					"type": "cui_ctx *"
 				}
-			],
-			"comment": "CUI_API bool cui_data_grid_row(cui_ctx *ui, int row); true when the row was clicked"
+			]
 		},
 		"cui_data_grid_cell_text": {
 			"name": "cui_data_grid_cell_text",
@@ -11279,8 +11260,7 @@
 					"name": "text",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_data_grid_cell(cui_ctx *ui); next cell; put components inside"
+			]
 		},
 		"cui_data_grid_cell_edit": {
 			"name": "cui_data_grid_cell_edit",
@@ -11477,8 +11457,7 @@
 					"name": "ui",
 					"type": "cui_ctx *"
 				}
-			],
-			"comment": "CUI_API int cui_tree_table_depth(cui_ctx *ui); depth of the current row, 0 at the top"
+			]
 		},
 		"cui_tree_sort": {
 			"name": "cui_tree_sort",
@@ -11914,8 +11893,7 @@
 					"name": "stats",
 					"type": "cui_diff_stats *"
 				}
-			],
-			"comment": "enum { CUI_DIFF_IGNORE_EOL = 1 }; flags"
+			]
 		},
 		"cui_diff_words": {
 			"name": "cui_diff_words",
@@ -12003,8 +11981,7 @@
 					"name": "name",
 					"type": "const char *"
 				}
-			],
-			"comment": "CUI_API void cui_chat_divider(cui_ctx *ui, const char *label); \"Today\""
+			]
 		},
 		"cui_comment_ex": {
 			"name": "cui_comment_ex",
@@ -13296,8 +13273,7 @@
 					"name": "card_id",
 					"type": "int"
 				}
-			],
-			"comment": "CUI_API bool cui_kanban_column_begin_ex(cui_ctx *ui, const char *title, int card_count, const cui_kanban_column_opts *opts); true: \"+\" clicked"
+			]
 		},
 		"cui_kanban_card_end": {
 			"name": "cui_kanban_card_end",
@@ -13307,8 +13283,7 @@
 					"name": "ui",
 					"type": "cui_ctx *"
 				}
-			],
-			"comment": "CUI_API bool cui_kanban_card_begin(cui_ctx *ui, int card_id); true when clicked"
+			]
 		},
 		"cui_kanban_column_end": {
 			"name": "cui_kanban_column_end",
@@ -13727,8 +13702,7 @@
 					"name": "days",
 					"type": "int"
 				}
-			],
-			"comment": "CUI_API int cui_date_to_days(cui_date d); days since 1970-01-01"
+			]
 		},
 		"cui_time_picker_ex": {
 			"name": "cui_time_picker_ex",
@@ -14273,8 +14247,7 @@
 					"name": "opts",
 					"type": "const cui_node_opts *"
 				}
-			],
-			"comment": "A node at canvas position (*x, *y), updated while it is dragged. Returns true while the node is selected. typedef struct cui_node_opts { int _; float width; const char *icon; } cui_node_opts; width default 184"
+			]
 		},
 		"cui_node_end": {
 			"name": "cui_node_end",
@@ -15196,8 +15169,7 @@
 					"name": "...",
 					"type": "..."
 				}
-			],
-			"comment": "CUI_API void cui_terminal_write(cui_terminal_buffer *t, const char *data, int len); len -1: up to the terminator"
+			]
 		},
 		"cui_terminal_clear": {
 			"name": "cui_terminal_clear",
@@ -15316,8 +15288,7 @@
 					"name": "r",
 					"type": "cui_rect"
 				}
-			],
-			"comment": "CUI_API bool cui_emoji_supported(cui_ctx *ui, const char *utf8, int len); the font (or platform) can draw it"
+			]
 		},
 		"cui_emoji": {
 			"name": "cui_emoji",
@@ -15813,8 +15784,7 @@
 					"name": "color",
 					"type": "cui_color"
 				}
-			],
-			"comment": "CUI_API void cui_draw_polygon(cui_ctx *ui, const cui_vec2 *points, int count, cui_color color); convex"
+			]
 		},
 		"cui_draw_arc": {
 			"name": "cui_draw_arc",
@@ -16078,8 +16048,7 @@
 					"name": "bounce",
 					"type": "float"
 				}
-			],
-			"comment": "Animation helpers. Values move toward target with a spring and request frames while moving. Reduced motion makes them snap. CUI_API float cui_animate(cui_ctx *ui, cui_id id, float target); smooth, no overshoot"
+			]
 		},
 		"cui_get_draw_data": {
 			"name": "cui_get_draw_data",

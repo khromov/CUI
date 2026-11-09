@@ -21,7 +21,7 @@ static void cuisv_t_25110929(cui_ctx *ui, cuisv_scope *s) {
         bool p_open = cuisv_bool(s, 0);
         bool p_open_was = p_open;
         if (!cuisv_has(s, 1)) cuisv_set_str(s, 1, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", 30);
-        size_t cap_out; char *p_out = cuisv_buf(s, 1, 256, &cap_out);
+        size_t cap_out; char *p_out = cuisv_buf(s, 1, cuisv_edit_room(ui, 4096), &cap_out);
         cui_file_picker_opts o = {0};
         o.title = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         o.save = false;
@@ -81,7 +81,7 @@ static void cuisv_t_89eb9249(cui_ctx *ui, cuisv_scope *s) {
     { /* <FilePicker> k0 */
         bool p_open = cuisv_bool(s, 0);
         bool p_open_was = p_open;
-        size_t cap_out; char *p_out = cuisv_buf(s, 2, 256, &cap_out);
+        size_t cap_out; char *p_out = cuisv_buf(s, 2, cuisv_edit_room(ui, 4096), &cap_out);
         cui_file_picker_opts o = {0};
         bool r = cui_file_picker_ex(ui, "Bound##k0", &p_open, p_out, cap_out, &o);
         (void)r;
@@ -97,9 +97,9 @@ static void cuisv_t_88eb90b6(cui_ctx *ui, cuisv_scope *s) {
     { /* <FilePicker> k0 */
         bool p_open = cuisv_bool(s, 1);
         bool p_open_was = p_open;
-        size_t cap_out; char *p_out = cuisv_buf(s, 3, 256, &cap_out);
+        size_t cap_out; char *p_out = cuisv_buf(s, 3, cuisv_edit_room(ui, 4096), &cap_out);
         cui_file_picker_opts o = {0};
-        bool r = cui_file_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_open, p_out, cap_out, &o);
+        bool r = cui_file_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_open, p_out, cap_out, &o);
         (void)r;
         if (p_open != p_open_was) { cuisv_set_bool(s, 1, p_open); cuisv_emit_bool(s, 2, p_open); }
         if (r) { cuisv_buf_changed(s, 3, 4); }
@@ -159,7 +159,7 @@ static void cuisv_t_86aee5cb(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, cuisv_str(s, 0), cuisv_str(s, 0));
         bool p_open = cuisv_bool(s, 2);
         bool p_open_was = p_open;
-        size_t cap_out; char *p_out = cuisv_buf(s, 3, 256, &cap_out);
+        size_t cap_out; char *p_out = cuisv_buf(s, 3, cuisv_edit_room(ui, 4096), &cap_out);
         cui_file_picker_opts o = {0};
         o.title = cuisv_cstr(s, 4);
         o.save = cuisv_bool(s, 5);
@@ -183,9 +183,9 @@ static void cuisv_t_85aee438(cui_ctx *ui, cuisv_scope *s) {
     { /* <FilePicker> k0 */
         bool p_open = cuisv_bool(s, 1);
         bool p_open_was = p_open;
-        size_t cap_out; char *p_out = cuisv_buf(s, 2, 256, &cap_out);
+        size_t cap_out; char *p_out = cuisv_buf(s, 2, cuisv_edit_room(ui, 4096), &cap_out);
         cui_file_picker_opts o = {0};
-        bool r = cui_file_picker_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_open, p_out, cap_out, &o);
+        bool r = cui_file_picker_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_open, p_out, cap_out, &o);
         (void)r;
         if (p_open != p_open_was) { cuisv_set_bool(s, 1, p_open); }
         if (r) { cuisv_buf_changed(s, 2, -1); }
@@ -251,7 +251,7 @@ static void cuisv_t_5d648daa(cui_ctx *ui, cuisv_scope *s) {
         bool p_open = cuisv_bool(s, 0);
         bool p_open_was = p_open;
         if (!cuisv_has(s, 1)) cuisv_set_str(s, 1, "s_value", 7);
-        size_t cap_out; char *p_out = cuisv_buf(s, 1, 256, &cap_out);
+        size_t cap_out; char *p_out = cuisv_buf(s, 1, cuisv_edit_room(ui, 4096), &cap_out);
         cui_file_picker_opts o = {0};
         o.title = "s_title";
         o.save = true;
@@ -270,7 +270,7 @@ static void cuisv_t_5d648daa(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "fixed_id", "fixed_id");
         bool p_open = cuisv_bool(s, 2);
         bool p_open_was = p_open;
-        size_t cap_out; char *p_out = cuisv_buf(s, 3, 256, &cap_out);
+        size_t cap_out; char *p_out = cuisv_buf(s, 3, cuisv_edit_room(ui, 4096), &cap_out);
         cui_file_picker_opts o = {0};
         bool r = cui_file_picker_ex(ui, "fixed_id", &p_open, p_out, cap_out, &o);
         (void)r;

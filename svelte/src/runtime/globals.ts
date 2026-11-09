@@ -156,42 +156,131 @@ g.structuredClone ??= (v: unknown) => clone(v, new Map());
 if (!g.TextEncoder) {
 	g.TextEncoder = class TextEncoder {
 		readonly encoding = 'utf-8';
-		encode(s = ''): Uint8Array {
-			const out: number[] = [];
+		/** UTF-8, with U+FFFD for a lone surrogate (as browsers do). */
+		encode(input = ''): Uint8Array {
+			const s = String(input);
+			const out = new Uint8Array(s.length * 3);
+			let n = 0;
 			for (let i = 0; i < s.length; i++) {
 				let c = s.charCodeAt(i);
-				if (c >= 0xd800 && c < 0xdc00 && i + 1 < s.length) {
-					const d = s.charCodeAt(i + 1);
+				if (c >= 0xd800 && c < 0xe000) {
+					const d = c < 0xdc00 && i + 1 < s.length ? s.charCodeAt(i + 1) : 0;
 					if (d >= 0xdc00 && d < 0xe000) {
 						c = 0x10000 + ((c - 0xd800) << 10) + (d - 0xdc00);
 						i++;
-					}
+					} else c = 0xfffd;
 				}
-				if (c < 0x80) out.push(c);
-				else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
-				else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
-				else out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+				if (c < 0x80) out[n++] = c;
+				else if (c < 0x800) {
+					out[n++] = 0xc0 | (c >> 6);
+					out[n++] = 0x80 | (c & 63);
+				} else if (c < 0x10000) {
+					out[n++] = 0xe0 | (c >> 12);
+					out[n++] = 0x80 | ((c >> 6) & 63);
+					out[n++] = 0x80 | (c & 63);
+				} else {
+					out[n++] = 0xf0 | (c >> 18);
+					out[n++] = 0x80 | ((c >> 12) & 63);
+					out[n++] = 0x80 | ((c >> 6) & 63);
+					out[n++] = 0x80 | (c & 63);
+				}
 			}
-			return new Uint8Array(out);
+			return out.slice(0, n);
 		}
 	};
 }
 if (!g.TextDecoder) {
+	/**
+	 * UTF-8 as the WHATWG Encoding standard decodes it (and browsers do): each invalid or
+	 * truncated sequence becomes one U+FFFD (or a TypeError when `fatal`), a leading byte order
+	 * mark is dropped unless `ignoreBOM`, and `{ stream: true }` keeps a sequence split between
+	 * calls. Only UTF-8: other labels decode as UTF-8 too.
+	 */
 	g.TextDecoder = class TextDecoder {
 		readonly encoding = 'utf-8';
-		decode(input?: ArrayBuffer | ArrayBufferView): string {
-			if (!input) return '';
-			const b = input instanceof ArrayBuffer ? new Uint8Array(input) : new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+		readonly fatal: boolean;
+		readonly ignoreBOM: boolean;
+		#cp = 0;
+		#needed = 0;
+		#seen = 0;
+		#lower = 0x80;
+		#upper = 0xbf;
+		#bom_checked = false;
+		constructor(_label = 'utf-8', options: { fatal?: boolean; ignoreBOM?: boolean } = {}) {
+			this.fatal = !!options?.fatal;
+			this.ignoreBOM = !!options?.ignoreBOM;
+		}
+		decode(input?: ArrayBuffer | ArrayBufferView | null, options?: { stream?: boolean }): string {
+			const b = !input ? new Uint8Array(0) : ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : new Uint8Array(input);
 			let s = '';
-			for (let i = 0; i < b.length; ) {
-				const c = b[i++];
-				let cp = c;
-				if (c >= 0xf0) cp = ((c & 7) << 18) | ((b[i++] & 63) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63);
-				else if (c >= 0xe0) cp = ((c & 15) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63);
-				else if (c >= 0xc0) cp = ((c & 31) << 6) | (b[i++] & 63);
-				s += String.fromCodePoint(cp);
+			const units: number[] = [];
+			const emit = (cp: number) => {
+				if (!this.#bom_checked) {
+					this.#bom_checked = true;
+					if (cp === 0xfeff && !this.ignoreBOM) return;
+				}
+				if (cp > 0xffff) {
+					cp -= 0x10000;
+					units.push(0xd800 + (cp >> 10), 0xdc00 + (cp & 0x3ff));
+				} else units.push(cp);
+				if (units.length >= 8192) {
+					s += String.fromCharCode.apply(null, units);
+					units.length = 0;
+				}
+			};
+			const error = () => {
+				this.#reset();
+				if (this.fatal) {
+					this.#bom_checked = false;
+					throw new TypeError('The encoded data was not valid utf-8');
+				}
+				emit(0xfffd);
+			};
+			for (let i = 0; i < b.length; i++) {
+				const c = b[i];
+				if (this.#needed === 0) {
+					if (c < 0x80) emit(c);
+					else if (c >= 0xc2 && c <= 0xdf) {
+						this.#needed = 1;
+						this.#cp = c & 0x1f;
+					} else if (c >= 0xe0 && c <= 0xef) {
+						if (c === 0xe0) this.#lower = 0xa0;
+						if (c === 0xed) this.#upper = 0x9f;
+						this.#needed = 2;
+						this.#cp = c & 0xf;
+					} else if (c >= 0xf0 && c <= 0xf4) {
+						if (c === 0xf0) this.#lower = 0x90;
+						if (c === 0xf4) this.#upper = 0x8f;
+						this.#needed = 3;
+						this.#cp = c & 0x7;
+					} else error();
+					continue;
+				}
+				if (c < this.#lower || c > this.#upper) {
+					// the sequence ends here; the byte that ended it starts over
+					error();
+					i--;
+					continue;
+				}
+				this.#lower = 0x80;
+				this.#upper = 0xbf;
+				this.#cp = (this.#cp << 6) | (c & 0x3f);
+				if (++this.#seen === this.#needed) {
+					const cp = this.#cp;
+					this.#reset();
+					emit(cp);
+				}
 			}
-			return s;
+			if (!options?.stream) {
+				if (this.#needed) error();
+				this.#bom_checked = false;
+			}
+			return s + String.fromCharCode.apply(null, units);
+		}
+		#reset() {
+			this.#cp = this.#needed = this.#seen = 0;
+			this.#lower = 0x80;
+			this.#upper = 0xbf;
 		}
 	};
 }

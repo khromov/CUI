@@ -123,7 +123,7 @@ static void cuisv_t_c498e5ad(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_series = cuisv_records_get(s, 1, &cuisv_sd_cui_series);
         cui_chart_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        cui_bar_chart_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), (const cui_series *)rec_series->items, rec_series->count, &o);
+        cui_bar_chart_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), (const cui_series *)rec_series->items, rec_series->count, &o);
     }
 }
 

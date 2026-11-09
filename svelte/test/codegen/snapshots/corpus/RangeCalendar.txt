@@ -94,7 +94,7 @@ static void cuisv_t_3c928bdb(cui_ctx *ui, cuisv_scope *s) {
     { /* <RangeCalendar> k0 */
         cui_date_range p_range; cuisv_record_read(s, 1, &cuisv_sd_cui_date_range, &p_range);
         cui_date_range p_range_was = p_range;
-        bool r = cui_range_calendar(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_range, 2);
+        bool r = cui_range_calendar(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_range, 2);
         (void)r;
         if (memcmp(&p_range, &p_range_was, sizeof p_range) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_date_range, &p_range); }
     }
@@ -173,7 +173,7 @@ static void cuisv_t_eb82dd1b(cui_ctx *ui, cuisv_scope *s) {
     { /* <RangeCalendar> k0 */
         cui_date_range p_range; cuisv_record_read(s, 1, &cuisv_sd_cui_date_range, &p_range);
         cui_date_range p_range_was = p_range;
-        bool r = cui_range_calendar(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_range, 2);
+        bool r = cui_range_calendar(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_range, 2);
         (void)r;
         if (memcmp(&p_range, &p_range_was, sizeof p_range) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_date_range, &p_range); }
     }

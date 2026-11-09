@@ -29,7 +29,7 @@ static void cuisv_t_2b3ddba6(cui_ctx *ui, cuisv_scope *s) {
             if (p_value != p_value_was) { cuisv_set_bool(s, 1, p_value); cuisv_emit_bool(s, 2, p_value); }
         }
         { /* <InlineEdit> k2 */
-            size_t cap_buf; char *p_buf = cuisv_buf(s, 3, 256, &cap_buf);
+            size_t cap_buf; char *p_buf = cuisv_buf(s, 3, cuisv_edit_room(ui, 256), &cap_buf);
             cui_inline_edit_opts o = {0};
             o.width = CUI_GROW(1.0f);
             int r = cui_inline_edit_ex(ui, "##k2", p_buf, cap_buf, &o);

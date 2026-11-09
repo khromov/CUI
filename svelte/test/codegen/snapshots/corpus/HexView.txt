@@ -16,13 +16,14 @@ static const cuisv_struct_desc cuisv_sd_cui_hex_selection = { sizeof(cui_hex_sel
 
 static void cuisv_t_15c65c3b(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_15c65c3b = { 0x15c65c3bu, "HexView_alt.svelte#0", cuisv_t_15c65c3b, 1, 0 };
+const cuisv_template cuisv_tpl_15c65c3b = { 0x15c65c3bu, "HexView_alt.svelte#0", cuisv_t_15c65c3b, 2, 0 };
 
 static void cuisv_t_15c65c3b(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <HexView> k0 */
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
-        cui_hex_selection p_sel; cuisv_record_read(s, 0, &cuisv_sd_cui_hex_selection, &p_sel);
+        const cuisv_value *blob_data = cuisv_slot(s, 0); bool has_data = blob_data->kind == CUISV_BLOB;
+        cui_hex_selection p_sel; cuisv_record_read(s, 1, &cuisv_sd_cui_hex_selection, &p_sel);
         cui_hex_selection p_sel_was = p_sel;
         cui_hex_view_opts o = {0};
         o.width = CUI_PCT(50.0f);
@@ -32,10 +33,10 @@ static void cuisv_t_15c65c3b(cui_ctx *ui, cuisv_scope *s) {
         o.range_count = -2;
         o.no_ascii = false;
         o.no_header = false;
-        cui_hex_result r = cui_hex_view_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", NULL, &p_sel, &o);
+        cui_hex_result r = cui_hex_view_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
-        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
+        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
 }
 
@@ -50,18 +51,11 @@ static void cuisv_t_15c65c3b(cui_ctx *ui, cuisv_scope *s) {
    "id": 365321275,
    "symbol": "cuisv_tpl_15c65c3b",
    "name": "HexView_alt.svelte#0",
-   "slots": 1,
+   "slots": 2,
    "sites": 0
   }
  ],
- "warnings": [
-  {
-   "code": "unsupported_param",
-   "message": "HexView: data (const uint8_t *) is not supported yet",
-   "start": 71,
-   "end": 314
-  }
- ],
+ "warnings": [],
  "natives": null
 }
 ======== HexView_bind.svelte ========
@@ -86,18 +80,19 @@ static const cuisv_struct_desc cuisv_sd_cui_hex_selection = { sizeof(cui_hex_sel
 static void cuisv_t_a1abd8a7(cui_ctx *ui, cuisv_scope *s);
 static void cuisv_t_a0abd714(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_a1abd8a7 = { 0xa1abd8a7u, "HexView_bind.svelte#0", cuisv_t_a1abd8a7, 2, 1 };
-const cuisv_template cuisv_tpl_a0abd714 = { 0xa0abd714u, "HexView_bind.svelte#1", cuisv_t_a0abd714, 3, 0 };
+const cuisv_template cuisv_tpl_a1abd8a7 = { 0xa1abd8a7u, "HexView_bind.svelte#0", cuisv_t_a1abd8a7, 3, 1 };
+const cuisv_template cuisv_tpl_a0abd714 = { 0xa0abd714u, "HexView_bind.svelte#1", cuisv_t_a0abd714, 4, 0 };
 
 static void cuisv_t_a1abd8a7(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <HexView> k0 */
-        cui_hex_selection p_sel; cuisv_record_read(s, 0, &cuisv_sd_cui_hex_selection, &p_sel);
+        const cuisv_value *blob_data = cuisv_slot(s, 0); bool has_data = blob_data->kind == CUISV_BLOB;
+        cui_hex_selection p_sel; cuisv_record_read(s, 1, &cuisv_sd_cui_hex_selection, &p_sel);
         cui_hex_selection p_sel_was = p_sel;
         cui_hex_view_opts o = {0};
-        cui_hex_result r = cui_hex_view_ex(ui, "Bound##k0", NULL, &p_sel, &o);
+        cui_hex_result r = cui_hex_view_ex(ui, "Bound##k0", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
-        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 0, 1, &cuisv_sd_cui_hex_selection, &p_sel); }
+        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
     cuisv_render_site(ui, s, 0);
 }
@@ -105,12 +100,13 @@ static void cuisv_t_a1abd8a7(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_a0abd714(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <HexView> k0 */
-        cui_hex_selection p_sel; cuisv_record_read(s, 1, &cuisv_sd_cui_hex_selection, &p_sel);
+        const cuisv_value *blob_data = cuisv_slot(s, 1); bool has_data = blob_data->kind == CUISV_BLOB;
+        cui_hex_selection p_sel; cuisv_record_read(s, 2, &cuisv_sd_cui_hex_selection, &p_sel);
         cui_hex_selection p_sel_was = p_sel;
         cui_hex_view_opts o = {0};
-        cui_hex_result r = cui_hex_view_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, &p_sel, &o);
+        cui_hex_result r = cui_hex_view_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
-        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_hex_selection, &p_sel); }
+        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 2, 3, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
 }
 
@@ -118,7 +114,7 @@ static void cuisv_t_a0abd714(cui_ctx *ui, cuisv_scope *s) {
 <script>import * as __cuisv_h from 'cui-svelte/helpers';import { HexView, Text, GridCell } from 'cui-svelte';
 	let v = $state({});
 	const log = (...a) => console.log(...a);</script>
-<t2712393895 o0={__cuisv_h.pack(__cuisv_h.to_record("cui_hex_selection", v.selection), [])} g1v0={(b) => ((__cuisv_v) => { v.selection = __cuisv_v; })(__cuisv_h.record_value(b, [], "cui_hex_selection"))}><s0>{#each [1, 2] as k (k)}<t2695616276 s0={__cuisv_h.t(k)} o1={__cuisv_h.pack(__cuisv_h.to_record("cui_hex_selection", (() => v.selection)()), [])} g2v1={(b) => ((x) => (v.selection = x))(__cuisv_h.record_value(b, [], "cui_hex_selection"))}></t2695616276>{/each}</s0></t2712393895>
+<t2712393895 o1={__cuisv_h.pack(__cuisv_h.to_record("cui_hex_selection", v.selection), [])} g2v1={(b) => ((__cuisv_v) => { v.selection = __cuisv_v; })(__cuisv_h.record_value(b, [], "cui_hex_selection"))}><s0>{#each [1, 2] as k (k)}<t2695616276 s0={__cuisv_h.t(k)} o2={__cuisv_h.pack(__cuisv_h.to_record("cui_hex_selection", (() => v.selection)()), [])} g3v2={(b) => ((x) => (v.selection = x))(__cuisv_h.record_value(b, [], "cui_hex_selection"))}></t2695616276>{/each}</s0></t2712393895>
 
 ---- metadata ----
 {
@@ -127,31 +123,18 @@ static void cuisv_t_a0abd714(cui_ctx *ui, cuisv_scope *s) {
    "id": 2712393895,
    "symbol": "cuisv_tpl_a1abd8a7",
    "name": "HexView_bind.svelte#0",
-   "slots": 2,
+   "slots": 3,
    "sites": 1
   },
   {
    "id": 2695616276,
    "symbol": "cuisv_tpl_a0abd714",
    "name": "HexView_bind.svelte#1",
-   "slots": 3,
+   "slots": 4,
    "sites": 0
   }
  ],
- "warnings": [
-  {
-   "code": "unsupported_param",
-   "message": "HexView: data (const uint8_t *) is not supported yet",
-   "start": 134,
-   "end": 188
-  },
-  {
-   "code": "unsupported_param",
-   "message": "HexView: data (const uint8_t *) is not supported yet",
-   "start": 212,
-   "end": 295
-  }
- ],
+ "warnings": [],
  "natives": null
 }
 ======== HexView_dynamic.svelte ========
@@ -176,27 +159,28 @@ static const cuisv_struct_desc cuisv_sd_cui_hex_selection = { sizeof(cui_hex_sel
 static void cuisv_t_42d3c71d(cui_ctx *ui, cuisv_scope *s);
 static void cuisv_t_41d3c58a(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_42d3c71d = { 0x42d3c71du, "HexView_dynamic.svelte#0", cuisv_t_42d3c71d, 11, 1 };
-const cuisv_template cuisv_tpl_41d3c58a = { 0x41d3c58au, "HexView_dynamic.svelte#1", cuisv_t_41d3c58a, 3, 0 };
+const cuisv_template cuisv_tpl_42d3c71d = { 0x42d3c71du, "HexView_dynamic.svelte#0", cuisv_t_42d3c71d, 12, 1 };
+const cuisv_template cuisv_tpl_41d3c58a = { 0x41d3c58au, "HexView_dynamic.svelte#1", cuisv_t_41d3c58a, 4, 0 };
 
 static void cuisv_t_42d3c71d(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <HexView> k0 */
         cuisv_name(ui, cuisv_str(s, 0), cuisv_str(s, 0));
-        cui_hex_selection p_sel; cuisv_record_read(s, 2, &cuisv_sd_cui_hex_selection, &p_sel);
+        const cuisv_value *blob_data = cuisv_slot(s, 2); bool has_data = blob_data->kind == CUISV_BLOB;
+        cui_hex_selection p_sel; cuisv_record_read(s, 3, &cuisv_sd_cui_hex_selection, &p_sel);
         cui_hex_selection p_sel_was = p_sel;
         cui_hex_view_opts o = {0};
-        o.width = cuisv_size(s, 3, CUI_FIT);
-        o.height = cuisv_float(s, 4);
-        o.base = cuisv_int(s, 5);
-        o.bytes_per_row = cuisv_int(s, 6);
-        o.range_count = cuisv_int(s, 7);
-        o.no_ascii = cuisv_bool(s, 8);
-        o.no_header = cuisv_bool(s, 9);
-        cui_hex_result r = cui_hex_view_ex(ui, cuisv_str(s, 1), NULL, &p_sel, &o);
+        o.width = cuisv_size(s, 4, CUI_FIT);
+        o.height = cuisv_float(s, 5);
+        o.base = cuisv_int(s, 6);
+        o.bytes_per_row = cuisv_int(s, 7);
+        o.range_count = cuisv_int(s, 8);
+        o.no_ascii = cuisv_bool(s, 9);
+        o.no_header = cuisv_bool(s, 10);
+        cui_hex_result r = cui_hex_view_ex(ui, cuisv_str(s, 1), has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
-        cui_tooltip(ui, cuisv_str(s, 10));
-        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 2, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
+        cui_tooltip(ui, cuisv_str(s, 11));
+        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 3, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
     cuisv_render_site(ui, s, 0);
 }
@@ -204,13 +188,14 @@ static void cuisv_t_42d3c71d(cui_ctx *ui, cuisv_scope *s) {
 static void cuisv_t_41d3c58a(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <HexView> k0 */
-        cui_hex_selection p_sel; cuisv_record_read(s, 1, &cuisv_sd_cui_hex_selection, &p_sel);
+        const cuisv_value *blob_data = cuisv_slot(s, 1); bool has_data = blob_data->kind == CUISV_BLOB;
+        cui_hex_selection p_sel; cuisv_record_read(s, 2, &cuisv_sd_cui_hex_selection, &p_sel);
         cui_hex_selection p_sel_was = p_sel;
         cui_hex_view_opts o = {0};
-        o.width = cuisv_size(s, 2, CUI_FIT);
-        cui_hex_result r = cui_hex_view_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), NULL, &p_sel, &o);
+        o.width = cuisv_size(s, 3, CUI_FIT);
+        cui_hex_result r = cui_hex_view_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
-        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
+        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 2, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
 }
 
@@ -218,7 +203,7 @@ static void cuisv_t_41d3c58a(cui_ctx *ui, cuisv_scope *s) {
 <script>import * as __cuisv_h from 'cui-svelte/helpers';import { HexView, Text, GridCell } from 'cui-svelte';
 	let d = $state({});
 	const log = (...a) => console.log(...a);</script>
-<t1121175325 s0={d.id} s1={d.id} o2={__cuisv_h.pack(__cuisv_h.to_record("cui_hex_selection", d.selection), [])} n3={__cuisv_h.size(d.width)} n4={d.height} n5={d.base} n6={d.bytes_per_row} n7={d.range_count} b8={d.no_ascii} b9={d.no_header} s10={d.tooltip}><s0>{#if d.flag}<t1104397706 s0={__cuisv_h.t(d.only)} n2={__cuisv_h.size(d.w)}></t1104397706>{/if}</s0></t1121175325>
+<t1121175325 s0={d.id} s1={d.id} o2={__cuisv_h.bytes(d.data)} o3={__cuisv_h.pack(__cuisv_h.to_record("cui_hex_selection", d.selection), [])} n4={__cuisv_h.size(d.width)} n5={d.height} n6={d.base} n7={d.bytes_per_row} n8={d.range_count} b9={d.no_ascii} b10={d.no_header} s11={d.tooltip}><s0>{#if d.flag}<t1104397706 s0={__cuisv_h.t(d.only)} n3={__cuisv_h.size(d.w)}></t1104397706>{/if}</s0></t1121175325>
 
 ---- metadata ----
 {
@@ -227,14 +212,14 @@ static void cuisv_t_41d3c58a(cui_ctx *ui, cuisv_scope *s) {
    "id": 1121175325,
    "symbol": "cuisv_tpl_42d3c71d",
    "name": "HexView_dynamic.svelte#0",
-   "slots": 11,
+   "slots": 12,
    "sites": 1
   },
   {
    "id": 1104397706,
    "symbol": "cuisv_tpl_41d3c58a",
    "name": "HexView_dynamic.svelte#1",
-   "slots": 3,
+   "slots": 4,
    "sites": 0
   }
  ],
@@ -244,18 +229,6 @@ static void cuisv_t_41d3c58a(cui_ctx *ui, cuisv_scope *s) {
    "message": "style={…} computed as a whole string is not supported; use style:prop={…} or style=\"prop: {…}\"",
    "start": 134,
    "end": 446
-  },
-  {
-   "code": "unsupported_param",
-   "message": "HexView: data (const uint8_t *) is not supported yet",
-   "start": 134,
-   "end": 446
-  },
-  {
-   "code": "unsupported_param",
-   "message": "HexView: data (const uint8_t *) is not supported yet",
-   "start": 459,
-   "end": 536
   }
  ],
  "natives": null
@@ -280,13 +253,14 @@ static const cuisv_struct_desc cuisv_sd_cui_hex_selection = { sizeof(cui_hex_sel
 
 static void cuisv_t_7a8cfee8(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_7a8cfee8 = { 0x7a8cfee8u, "HexView_static.svelte#0", cuisv_t_7a8cfee8, 2, 0 };
+const cuisv_template cuisv_tpl_7a8cfee8 = { 0x7a8cfee8u, "HexView_static.svelte#0", cuisv_t_7a8cfee8, 4, 0 };
 
 static void cuisv_t_7a8cfee8(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
     { /* <HexView> k0 */
         cuisv_name(ui, "s_id", "s_id");
-        cui_hex_selection p_sel; cuisv_record_read(s, 0, &cuisv_sd_cui_hex_selection, &p_sel);
+        const cuisv_value *blob_data = cuisv_slot(s, 0); bool has_data = blob_data->kind == CUISV_BLOB;
+        cui_hex_selection p_sel; cuisv_record_read(s, 1, &cuisv_sd_cui_hex_selection, &p_sel);
         cui_hex_selection p_sel_was = p_sel;
         cui_hex_view_opts o = {0};
         o.width = CUI_PX(120.0f);
@@ -296,19 +270,20 @@ static void cuisv_t_7a8cfee8(cui_ctx *ui, cuisv_scope *s) {
         o.range_count = 3;
         o.no_ascii = true;
         o.no_header = true;
-        cui_hex_result r = cui_hex_view_ex(ui, "s_id", NULL, &p_sel, &o);
+        cui_hex_result r = cui_hex_view_ex(ui, "s_id", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
         cui_tooltip(ui, "s_tooltip");
-        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
+        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
     { /* <HexView> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
-        cui_hex_selection p_sel; cuisv_record_read(s, 1, &cuisv_sd_cui_hex_selection, &p_sel);
+        const cuisv_value *blob_data = cuisv_slot(s, 2); bool has_data = blob_data->kind == CUISV_BLOB;
+        cui_hex_selection p_sel; cuisv_record_read(s, 3, &cuisv_sd_cui_hex_selection, &p_sel);
         cui_hex_selection p_sel_was = p_sel;
         cui_hex_view_opts o = {0};
-        cui_hex_result r = cui_hex_view_ex(ui, "fixed_id", NULL, &p_sel, &o);
+        cui_hex_result r = cui_hex_view_ex(ui, "fixed_id", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
-        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
+        if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 3, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
 }
 
@@ -323,26 +298,14 @@ static void cuisv_t_7a8cfee8(cui_ctx *ui, cuisv_scope *s) {
    "id": 2056060648,
    "symbol": "cuisv_tpl_7a8cfee8",
    "name": "HexView_static.svelte#0",
-   "slots": 2,
+   "slots": 4,
    "sites": 0
   }
  ],
  "warnings": [
   {
-   "code": "unsupported_param",
-   "message": "HexView: data (const uint8_t *) is not supported yet",
-   "start": 71,
-   "end": 286
-  },
-  {
    "code": "label_children",
    "message": "<HexView> takes text only; markup inside it is left out",
-   "start": 287,
-   "end": 336
-  },
-  {
-   "code": "unsupported_param",
-   "message": "HexView: data (const uint8_t *) is not supported yet",
    "start": 287,
    "end": 336
   }

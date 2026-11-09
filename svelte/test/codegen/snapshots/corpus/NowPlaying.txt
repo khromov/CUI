@@ -109,7 +109,7 @@ static void cuisv_t_ad2749fc(cui_ctx *ui, cuisv_scope *s) {
         cui_now_playing p_np; cuisv_record_read(s, 1, &cuisv_sd_cui_now_playing, &p_np);
         cui_now_playing p_np_was = p_np;
         cui_now_playing_opts o = {0};
-        int r = cui_now_playing_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_np, &o);
+        int r = cui_now_playing_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_np, &o);
         (void)r;
         if (memcmp(&p_np, &p_np_was, sizeof p_np) != 0) { cuisv_record_write(s, 1, 2, &cuisv_sd_cui_now_playing, &p_np); }
     }
@@ -198,7 +198,7 @@ static void cuisv_t_cf0eca02(cui_ctx *ui, cuisv_scope *s) {
         cui_now_playing p_np_was = p_np;
         cui_now_playing_opts o = {0};
         o.width = cuisv_size(s, 2, CUI_FIT);
-        int r = cui_now_playing_ex(ui, cuisv_fmt("%s##%s", cuisv_str(s, 0), "k0"), &p_np, &o);
+        int r = cui_now_playing_ex(ui, cuisv_label(cuisv_str(s, 0), "k0"), &p_np, &o);
         (void)r;
         if (memcmp(&p_np, &p_np_was, sizeof p_np) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_now_playing, &p_np); }
     }
