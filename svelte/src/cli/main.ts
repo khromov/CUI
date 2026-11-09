@@ -3,6 +3,9 @@
  *
  *   cui-svelte build <entry.ts> [--debug] [--out <file>]   native binary with the bundle inside
  *   cui-svelte build <entry.ts> --web [--out <dir>]        the browser build: index.html, app.js, app.wasm
+ *   cui-svelte build <entry.ts> --app [--out <dir>]        a macOS application, Name.app, in dist/
+ *        [--name Name] [--id com.example.app] [--app-version 1.0.0] [--icon icon.png] [--sign identity]
+ *        [--notarize <notarytool keychain profile>]
  *   cui-svelte dev   <entry.ts> --web [--port 5174]        serve the browser build, reloading on save
  *   cui-svelte run   <entry.ts> [--release]                build, then start it
  *   cui-svelte dev   <entry.ts>                            run, and reload on save: script edits
@@ -18,6 +21,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { bundle, reset_globals, type ComponentOutput } from './bundle.ts';
 import { app_name, cmake_build, write_sources } from './native.ts';
 import { build_wasm, write_page } from './web.ts';
+import { developer_id, make_app_bundle, notarize, run_options } from './macos.ts';
 import { compile } from '../compiler/index.ts';
 import { create } from './create.ts';
 
@@ -26,6 +30,13 @@ interface Args {
 	entry: string;
 	release: boolean;
 	web: boolean;
+	app: boolean;
+	name?: string;
+	id?: string;
+	app_version?: string;
+	icon?: string;
+	sign?: string;
+	notarize?: string;
 	port: number;
 	out?: string;
 	root?: string;
@@ -34,7 +45,7 @@ interface Args {
 }
 
 function parse_args(argv: string[]): Args {
-	const a: Args = { cmd: argv[0] ?? 'help', entry: '', release: false, web: false, port: 5174, verbose: false, rest: [] };
+	const a: Args = { cmd: argv[0] ?? 'help', entry: '', release: false, web: false, app: false, port: 5174, verbose: false, rest: [] };
 	for (let i = 1; i < argv.length; i++) {
 		const x = argv[i];
 		if (x === '--release') a.release = true;
@@ -43,6 +54,13 @@ function parse_args(argv: string[]): Args {
 		else if (x === '--out' || x === '-o') a.out = argv[++i];
 		else if (x === '--root') a.root = argv[++i];
 		else if (x === '--web') a.web = true;
+		else if (x === '--app') a.app = true;
+		else if (x === '--name') a.name = argv[++i];
+		else if (x === '--id') a.id = argv[++i];
+		else if (x === '--app-version') a.app_version = argv[++i];
+		else if (x === '--icon') a.icon = argv[++i];
+		else if (x === '--sign') a.sign = argv[++i];
+		else if (x === '--notarize') a.notarize = argv[++i];
 		else if (x === '--port') a.port = Number(argv[++i]);
 		else if (x === '--') {
 			a.rest = argv.slice(i + 1);
@@ -198,10 +216,47 @@ async function cmd_build(a: Args) {
 	}
 	const r = await build_once(a, a.release ? 'release' : 'debug');
 	if (!r.ok) process.exit(1);
+	if (a.app) return build_app(a, r.binary);
 	const out = a.out ? resolve(a.out) : join(dirname(resolve(a.entry)), 'dist', app_name(resolve(a.entry)) + (process.platform === 'win32' ? '.exe' : ''));
 	mkdirSync(dirname(out), { recursive: true });
 	copyFileSync(r.binary, out);
 	console.error(`built ${relative(process.cwd(), out)}`);
+}
+
+/**
+ * Name.app around the binary. Name and identifier come from the flags, else from the title
+ * and app_id given to run() in the entry, else from the entry's folder; the version from the
+ * flag, else the project's package.json; the icon from --icon, else an icon.png by the entry.
+ */
+function build_app(a: Args, binary: string) {
+	const entry = resolve(a.entry);
+	const root = project_root(entry, a.root);
+	const given = run_options(entry);
+	const folder = app_name(entry);
+	const name = a.name ?? given.title ?? folder.charAt(0).toUpperCase() + folder.slice(1);
+	const slug = (given.app_id ?? name).toLowerCase().replace(/[^a-z0-9.-]+/g, '-').replace(/^-+|-+$/g, '') || 'app';
+	const id = a.id ?? (slug.includes('.') ? slug : `local.${slug}`);
+	let version = a.app_version;
+	const pkg = join(root, 'package.json');
+	if (!version && existsSync(pkg)) {
+		const p = JSON.parse(readFileSync(pkg, 'utf8')) as { name?: string; version?: string };
+		if (p.name !== 'cui-svelte') version = p.version;
+	}
+	const icon = a.icon ? resolve(a.icon) : existsSync(join(dirname(entry), 'icon.png')) ? join(dirname(entry), 'icon.png') : undefined;
+	try {
+		// notarizing needs a Developer ID signature: the keychain's own when --sign leaves it open
+		const sign = a.sign ?? (a.notarize ? developer_id() : undefined);
+		const app = make_app_bundle({ binary, out_dir: a.out ? resolve(a.out) : join(dirname(entry), 'dist'), name, id, version: version ?? '1.0.0', icon, sign });
+		console.error(`built ${relative(process.cwd(), app)} (${id}${icon ? '' : ', no icon: add icon.png by the entry or pass --icon'}), signed ${sign ? `by ${sign}` : 'ad hoc'}`);
+		if (a.notarize) {
+			if (!sign || sign === '-') throw new Error('--notarize needs a Developer ID signature, not ad hoc');
+			notarize(app, a.notarize, (s) => console.error(s));
+			console.error(`notarized and stapled ${relative(process.cwd(), app)}: it opens on any Mac`);
+		}
+	} catch (e) {
+		console.error(red('error ') + (e as Error).message);
+		process.exit(1);
+	}
 }
 
 function launch(binary: string, env: Record<string, string>, rest: string[]): ChildProcess {

@@ -42,6 +42,7 @@ fine for anything but the window itself.
 | `cui-svelte run main.ts [--release]` | Build and start once |
 | `cui-svelte build main.ts [--out file]` | A release binary in `dist/` with everything inside |
 | `cui-svelte build main.ts --web` | `dist-web/`: the browser build ([Web](web.md)) |
+| `cui-svelte build main.ts --app` | `dist/Name.app`: a macOS application (below) |
 | `cui-svelte dev main.ts --web [--port n]` | Serve the browser build, reloading the page on save |
 | `cui-svelte test file.test.ts` | Headless tests ([Testing](testing.md)) |
 | `cui-svelte compile App.svelte` | Print one component's C, skeleton and JS |
@@ -61,6 +62,33 @@ The first build of any app compiles CUI and QuickJS (10 to 20 seconds). That hap
 per machine: native builds share one CMake tree in your cache folder (`~/Library/Caches/cui-svelte`,
 `~/.cache/cui-svelte` or `%LOCALAPPDATA%\cui-svelte`; `CUISV_CACHE` moves it). A project's own
 `.cui-svelte/` holds only its generated sources.
+
+### A macOS application
+
+`cui-svelte build main.ts --app` puts the release binary in an application bundle,
+`dist/Name.app`, that you can open from Finder, keep in the Dock or put in `/Applications`.
+
+| | Where it comes from |
+|---|---|
+| Name (menu bar, Dock, Finder) | `--name`, else the `title` given to `run()`, else the folder |
+| Identifier | `--id com.example.app`, else `local.` and `run()`'s `app_id` |
+| Version | `--app-version`, else your `package.json` |
+| Icon | `--icon file.png`, else an `icon.png` next to the entry: square, 1024 px |
+
+Native builds run on macOS 11 and later. A `MACOSX_DEPLOYMENT_TARGET` environment variable
+overrides that. The bundle is signed ad hoc, so it opens on the Mac that built it.
+
+To give it to others, have Apple notarize it.
+
+1. Save your notary credentials once, under a profile name of your choice:
+   `xcrun notarytool store-credentials notary`. It asks for your Apple ID, team ID and an
+   app-specific password, or takes an App Store Connect API key.
+2. Run `cui-svelte build main.ts --app --notarize notary`.
+
+The build signs the app with the Developer ID Application identity in your keychain (or
+`--sign "Developer ID Application: …"`), with the hardened runtime and a secure timestamp. It
+then sends the app to Apple, waits a few minutes, and staples the ticket to it. If Apple
+rejects it, the error shows Apple's log.
 
 ## Components
 

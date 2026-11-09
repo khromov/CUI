@@ -110,6 +110,14 @@ test('scroll_to scrolls scroll areas and leaves other elements alone', async () 
 	}
 });
 
+test('each mount_test gets the size it asks for', () => {
+	const size = () => (globalThis as unknown as { __cuisv: { viewport(): number[] } }).__cuisv.viewport();
+	mount_test(Features, { width: 700, height: 900 });
+	expect(size()).toEqual([700, 900]);
+	mount_test(Features, { width: 420, height: 300 });
+	expect(size()).toEqual([420, 300]);
+});
+
 test('test_frame refuses to run inside a frame', () => {
 	const app = mount_test(Features, { width: 700, height: 900 });
 	let error = '';

@@ -53,11 +53,20 @@
 	];
 	const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 	const columns = [{ title: 'Name' }, { title: 'Email', width: 220 }, { title: 'Score', width: 80, align: 'right', sortable: true }];
-	const board = [
-		{ title: 'To do', cards: ['Write docs', 'Fix bug'] },
-		{ title: 'Doing', cards: ['Svelte renderer'] },
-		{ title: 'Done', cards: ['QuickJS host'] }
-	];
+	let board = $state([
+		{ title: 'To do', cards: [{ id: 1, title: 'Write docs' }, { id: 2, title: 'Fix bug' }] },
+		{ title: 'Doing', cards: [{ id: 3, title: 'Svelte renderer' }] },
+		{ title: 'Done', cards: [{ id: 4, title: 'QuickJS host' }] }
+	]);
+	// a dropped card leaves its column and goes in at to_index (counted without it)
+	function move(m: { card: number; from_column: number; to_column: number; to_index: number }) {
+		const from = board[m.from_column]?.cards, to = board[m.to_column]?.cards;
+		const at = from?.findIndex((c) => c.id === m.card) ?? -1;
+		if (!from || !to || at < 0) return;
+		const [card] = from.splice(at, 1);
+		to.splice(Math.max(0, Math.min(m.to_index, to.length)), 0, card);
+		moves++;
+	}
 	const heat = Array.from({ length: 7 * 12 }, (_, i) => (i * 7) % 10);
 </script>
 
@@ -117,7 +126,7 @@
 		<Card width={300}><BarList items={[{ label: 'Inbox', value: 120 }, { label: 'Sent', value: 80 }, { label: 'Spam', value: 12 }]} /></Card>
 		<Card width={300}><Funnel stages={[{ label: 'Visit', value: 1000 }, { label: 'Signup', value: 400 }, { label: 'Paid', value: 90 }]} height={160} /></Card>
 		<Card width={300}><Heatmap values={heat} rows={7} cols={12} /></Card>
-		<Card width={200}><Waffle items={[{ label: 'Yes', value: 62 }, { label: 'No', value: 38 }]} /></Card>
+		<Card><Waffle items={[{ label: 'Yes', value: 62 }, { label: 'No', value: 38 }]} /></Card>
 		<Gauge label="CPU" value={0.62} />
 		<ProgressRing label="Disk" value={0.7} />
 		<Sparkline values={[1, 4, 2, 6, 3, 8, 5]} width={140} height={40} />
@@ -160,15 +169,16 @@
 			<Text>Virtual row {i}</Text>
 		{/snippet}
 	</VirtualList>
-	<Kanban onmove={() => moves++}>
+	<Kanban onmove={move}>
 		{#each board as col (col.title)}
 			<KanbanColumn title={col.title} count={col.cards.length}>
-				{#each col.cards as card, i (card)}
-					<KanbanCard id={i}><Text>{card}</Text></KanbanCard>
+				{#each col.cards as card (card.id)}
+					<KanbanCard id={card.id}><Text>{card.title}</Text></KanbanCard>
 				{/each}
 			</KanbanColumn>
 		{/each}
 	</Kanban>
+	<Muted>Drag cards between columns. Cards moved: {moves}</Muted>
 	<Gantt tasks={tasks} origin="2026-11-01" days={21} />
 	<Row gap={8}>
 		<Button onclick={() => (pop = !pop)}>Popover</Button>
@@ -193,12 +203,11 @@
 	<ToolCall name="search" />
 	<AgentPlan steps={[{ title: 'Read', status: 'done' }, { title: 'Write', status: 'running' }, { title: 'Test', status: 'pending' }]} />
 	<EmptyState icon="inbox" description="Nothing here yet" action="Create">Empty</EmptyState>
-	<Box height={260} border={1} radius={12}>
-		<NodeEditor bind:view>
+	<Box height={260} border={1} radius={12} clip>
+		<NodeEditor bind:view height="fill">
 			<Node id={1} title="Source" bind:x={nx} bind:y={ny}><NodeOutput pin={11}>out</NodeOutput></Node>
 			<Node id={2} title="Sink" bind:x={mx} bind:y={my}><NodeInput pin={21}>in</NodeInput></Node>
 			<NodeLink id={1} from={11} to={21} />
 		</NodeEditor>
 	</Box>
-	<Muted>moves={moves}</Muted>
 </Scroll>

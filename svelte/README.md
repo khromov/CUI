@@ -40,6 +40,7 @@ run(App, { title: 'Hello', width: 420, height: 300 });
 npx cui-svelte dev main.ts          # a native window; saving reloads it
 npx cui-svelte build main.ts        # dist/<app>: one binary
 npx cui-svelte build main.ts --web  # dist-web/: index.html, app.js, app.wasm
+npx cui-svelte build main.ts --app  # dist/Name.app: a macOS application
 npx cui-svelte test app.test.ts     # headless tests
 ```
 

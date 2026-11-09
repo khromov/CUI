@@ -51,6 +51,11 @@ FN(app) {
         cui_set_platform(ui, &(cui_platform_iface){ .set_clipboard = clip_set, .get_clipboard = clip_get });
         cui_set_reduced_motion(ui, true);   /* deterministic: animations snap */
         cuisv_apply_startup(ui, &w);
+    } else if (w.width > 0 || w.height > 0) {
+        /* a later mount_test in the same file: the context stays, its size follows the options */
+        if (w.width > 0) view_w = w.width;
+        if (w.height > 0) view_h = w.height;
+        cui_set_viewport(ui, (float)view_w, (float)view_h, 1);
     }
     cuisv_window_opts_free(&w);
     return JS_TRUE;
