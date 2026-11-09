@@ -201,6 +201,19 @@ const ALIGN: Record<string, string> = {
 };
 const TEXT_ALIGN: Record<string, string> = { left: 'left', right: 'right', center: 'center', start: 'start', end: 'end', justify: 'start' };
 
+/** Properties that take a plain length or a color, and the facet each sets. */
+const LENGTH_FACET: Record<string, string> = { gap: 'gap', 'border-width': 'border', 'font-size': 'text_size' };
+const COLOR_FACET: Record<string, string> = { 'background-color': 'bg', 'border-color': 'border_color', color: 'text_color' };
+
+/** Accepted and ignored: nothing to draw differently. */
+const IGNORED = new Set([
+	'flex-shrink', 'justify-items', 'box-sizing', 'outline', 'outline-offset', 'user-select', '-webkit-user-select', 'pointer-events',
+	'font-style', 'letter-spacing', 'text-decoration', 'text-decoration-line', 'list-style', 'list-style-type', 'appearance',
+	'-webkit-appearance', 'transition', 'transition-property', 'transition-duration', 'transition-timing-function', 'will-change',
+	'content', 'resize', 'vertical-align', 'word-break', 'overflow-wrap', 'word-wrap', 'hyphens', 'scrollbar-width',
+	'scroll-behavior', 'font-smoothing', '-webkit-font-smoothing', '-moz-osx-font-smoothing', 'text-rendering', 'font-feature-settings'
+]);
+
 /** Elevation for a box-shadow, by how far it floats. */
 function elevation_of(v: string): string {
 	if (v === 'none') return 'none';
@@ -243,15 +256,17 @@ export function facets(property: string, value: string, problems: CssProblem[]):
 			}
 			break;
 		}
-		case 'gap': {
+		case 'gap':
+		case 'border-width':
+		case 'font-size': {
 			const n = length_or(property, v, problems);
-			if (n !== null) add('gap', num(n));
+			if (n !== null) add(LENGTH_FACET[property], num(n));
 			break;
 		}
 		case 'width':
 		case 'height':
 		case 'flex-basis': {
-			const z = parse_size(v === '100%' ? '100%' : v);
+			const z = parse_size(v);
 			if (!z) problems.push({ property, message: `${property}: ${raw} is not a size CUI can use` });
 			else add(property === 'flex-basis' ? 'basis' : property === 'width' ? 'size_w' : 'size_h', { kind: 'size', size: z });
 			break;
@@ -270,42 +285,32 @@ export function facets(property: string, value: string, problems: CssProblem[]):
 			if (Number.isFinite(n)) add('grow', num(n));
 			break;
 		}
-		case 'flex-shrink':
-			break;
-		case 'background-color': {
-			if (/gradient|url\(/.test(v)) {
+		case 'background-color':
+		case 'border-color':
+		case 'color': {
+			if (property === 'background-color' && /gradient|url\(/.test(v)) {
 				problems.push({ property: 'background', message: 'background: gradients and images are not supported; use a color' });
 				break;
 			}
 			const c = parse_color(raw);
 			if (!c) problems.push({ property, message: `${property}: ${raw} is not a color` });
-			else add('bg', { kind: 'color', color: c });
-			break;
-		}
-		case 'border-width': {
-			const n = length_or(property, v, problems);
-			if (n !== null) add('border', num(n));
+			else add(COLOR_FACET[property], { kind: 'color', color: c });
 			break;
 		}
 		case 'border-style':
 			if (v === 'none' || v === 'hidden') add('border', num(0));
 			break;
-		case 'border-color': {
-			const c = parse_color(raw);
-			if (!c) problems.push({ property, message: `${property}: ${raw} is not a color` });
-			else add('border_color', { kind: 'color', color: c });
-			break;
-		}
 		case 'border-top-left-radius':
 		case 'border-top-right-radius':
 		case 'border-bottom-right-radius':
 		case 'border-bottom-left-radius': {
+			const corner = `radius_${property.split('-').slice(1, 3).map((x) => x[0]).join('')}`;
 			if (v === '50%' || v === '9999px' || v === '999px') {
-				add(`radius_${property.split('-').slice(1, 3).map((x) => x[0]).join('')}`, num(9999));
+				add(corner, num(9999));
 				break;
 			}
 			const n = length_or(property, v, problems);
-			if (n !== null) add(`radius_${property.split('-').slice(1, 3).map((x) => x[0]).join('')}`, num(n));
+			if (n !== null) add(corner, num(n));
 			break;
 		}
 		case 'box-shadow':
@@ -341,8 +346,6 @@ export function facets(property: string, value: string, problems: CssProblem[]):
 			if (JUSTIFY[v]) add('justify', { kind: 'enum', value: JUSTIFY[v] });
 			else problems.push({ property, message: `${property}: ${v} is not supported` });
 			break;
-		case 'justify-items':
-			break;
 		case 'grid-template-columns': {
 			const rep = /^repeat\(\s*(\d+)\s*,/.exec(v);
 			const auto = /^repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*([\d.]+)(?:px)?\s*,/.exec(v);
@@ -366,17 +369,6 @@ export function facets(property: string, value: string, problems: CssProblem[]):
 			if (v === 'rtl' || v === 'ltr') add('direction', { kind: 'enum', value: v });
 			break;
 		// ---- text (inherited) ----
-		case 'color': {
-			const c = parse_color(raw);
-			if (!c) problems.push({ property, message: `${property}: ${raw} is not a color` });
-			else add('text_color', { kind: 'color', color: c });
-			break;
-		}
-		case 'font-size': {
-			const n = length_or(property, v, problems);
-			if (n !== null) add('text_size', num(n));
-			break;
-		}
 		case 'font-weight': {
 			const w = v === 'bold' || v === 'bolder' ? 700 : v === 'normal' || v === 'lighter' ? 400 : parseInt(v, 10);
 			add('text_weight', num(Number.isFinite(w) ? w : 400));
@@ -412,43 +404,8 @@ export function facets(property: string, value: string, problems: CssProblem[]):
 		case 'cursor':
 			if (v === 'pointer') add('cursor_hand', { kind: 'bool', value: true });
 			break;
-		// accepted and ignored: nothing to draw differently
-		case 'box-sizing':
-		case 'outline':
-		case 'outline-offset':
-		case 'user-select':
-		case '-webkit-user-select':
-		case 'pointer-events':
-		case 'font-style':
-		case 'letter-spacing':
-		case 'text-decoration':
-		case 'text-decoration-line':
-		case 'list-style':
-		case 'list-style-type':
-		case 'appearance':
-		case '-webkit-appearance':
-		case 'transition':
-		case 'transition-property':
-		case 'transition-duration':
-		case 'transition-timing-function':
-		case 'will-change':
-		case 'content':
-		case 'resize':
-		case 'vertical-align':
-		case 'word-break':
-		case 'overflow-wrap':
-		case 'word-wrap':
-		case 'hyphens':
-		case 'scrollbar-width':
-		case 'scroll-behavior':
-		case 'font-smoothing':
-		case '-webkit-font-smoothing':
-		case '-moz-osx-font-smoothing':
-		case 'text-rendering':
-		case 'font-feature-settings':
-			break;
 		default:
-			problems.push({ property, message: `${property} is not supported by CUI` });
+			if (!IGNORED.has(property)) problems.push({ property, message: `${property} is not supported by CUI` });
 	}
 	return out;
 }

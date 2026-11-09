@@ -5,38 +5,53 @@
 import type { AST } from 'svelte/compiler';
 import type { Spec } from './specs.ts';
 import {
-	attr_source,
 	c_string,
 	each_site,
 	gather,
+	js_of,
 	new_template,
+	src,
 	string_val,
 	text_of,
 	typed_val,
+	value_slot,
 	walk,
-	event_line,
+	warn,
 	type CompileContext,
-	type Source,
 	type Template
 } from './template.ts';
-import { api } from './api.ts';
 import { Records } from './records.ts';
 
 type Emitter = (ctx: CompileContext, t: Template, node: AST.Component, spec: Spec) => void;
+type Gathered = ReturnType<typeof gather>;
 
-/** JS for what markup gave: the expression, or the literal. */
-function js_of(s: Source): string {
-	return s.kind === 'static' ? JSON.stringify(s.value) : s.js;
+/** The C id: id="…" when markup gives one, else `fallback`. */
+function id_of(t: Template, g: Gathered, fallback: string): string {
+	const id = g.props.get('id');
+	return id ? string_val(t, id).c : c_string(fallback);
 }
-void js_of;
 
 /** id="…" on a custom component: registered so JS can find it (rect_of, tests). */
-function register_id(t: Template, g: ReturnType<typeof gather>, id_c: string) {
+function register_id(t: Template, g: Gathered, id_c: string) {
 	if (g.props.get('id')) t.line(`cuisv_name(ui, ${id_c}, ${id_c});`);
 }
 
-function warn(ctx: CompileContext, code: string, message: string, node?: { start?: number; end?: number }) {
-	ctx.warnings.push({ code, message, start: node?.start, end: node?.end });
+/** `o.field = value;` for each option field markup set, except the types `skip` leaves out. */
+function set_opts(ctx: CompileContext, t: Template, node: AST.Component, spec: Spec, g: Gathered, skip?: (type: string) => boolean) {
+	for (const [name, f] of spec.fields) {
+		const v = g.props.get(name);
+		if (!v || skip?.(f.type)) continue;
+		const c = typed_val(ctx, t, f.type, name, v, node);
+		if (c) t.line(`o.${name} = ${c.c};`);
+	}
+}
+
+/** The site of a row window: the row snippet as a template (slot 0 is the row), for each of `rows`. */
+function row_site(ctx: CompileContext, t: Template, snippet: AST.SnippetBlock, param: string, rows: string): number {
+	const row = new_template(ctx);
+	row.slot('n', param);
+	walk(ctx, row, snippet.body.nodes);
+	return t.site(`{#each ${rows} as ${param} (${param})}${row.element()}{/each}`);
 }
 
 const text_only = (nodes: AST.Fragment['nodes']) => nodes.every((n) => n.type === 'Text' || n.type === 'ExpressionTag' || n.type === 'Comment');
@@ -94,21 +109,18 @@ const row_window: Emitter = (ctx, t, node, spec) => {
 		warn(ctx, 'row_snippet', `<${node.name}> needs a {#snippet row(i)} that builds one row`, node);
 		return;
 	}
-	const param = snippet.parameters[0] ? ctx.source.slice((snippet.parameters[0] as unknown as { start: number }).start, (snippet.parameters[0] as unknown as { end: number }).end) : 'i';
+	const param = snippet.parameters[0] ? src(ctx, snippet.parameters[0]) : 'i';
 	if (!/^[A-Za-z_$][\w$]*$/.test(param)) warn(ctx, 'row_snippet', `the row snippet of <${node.name}> takes the row index as a plain name`, snippet);
 	const count = g.props.get('count');
 	if (!count) warn(ctx, 'row_count', `<${node.name}> needs count={…} (the number of rows)`, node);
-	const count_js = count ? (js_of(count)) : '0';
+	const count_js = count ? js_of(count) : '0';
 	const overscan = g.props.get('overscan');
-	const overscan_js = overscan ? (js_of(overscan)) : '24';
+	const overscan_js = overscan ? js_of(overscan) : '24';
 
 	// JS: the window CUI reported, and the rows in it
 	const win = `__cuisv_win_${t.id.toString(16)}_${key}`;
 	ctx.inject.push(`let ${win} = $state([0, 0]);`);
-	const row = new_template(ctx);
-	row.slot('n', param); // slot 0: the row index
-	walk(ctx, row, snippet.body.nodes);
-	const site = t.site(`{#each __cuisv_h.rows(${win}, ${count_js}, ${overscan_js}) as ${param} (${param})}${row.element()}{/each}`);
+	const site = row_site(ctx, t, snippet, param, `__cuisv_h.rows(${win}, ${count_js}, ${overscan_js})`);
 	const report = t.slot('f', `(a, b) => { ${win} = [a, b]; }`);
 	const last_a = t.slot('n', null);
 	const last_b = t.slot('n', null);
@@ -117,10 +129,9 @@ const row_window: Emitter = (ctx, t, node, spec) => {
 	const count_c = `((${count_raw}) > 0 ? (${count_raw}) : 0)`;
 	t.open(`{ /* <${node.name}> ${key} */`);
 	t.line('int first = 0, last = 0;');
-	const id_c = g.props.get('id') ? string_val(t, g.props.get('id')!).c : c_string(key);
+	const id_c = id_of(t, g, key);
 	register_id(t, g, id_c);
 	let row_open: string;
-	let placeholder: string;
 	const post: string[] = [];
 	if (spec.name === 'VirtualList') {
 		const rh = g.props.get('row_height');
@@ -131,7 +142,6 @@ const row_window: Emitter = (ctx, t, node, spec) => {
 		t.open('{');
 		// each row is exactly row_height tall, as the list's arithmetic needs
 		row_open = `cui_box_begin(ui, &(cui_box){ .height = CUI_PX(${rh_c}), .width = CUI_FILL, .justify = CUI_JUSTIFY_CENTER });`;
-		placeholder = '';
 	} else {
 		// DataGrid: columns and options
 		const cols = g.props.get('columns');
@@ -139,12 +149,7 @@ const row_window: Emitter = (ctx, t, node, spec) => {
 		const cols_slot = t.slot('o', cols ? `__cuisv_h.pack(${js_of(cols)}, ${Records.js_desc('cui_grid_column')})` : null);
 		t.line(`const cuisv_records *cols = cuisv_records_get(s, ${cols_slot}, ${sd});`);
 		t.line('cui_grid_opts o = {0};');
-		for (const [name, f] of spec.fields) {
-			const v = g.props.get(name);
-			if (!v || f.type.endsWith('*')) continue;
-			const c = typed_val(ctx, t, f.type, name, v, node);
-			if (c) t.line(`o.${name} = ${c.c};`);
-		}
+		set_opts(ctx, t, node, spec, g, (type) => type.endsWith('*'));
 		// selection: one bool per row, bind:selected to an array
 		const sel = g.binds.get('selected');
 		if (sel) {
@@ -176,13 +181,12 @@ const row_window: Emitter = (ctx, t, node, spec) => {
 		t.open(`if (cui_data_grid_begin_ex(ui, ${id_c}, (const cui_grid_column *)cols->items, cols->count, ${count_c}, &first, &last, &o)) {`);
 		const click = g.events.get('onrowclick');
 		row_open = click ? `if (cui_data_grid_row(ui, r)) cuisv_emit_num(s, ${t.slot('f', click)}, r);` : 'cui_data_grid_row(ui, r);';
-		placeholder = '';
 	}
 	t.line(`cuisv_scope *c = s->sites[${site}].first;`);
 	t.open('for (int r = first; r < last; r++) {');
 	t.line('while (c && cuisv_int(c, 0) < r) c = c->next;');
-	if (row_open) t.line(row_open);
-	t.line(`if (c && cuisv_int(c, 0) == r) cuisv_render_scope(ui, c);${placeholder ? ` else { ${placeholder} }` : ''}`);
+	t.line(row_open);
+	t.line('if (c && cuisv_int(c, 0) == r) cuisv_render_scope(ui, c);');
 	if (spec.name === 'VirtualList') t.line('cui_box_end(ui);');
 	t.close();
 	t.line(`${spec.name === 'VirtualList' ? 'cui_virtual_list_end' : 'cui_data_grid_end'}(ui);`);
@@ -190,15 +194,13 @@ const row_window: Emitter = (ctx, t, node, spec) => {
 	for (const l of post) t.line(l);
 	t.line(`if (first != cuisv_int(s, ${last_a}) || last != cuisv_int(s, ${last_b}) || !cuisv_has(s, ${last_a})) { cuisv_set_num(s, ${last_a}, first); cuisv_set_num(s, ${last_b}, last); cuisv_emit_num2(s, ${report}, first, last); }`);
 	t.close();
-	void api;
-	void attr_source;
 };
 
 /** <Popover bind:open>: CUI owns whether it shows; markup can open and close it too. */
 const popover: Emitter = (ctx, t, node, spec) => {
 	const key = t.key();
 	const g = gather(ctx, node, spec.name);
-	const id_c = g.props.get('id') ? string_val(t, g.props.get('id')!).c : c_string(key);
+	const id_c = id_of(t, g, key);
 	const bound = g.binds.get('open');
 	const given = g.props.get('open');
 	const open = t.slot('b', bound ? bound.js : given?.kind === 'expr' ? given.js : given?.kind === 'static' ? String(!!given.value) : null);
@@ -210,12 +212,7 @@ const popover: Emitter = (ctx, t, node, spec) => {
 	t.line(`bool want = cuisv_bool(s, ${open});`);
 	t.line(`if (want != cuisv_bool(s, ${applied})) { if (want) cui_popover_open(ui, pid); else cui_popover_close(ui, pid); cuisv_set_bool(s, ${applied}, want); }`);
 	t.line('cui_popover_opts o = {0};');
-	for (const [name, f] of spec.fields) {
-		const v = g.props.get(name);
-		if (!v) continue;
-		const c = typed_val(ctx, t, f.type, name, v, node);
-		if (c) t.line(`o.${name} = ${c.c};`);
-	}
+	set_opts(ctx, t, node, spec, g);
 	t.open('if (cui_popover_begin(ui, pid, &o)) {');
 	walk(ctx, t, node.fragment.nodes);
 	t.line('cui_popover_end(ui);');
@@ -227,7 +224,6 @@ const popover: Emitter = (ctx, t, node, spec) => {
 	if (onchange) lines.push(`cuisv_emit_bool(s, ${t.slot('f', onchange)}, now);`);
 	t.line(`if (now != want) { ${lines.join(' ')} }`);
 	t.close();
-	void event_line;
 };
 
 /**
@@ -257,7 +253,7 @@ const canvas: Emitter = (ctx, t, node, spec) => {
 		if (v?.dynamic) t.line(`int n_data = 0; const float *data = ${v.c.replace('&(int){0}', '&n_data')};`);
 		else t.line(`const float *data = ${v?.c ?? 'NULL'}; int n_data = ${data.kind === 'static' && Array.isArray(data.value) ? data.value.length : 0};`);
 	} else t.line('const float *data = NULL; int n_data = 0;');
-	const id_c = g.props.get('id') ? string_val(t, g.props.get('id')!).c : c_string(`##${key}`);
+	const id_c = id_of(t, g, `##${key}`);
 	register_id(t, g, id_c);
 	t.line(`cui_canvas_result r = cuisv_canvas(ui, ${id_c}, ${w_c}, ${h_c}, ${fn}, s, ${js_slot}, data, n_data);`);
 	t.line('(void)r;');
@@ -278,9 +274,8 @@ const otp: Emitter = (ctx, t, node, spec) => {
 	const len_c = len ? (typed_val(ctx, t, 'int', 'length', len, node)?.c ?? '6') : '6';
 	const bound = g.binds.get('value');
 	const given = g.props.get('value');
-	const slot = t.slot('s', bound ? bound.js : given?.kind === 'expr' ? given.js : null);
-	const setter = bound ? t.setter(slot, bound.set) : -1;
-	const id_c = g.props.get('id') ? string_val(t, g.props.get('id')!).c : c_string(`##${key}`);
+	const { slot, setter } = value_slot(t, 's', bound, given);
+	const id_c = id_of(t, g, `##${key}`);
 	t.open(`{ /* <OtpInput> ${key} */`);
 	register_id(t, g, id_c);
 	t.line(`int len = ${len_c}; if (len < 1) len = 1; if (len > 32) len = 32; size_t cap; char *buf = cuisv_buf(s, ${slot}, (size_t)len + 1, &cap);`);
@@ -307,7 +302,7 @@ const reorder: Emitter = (ctx, t, node, spec) => {
 	if (!bound && !given) warn(ctx, 'reorder_order', '<Reorder> needs bind:order={…} (the item indices in display order)', node);
 	const slot = t.slot('d', bound ? bound.js : given?.kind === 'expr' ? given.js : null);
 	const setter = bound ? t.setter(slot, `(b) => (${bound.set})(Array.from(new Int32Array(b.slice().buffer)))`) : -1;
-	const id_c = g.props.get('id') ? string_val(t, g.props.get('id')!).c : c_string(`##${key}`);
+	const id_c = id_of(t, g, `##${key}`);
 	const kids = node.fragment.nodes.filter((n) => !(n.type === 'Text' && !n.data.trim()));
 	const each = kids.length === 1 && kids[0].type === 'EachBlock' ? (kids[0] as AST.EachBlock) : null;
 	const site = each ? each_site(ctx, t, each) : -1;
@@ -354,13 +349,10 @@ const tree_table: Emitter = (ctx, t, node, spec) => {
 		warn(ctx, 'row_snippet', '<TreeTable> needs a {#snippet row(node)} that builds one row (TreeName, then GridCells)', node);
 		return;
 	}
-	const param = snippet.parameters[0] ? ctx.source.slice((snippet.parameters[0] as unknown as { start: number }).start, (snippet.parameters[0] as unknown as { end: number }).end) : 'n';
+	const param = snippet.parameters[0] ? src(ctx, snippet.parameters[0]) : 'n';
 	const shown = `__cuisv_nodes_${t.id.toString(16)}_${key}`;
 	ctx.inject.push(`let ${shown} = $state([]);`);
-	const row = new_template(ctx);
-	row.slot('n', param);
-	walk(ctx, row, snippet.body.nodes);
-	const site = t.site(`{#each __cuisv_h.node_rows(${shown}) as ${param} (${param})}${row.element()}{/each}`);
+	const site = row_site(ctx, t, snippet, param, `__cuisv_h.node_rows(${shown})`);
 	const report = t.slot('f', `(b) => { ${shown} = Array.from(new Int32Array(b.slice().buffer)); }`);
 	const last = t.slot('o', null);
 	// columns and nodes
@@ -373,7 +365,7 @@ const tree_table: Emitter = (ctx, t, node, spec) => {
 	const nv = g.props.get('nodes');
 	const nodes_slot = t.slot('o', nb ? `__cuisv_h.pack(${nb.js}, ${ndesc})` : nv?.kind === 'expr' ? `__cuisv_h.pack(${nv.js}, ${ndesc})` : null);
 	const nodes_setter = nb ? t.setter(nodes_slot, `(b) => __cuisv_h.merge(${nb.js}, __cuisv_h.unpack(b, ${ndesc}), ${nb.set})`) : -1;
-	const id_c = g.props.get('id') ? string_val(t, g.props.get('id')!).c : c_string(`##${key}`);
+	const id_c = id_of(t, g, `##${key}`);
 	t.open(`{ /* <TreeTable> ${key} */`);
 	register_id(t, g, id_c);
 	t.line(`const cuisv_records *cols = cuisv_records_get(s, ${cols_slot}, ${cd});`);
@@ -381,12 +373,7 @@ const tree_table: Emitter = (ctx, t, node, spec) => {
 	t.line('size_t nodes_sz = sizeof(cui_tree_node) * (size_t)nodes->count;');
 	t.line('void *nodes_was = cuisv_frame_alloc(nodes_sz ? nodes_sz : 1); memcpy(nodes_was, nodes->items, nodes_sz);');
 	t.line('cui_tree_table_opts o = {0};');
-	for (const [name, f] of spec.fields) {
-		const v = g.props.get(name);
-		if (!v || f.type.endsWith('*') || f.type.startsWith('fnptr')) continue;
-		const c = typed_val(ctx, t, f.type, name, v, node);
-		if (c) t.line(`o.${name} = ${c.c};`);
-	}
+	set_opts(ctx, t, node, spec, g, (type) => type.endsWith('*') || type.startsWith('fnptr'));
 	const cur = g.binds.get('cursor');
 	let cur_slot = -1;
 	let cur_setter = -1;

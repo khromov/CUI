@@ -18,6 +18,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, watch, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
+import { parseArgs } from 'node:util';
 import { bundle, reset_globals, type ComponentOutput } from './bundle.ts';
 import { app_name, cmake_build, write_sources } from './native.ts';
 import { build_wasm, write_page } from './web.ts';
@@ -25,52 +26,29 @@ import { developer_id, make_app_bundle, notarize, run_options } from './macos.ts
 import { compile } from '../compiler/index.ts';
 import { create } from './create.ts';
 
-interface Args {
-	cmd: string;
-	entry: string;
-	release: boolean;
-	web: boolean;
-	app: boolean;
-	name?: string;
-	id?: string;
-	app_version?: string;
-	icon?: string;
-	sign?: string;
-	notarize?: string;
-	port: number;
-	out?: string;
-	root?: string;
-	verbose: boolean;
-	rest: string[];
-}
+const OPTIONS = {
+	release: { type: 'boolean' }, debug: { type: 'boolean' }, verbose: { type: 'boolean', short: 'v' }, web: { type: 'boolean' }, app: { type: 'boolean' },
+	out: { type: 'string', short: 'o' }, root: { type: 'string' }, port: { type: 'string', default: '5174' },
+	name: { type: 'string' }, id: { type: 'string' }, 'app-version': { type: 'string' }, icon: { type: 'string' }, sign: { type: 'string' }, notarize: { type: 'string' },
+	help: { type: 'boolean', short: 'h' }
+} as const;
 
-function parse_args(argv: string[]): Args {
-	const a: Args = { cmd: argv[0] ?? 'help', entry: '', release: false, web: false, app: false, port: 5174, verbose: false, rest: [] };
-	for (let i = 1; i < argv.length; i++) {
-		const x = argv[i];
-		if (x === '--release') a.release = true;
-		else if (x === '--debug') a.release = false;
-		else if (x === '--verbose' || x === '-v') a.verbose = true;
-		else if (x === '--out' || x === '-o') a.out = argv[++i];
-		else if (x === '--root') a.root = argv[++i];
-		else if (x === '--web') a.web = true;
-		else if (x === '--app') a.app = true;
-		else if (x === '--name') a.name = argv[++i];
-		else if (x === '--id') a.id = argv[++i];
-		else if (x === '--app-version') a.app_version = argv[++i];
-		else if (x === '--icon') a.icon = argv[++i];
-		else if (x === '--sign') a.sign = argv[++i];
-		else if (x === '--notarize') a.notarize = argv[++i];
-		else if (x === '--port') a.port = Number(argv[++i]);
-		else if (x === '--') {
-			a.rest = argv.slice(i + 1);
-			break;
-		} else if (!a.entry) a.entry = x;
-		else a.rest.push(x);
+/** Flags, then the command, the entry and what the app gets (anything after `--` too). */
+function parse_args(argv: string[]) {
+	let parsed;
+	try {
+		parsed = parseArgs({ args: argv, options: OPTIONS, allowPositionals: true });
+	} catch (e) {
+		console.error(`cui-svelte: ${(e as Error).message.split('. ')[0]}; arguments for the app go after --`);
+		process.exit(1);
 	}
-	if (a.cmd === 'build' && !argv.includes('--debug')) a.release = true;
-	return a;
+	const { values: v, positionals } = parsed;
+	const [cmd = 'help', entry = '', ...rest] = v.help ? ['help'] : positionals;
+	// build makes a release unless --debug; run and dev make a debug build unless --release
+	const release = cmd === 'build' ? !v.debug : !!v.release && !v.debug;
+	return { ...v, cmd, entry, rest, release, app_version: v['app-version'], port: Number(v.port), verbose: !!v.verbose, web: !!v.web, app: !!v.app };
 }
+type Args = ReturnType<typeof parse_args>;
 
 const dim = (s: string) => (process.stderr.isTTY ? `\x1b[2m${s}\x1b[0m` : s);
 const red = (s: string) => (process.stderr.isTTY ? `\x1b[31m${s}\x1b[0m` : s);

@@ -36,11 +36,13 @@
 		"vendor": "node scripts/vendor-svelte.ts"
 	},
 	"dependencies": {
+		"culori": "^4.0.2",
 		"esbuild": "^0.27.0",
 		"pngjs": "^7.0.0",
 		"svelte": "file:vendor/svelte-5.57.3-7277a65.tgz"
 	},
 	"devDependencies": {
+		"@types/culori": "^4.0.1",
 		"@types/node": "^24.0.0",
 		"@types/pngjs": "^6.0.5",
 		"dayjs": "1",

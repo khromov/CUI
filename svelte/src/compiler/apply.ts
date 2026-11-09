@@ -108,22 +108,18 @@ export interface ApplyOptions {
 /** Applies the style's box facets to the option fields that exist. Returns C lines. */
 export function apply_fields(style: ElementStyle, fields: Map<string, Field>, t: Template, o: ApplyOptions): string[] {
 	const lines: string[] = [];
+	// flex-grow grows the box along its parent's direction
+	const axis = o.parent_dir === 'column' ? 'height' : 'width';
 	for (const layer of style.layers) {
 		const assigns: string[] = [];
 		const corners = layer.facets.filter((f) => f.name.startsWith('radius_'));
 		const uniform = corners.length === 4 && corners.every((c) => JSON.stringify(c.value) === JSON.stringify(corners[0].value));
 		for (const f of layer.facets) {
 			let name = f.name;
-			if (name === 'grow_js' && f.value.kind === 'js') {
-				const axis = o.parent_dir === 'row' ? 'width' : o.parent_dir === 'column' ? 'height' : 'width';
-				if (fields.get(axis) && !o.explicit.has(axis)) assigns.push(`${o.opts}.${axis} = CUI_GROW(cuisv_float(s, ${t.slot('n', f.value.js)}));`);
-				continue;
-			}
-			if (name === 'grow') {
-				const axis = o.parent_dir === 'row' ? 'width' : o.parent_dir === 'column' ? 'height' : 'width';
-				const field = fields.get(axis);
-				if (field && !o.explicit.has(axis) && f.value.kind === 'num') {
-					if (f.value.value > 0) assigns.push(`${o.opts}.${axis} = CUI_GROW(${float(f.value.value)});`);
+			if (name === 'grow_js' || name === 'grow') {
+				if (fields.get(axis) && !o.explicit.has(axis)) {
+					if (name === 'grow_js' && f.value.kind === 'js') assigns.push(`${o.opts}.${axis} = CUI_GROW(cuisv_float(s, ${t.slot('n', f.value.js)}));`);
+					else if (name === 'grow' && f.value.kind === 'num' && f.value.value > 0) assigns.push(`${o.opts}.${axis} = CUI_GROW(${float(f.value.value)});`);
 				}
 				continue;
 			}
@@ -170,9 +166,6 @@ export function box_dir(style: ElementStyle, fallback: 'row' | 'column'): 'row' 
 				dir = f.value.value as 'column' | 'grid';
 				flex = false;
 			} else if (f.name === 'flex_dir' && f.value.kind === 'enum') flex_dir = f.value.value as 'row' | 'column';
-			else if ((f.name === 'columns' || f.name === 'min_column_width') && dir !== 'grid') {
-				/* grid-template-columns without display: grid does nothing in CSS either */
-			}
 		}
 	}
 	if (flex) return flex_dir ?? 'row';

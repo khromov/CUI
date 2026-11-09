@@ -87,7 +87,7 @@ export function compile(original: string, options: CompileOptions): CompileResul
 		filename: options.filename,
 		key: options.key,
 		intrinsics: intrinsic_imports(ast),
-		styles: create_style_resolver(ast, source, options.globals, warnings),
+		styles: create_style_resolver(ast, options.globals, warnings),
 		warnings,
 		templates: [],
 		ancestors: [],

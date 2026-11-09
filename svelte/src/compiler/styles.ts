@@ -8,11 +8,11 @@
  * that depends on a dynamic class becomes a C condition over a boolean slot; a pointer
  * pseudo-class becomes a condition over the element's pointer state.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { globSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse, type AST } from 'svelte/compiler';
 import { expand, facets as facets_of, type Facet, type FacetValue, type CssProblem } from './css-props.ts';
-import type { CompileContext, Template, Warning } from './template.ts';
+import { src, type CompileContext, type Template, type Warning } from './template.ts';
 import { parse_color, parse_length, TOKENS } from '../shared/values.ts';
 
 // ---- rules -----------------------------------------------------------------------------
@@ -46,6 +46,9 @@ export interface Rule {
 export type GlobalRules = Rule[];
 
 let order_counter = 0;
+
+/** :root, html and body are the window. */
+const is_root = (parts: Compound[]) => parts.length === 1 && [':root', 'html', 'body'].includes(parts[0].tag ?? '');
 
 function compound_of(rel: AST.CSS.RelativeSelector, warn: (m: string) => void, scoped_global: { value: boolean }): Compound | null {
 	const c: Compound = { tag: null, classes: [], ids: [], pseudo: [], attrs: [], combinator: null, universal: false };
@@ -145,7 +148,7 @@ function rules_of(ast: AST.Root, file: string, warn: (m: string) => void, only_g
 				if (!ok || !parts.length) continue;
 				parts[0].combinator = null;
 				// :root and html/body are the window: global by nature
-				if (parts.length === 1 && (parts[0].tag === ':root' || parts[0].tag === 'html' || parts[0].tag === 'body')) g.value = true;
+				if (is_root(parts)) g.value = true;
 				if (g.value) global = true;
 				let a = 0, b = 0, cc = 0;
 				for (const p of parts) {
@@ -172,36 +175,16 @@ function rules_of(ast: AST.Root, file: string, warn: (m: string) => void, only_g
 /** :global rules from every .svelte file under root, which apply to all components. */
 export function collect_globals(root: string): GlobalRules {
 	const out: Rule[] = [];
-	const walk = (dir: string) => {
-		let entries: string[];
+	for (const f of globSync('**/*.svelte', { cwd: root, exclude: ['**/node_modules', '**/dist'] })) {
+		const p = join(root, f);
+		const src = readFileSync(p, 'utf8');
+		if (!src.includes(':global') && !src.includes(':root')) continue;
 		try {
-			entries = readdirSync(dir);
+			out.push(...rules_of(parse(src, { modern: true, filename: p }), p, () => {}, true).filter((r) => r.global));
 		} catch {
-			return;
+			/* the file's own compile reports it */
 		}
-		for (const e of entries) {
-			if (e === 'node_modules' || e.startsWith('.') || e === 'dist') continue;
-			const p = join(dir, e);
-			let st;
-			try {
-				st = statSync(p);
-			} catch {
-				continue;
-			}
-			if (st.isDirectory()) walk(p);
-			else if (e.endsWith('.svelte')) {
-				const src = readFileSync(p, 'utf8');
-				if (!src.includes(':global') && !src.includes(':root')) continue;
-				try {
-					const ast = parse(src, { modern: true, filename: p });
-					out.push(...rules_of(ast, p, () => {}, true).filter((r) => r.global));
-				} catch {
-					/* the file's own compile reports it */
-				}
-			}
-		}
-	};
-	walk(root);
+	}
 	return out;
 }
 
@@ -276,13 +259,12 @@ function attr_text(ctx: CompileContext, a: AST.Attribute): { static: string | nu
 	const parts = Array.isArray(a.value) ? a.value : [a.value];
 	if (parts.every((p) => p.type === 'Text')) return { static: parts.map((p) => (p as AST.Text).data).join(''), js: null };
 	const js = parts
-		.map((p) => (p.type === 'Text' ? JSON.stringify(p.data) : `(${ctx.source.slice((p.expression as unknown as { start: number }).start, (p.expression as unknown as { end: number }).end)})`))
+		.map((p) => (p.type === 'Text' ? JSON.stringify(p.data) : `(${src(ctx, p.expression)})`))
 		.join(' + " " + ');
 	return { static: null, js };
 }
 
-export function create_style_resolver(ast: AST.Root, source: string, globals: GlobalRules | undefined, warnings: Warning[]): StyleResolver {
-	void source;
+export function create_style_resolver(ast: AST.Root, globals: GlobalRules | undefined, warnings: Warning[]): StyleResolver {
 	const warned = new Set<string>();
 	const warn = (m: string) => {
 		if (warned.has(m)) return;
@@ -307,8 +289,7 @@ export function create_style_resolver(ast: AST.Root, source: string, globals: Gl
 				} else if (a.name === 'id' && v.static !== null) id = v.static;
 				else if (v.static !== null) attrs.set(a.name, v.static === '' && a.value === true ? true : v.static);
 			} else if (a.type === 'ClassDirective') {
-				const e = a.expression as unknown as { start: number; end: number };
-				classes.set(a.name, { js: `!!(${ctx.source.slice(e.start, e.end)})` });
+				classes.set(a.name, { js: `!!(${src(ctx, a.expression)})` });
 			}
 		}
 		return { tag, classes, class_js, id, attrs, pointer: null, template: t, dir: null };
@@ -399,7 +380,7 @@ export function create_style_resolver(ast: AST.Root, source: string, globals: Gl
 	// custom properties defined on :root, substituted at build time
 	const vars = new Map<string, string>();
 	for (const r of all) {
-		if (!r.selectors.some((s) => s.parts.length === 1 && (s.parts[0].tag === ':root' || s.parts[0].tag === 'html' || s.parts[0].tag === 'body'))) continue;
+		if (!r.selectors.some((s) => is_root(s.parts))) continue;
 		for (const d of r.decls) if (d.property.startsWith('--')) vars.set(d.property, d.value.trim());
 	}
 	function resolve_vars(v: string, depth = 0): string {
@@ -436,7 +417,7 @@ export function create_style_resolver(ast: AST.Root, source: string, globals: Gl
 		theme() {
 			const out: string[] = [];
 			for (const r of own) {
-				if (!r.selectors.some((x) => x.parts.length === 1 && [':root', 'html', 'body'].includes(x.parts[0].tag ?? ''))) continue;
+				if (!r.selectors.some((x) => is_root(x.parts))) continue;
 				const lines: string[] = [];
 				for (const d of r.decls) {
 					const l = theme_line(d.property, resolve_vars(d.value.trim()), warn);
@@ -452,7 +433,7 @@ export function create_style_resolver(ast: AST.Root, source: string, globals: Gl
 			const matched: { rule: Rule; sel: Selector; cond: Cond }[] = [];
 			for (const rule of all) {
 				for (const sel of rule.selectors) {
-					if (sel.parts.length === 1 && (sel.parts[0].tag === ':root' || sel.parts[0].tag === 'body' || sel.parts[0].tag === 'html')) matched.push({ rule, sel, cond: true });
+					if (is_root(sel.parts)) matched.push({ rule, sel, cond: true });
 				}
 			}
 			return { layers: to_layers(matched), needs_pointer: false };

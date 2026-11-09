@@ -21,9 +21,12 @@ export interface Macro {
 	name: string;
 	params: string[];
 	kind: 'call' | 'scope' | 'scope_if';
+	/** The function the macro calls (or the begin function of a scope). */
 	fn: string;
+	/** The options struct for named arguments, when the macro takes `...`. */
 	opts?: string;
 	end?: string;
+	/** Arguments the macro passes before the options, as written (for `call` macros that fill in defaults). */
 	args: string[];
 }
 export interface Api {
@@ -79,4 +82,9 @@ export function is_enum(type: string): boolean {
 
 export function is_struct(type: string): boolean {
 	return type in api.structs;
+}
+
+/** A struct's fields by name, without the `_` padding member. */
+export function fields_of(struct: string): Map<string, Field> {
+	return new Map((api.structs[struct] ?? []).filter((f) => f.name !== '_').map((f) => [f.name, f]));
 }

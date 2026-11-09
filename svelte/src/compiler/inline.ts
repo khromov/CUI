@@ -6,7 +6,7 @@
 import type { AST } from 'svelte/compiler';
 import { expand, facets, type Facet, type FacetValue, type CssProblem } from './css-props.ts';
 import type { Layer } from './styles.ts';
-import type { CompileContext } from './template.ts';
+import { src, type CompileContext } from './template.ts';
 
 /** How a property's runtime value is packed, and the facets it sets. */
 const DYNAMIC: Record<string, { as: 'num' | 'size' | 'color' | 'bool'; helper: string; facets: string[] }> = {
@@ -41,7 +41,7 @@ interface Part {
 function parts_of(ctx: CompileContext, value: AST.Attribute['value']): Part[] {
 	if (value === true) return [];
 	const arr = Array.isArray(value) ? value : [value];
-	return arr.map((p) => (p.type === 'Text' ? { text: p.data } : { js: ctx.source.slice((p.expression as unknown as { start: number }).start, (p.expression as unknown as { end: number }).end) }));
+	return arr.map((p) => (p.type === 'Text' ? { text: p.data } : { js: src(ctx, p.expression) }));
 }
 
 function dynamic_facets(property: string, js: string, warn: (m: string) => void): Facet[] {

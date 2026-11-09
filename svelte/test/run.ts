@@ -3,23 +3,16 @@
  *   node test/run.ts [filter]
  */
 import { spawnSync } from 'node:child_process';
-import { readdirSync, statSync } from 'node:fs';
+import { globSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const filter = process.argv[2];
-const files: string[] = [];
-const walk = (dir: string) => {
-	for (const e of readdirSync(dir)) {
-		if (e.startsWith('.') || e === 'node_modules' || e === 'dist' || e === 'dist-web') continue;
-		const p = join(dir, e);
-		if (statSync(p).isDirectory()) walk(p);
-		else if (e.endsWith('.test.ts') && (!filter || p.includes(filter))) files.push(p);
-	}
-};
-walk(join(root, 'test'));
-walk(join(root, 'examples'));
+const files = ['test', 'examples']
+	.flatMap((d) => globSync(`${d}/**/*.test.ts`, { cwd: root, exclude: ['**/node_modules', '**/dist', '**/dist-web'] }))
+	.map((f) => join(root, f))
+	.filter((p) => !filter || p.includes(filter));
 
 let failed = 0;
 for (const f of files.sort()) {

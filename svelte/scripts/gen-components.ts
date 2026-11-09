@@ -21,6 +21,13 @@ function struct_name(t: string) {
 	return t.replace(/^cui_/, '').replace(/(^|_)([a-z0-9])/g, (_, __, c: string) => c.toUpperCase());
 }
 
+/** The TypeScript type of a record field, by its kind (records.ts); 'i' and '{' are done in struct_type. */
+const KIND_TS: Record<string, string> = {
+	s: 'string', o: 'string', n: 'string', I: 'IconName | (string & {})', b: 'boolean',
+	u: 'number', f: 'number', d: 'number', l: 'number', t: 'number',
+	c: 'Color', z: 'Size', D: 'DateString', F: 'ArrayLike<number>', S: 'string[]', P: '({ x: number; y: number } | [number, number])[]'
+};
+
 /** The JS shape of a struct, as an interface emitted once. */
 function struct_type(t: string): string {
 	if (t === 'cui_date') return 'DateString';
@@ -29,53 +36,7 @@ function struct_type(t: string): string {
 	if (structs.has(name)) return name;
 	structs.set(name, '');
 	const lines = (record_fields(t) ?? []).map((f) => {
-		let ty = 'unknown';
-		switch (f.kind) {
-			case 's':
-			case 'o':
-				ty = 'string';
-				break;
-			case 'I':
-				ty = 'IconName | (string & {})';
-				break;
-			case 'n':
-				ty = 'string';
-				break;
-			case 'b':
-				ty = 'boolean';
-				break;
-			case 'i':
-				ty = f.extra ? enum_type(f.extra) : 'number';
-				break;
-			case 'u':
-			case 'f':
-			case 'd':
-			case 'l':
-			case 't':
-				ty = 'number';
-				break;
-			case 'c':
-				ty = 'Color';
-				break;
-			case 'z':
-				ty = 'Size';
-				break;
-			case 'D':
-				ty = 'DateString';
-				break;
-			case 'F':
-				ty = 'ArrayLike<number>';
-				break;
-			case 'S':
-				ty = 'string[]';
-				break;
-			case 'P':
-				ty = '({ x: number; y: number } | [number, number])[]';
-				break;
-			case '{':
-				ty = struct_type(f.extra!);
-				break;
-		}
+		const ty = f.kind === 'i' ? (f.extra ? enum_type(f.extra) : 'number') : f.kind === '{' ? struct_type(f.extra!) : (KIND_TS[f.kind] ?? 'unknown');
 		const c = f.field.comment ? `\t/** ${f.field.comment.replace(/\*\//g, '* /')} */\n` : '';
 		return `${c}\t${f.field.name}?: ${ty};`;
 	});

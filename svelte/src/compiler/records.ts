@@ -25,6 +25,11 @@ const KIND_C: Record<string, string> = {
 	'{': 'CUISV_F_STRUCT'
 };
 
+/** Field types packed as one value, and their kind. */
+const SCALAR_KIND = new Map(Object.entries({ bool: 'b', int: 'i', uint32_t: 'u', unsigned: 'u', cui_id: 'n', float: 'f', double: 'd', int64_t: 'l', uint64_t: 'l', cui_color: 'c', cui_size: 'z', cui_date: 'D', cui_texture: 't' }));
+/** Pointer field types packed as an array, with the count field that follows them. */
+const ARRAY_KIND = new Map(Object.entries({ 'const cui_vec2 *': 'P', 'const float *': 'F', 'float *': 'F', 'const char *const *': 'S', 'const char **': 'S' }));
+
 interface FieldKind {
 	field: Field;
 	kind: string;
@@ -49,29 +54,12 @@ export function record_fields(type: string): FieldKind[] | null {
 		const t = f.type;
 		let k: FieldKind | null = null;
 		if (t === 'const char *' || t === 'char *') k = { field: f, kind: /icon/.test(f.name) ? 'I' : /^(title|name|label|text)$/.test(f.name) ? 's' : 'o' };
-		else if (t === 'const cui_vec2 *' && count_field) {
-			k = { field: f, kind: 'P', count: count_field.name };
+		else if (ARRAY_KIND.has(t) && count_field) {
+			k = { field: f, kind: ARRAY_KIND.get(t)!, count: count_field.name };
 			consumed.add(count_field.name);
-		}
-		else if (t === 'bool') k = { field: f, kind: 'b' };
-		else if (t === 'int') k = { field: f, kind: 'i' };
-		else if (t === 'uint32_t' || t === 'unsigned') k = { field: f, kind: 'u' };
-		else if (t === 'cui_id') k = { field: f, kind: 'n' };
-		else if (t === 'float') k = { field: f, kind: 'f' };
-		else if (t === 'double') k = { field: f, kind: 'd' };
-		else if (t === 'int64_t' || t === 'uint64_t') k = { field: f, kind: 'l' };
-		else if (t === 'cui_color') k = { field: f, kind: 'c' };
-		else if (t === 'cui_size') k = { field: f, kind: 'z' };
-		else if (t === 'cui_date') k = { field: f, kind: 'D' };
-		else if (t === 'cui_texture') k = { field: f, kind: 't' };
+		} else if (SCALAR_KIND.has(t)) k = { field: f, kind: SCALAR_KIND.get(t)! };
 		else if (is_enum(t)) k = { field: f, kind: 'i', extra: t };
-		else if ((t === 'const float *' || t === 'float *') && count_field) {
-			k = { field: f, kind: 'F', count: count_field.name };
-			consumed.add(count_field.name);
-		} else if ((t === 'const char *const *' || t === 'const char **') && count_field) {
-			k = { field: f, kind: 'S', count: count_field.name };
-			consumed.add(count_field.name);
-		} else if (t in api.structs && record_fields(t)) k = { field: f, kind: '{', extra: t };
+		else if (t in api.structs && record_fields(t)) k = { field: f, kind: '{', extra: t };
 		if (k) out.push(k);
 	}
 	return out;

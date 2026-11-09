@@ -3,7 +3,7 @@
  * parameters mean in markup. Most of it is inferred from the C prototype (cui-api.json);
  * the table at the bottom only names the components and corrects what inference gets wrong.
  */
-import { api, is_enum, is_struct, type Field, type Param } from './api.ts';
+import { api, fields_of, is_struct, type Field, type Param } from './api.ts';
 
 export type Role =
 	| 'id' //        const char *id: generated from the component's place in the template
@@ -126,6 +126,12 @@ export function bind_kind(type: string) {
 	return BIND_TYPES[type];
 }
 
+/** Roles followed by a count parameter, which travels with them. */
+const COUNTED = new Set<Role>(['buffer', 'strs', 'floats', 'records', 'records_mut', 'bind_floats', 'bytes']);
+/** Roles CUI writes back; those besides scalars and text send their value as JS sees it. */
+const BOUND = new Set<Role>(['bind', 'buffer', 'bind_struct', 'bind_bools', 'bind_floats', 'records_mut', 'records_cap', 'bind_u32s']);
+const VALUE_PAYLOAD = new Set<Role>(['bind_struct', 'bind_bools', 'bind_floats', 'records_mut', 'records_cap', 'bind_u32s']);
+
 /**
  * Components whose label is only shown, never hashed into an identity: a "###key" suffix
  * would be drawn. Found by test/labels (every label component, rendered headless).
@@ -172,7 +178,7 @@ function infer_params(params: Param[], o: Override, fn_name = ''): ParamSpec[] {
 			default: o.defaults?.[p.name]
 		};
 		out.push(spec);
-		if (role === 'buffer' || role === 'strs' || role === 'floats' || role === 'records' || role === 'records_mut' || role === 'bind_floats' || role === 'bytes') {
+		if (COUNTED.has(role)) {
 			out.push({ name: next.name, prop: next.name, type: next.type, role: 'skip', count: true });
 			i++;
 		}
@@ -191,8 +197,8 @@ function infer_params(params: Param[], o: Override, fn_name = ''): ParamSpec[] {
  * `when` is C over `r` (the return value) and `$changed` (a bound value differs from what the
  * frame started with); `$name` in a payload is the local holding parameter `name`.
  */
-function infer_events(name: string, ret: string, params: ParamSpec[]): EventSpec[] {
-	const bound = params.find((p) => p.role === 'bind' || p.role === 'buffer' || p.role === 'bind_struct' || p.role === 'bind_bools' || p.role === 'bind_floats' || p.role === 'records_mut' || p.role === 'records_cap' || p.role === 'bind_u32s');
+function infer_events(ret: string, params: ParamSpec[]): EventSpec[] {
+	const bound = params.find((p) => BOUND.has(p.role));
 	if (bound && bound.role !== 'buffer') return [{ name: 'onchange', when: '$changed', payload: payload_of(bound) }];
 	if (ret === 'bool') return [{ name: 'onclick', when: 'r' }];
 	if (ret === 'int' && bound?.role === 'buffer') {
@@ -204,13 +210,12 @@ function infer_events(name: string, ret: string, params: ParamSpec[]): EventSpec
 		];
 	}
 	if (ret === 'int') return [{ name: 'onselect', when: 'r >= 0', payload: { type: 'num', expr: 'r' } }];
-	void name;
 	return [];
 }
 
 function payload_of(p: ParamSpec): EventSpec['payload'] {
 	if (p.role === 'buffer') return { type: 'str', expr: `$${p.name}` };
-	if (p.role === 'bind_struct' || p.role === 'bind_bools' || p.role === 'bind_floats' || p.role === 'records_mut' || p.role === 'records_cap' || p.role === 'bind_u32s') return { type: 'value', expr: `$${p.name}` };
+	if (VALUE_PAYLOAD.has(p.role)) return { type: 'value', expr: `$${p.name}` };
 	const k = bind_kind(p.type);
 	return { type: k === 'bool' ? 'bool' : 'num', expr: `$${p.name}` };
 }
@@ -239,8 +244,7 @@ function make(name: string, source: string, o: Override = {}): Spec {
 		if (m && last.name === 'opts') opts = m[1];
 	}
 	const params = infer_params(fn.params, o, fn_name);
-	const fields = new Map<string, Field>();
-	if (opts) for (const f of api.structs[opts] ?? []) if (f.name !== '_') fields.set(f.name, f);
+	const fields = opts ? fields_of(opts) : new Map<string, Field>();
 	const has_label = params.some((p) => p.role === 'label' || p.role === 'text');
 	const has_id = params.some((p) => p.role === 'id');
 	const children: Children = o.children ?? (o.children_after ? 'container' : kind === 'call' ? (has_label || has_id ? 'label' : 'none') : 'container');
@@ -253,7 +257,7 @@ function make(name: string, source: string, o: Override = {}): Spec {
 		ret: fn.ret,
 		params,
 		children,
-		events: [...(o.events ?? infer_events(name, fn.ret, params)), ...(o.more_events ?? [])],
+		events: [...(o.events ?? infer_events(fn.ret, params)), ...(o.more_events ?? [])],
 		fields,
 		doc: fn.comment,
 		buffer_changed: o.buffer_changed,
@@ -548,5 +552,3 @@ const ENTRIES: Entry[] = [
 export const SPECS = new Map<string, Spec>();
 for (const [name, source, o] of ENTRIES) SPECS.set(name, make(name, source, o));
 
-/** Option fields that markup may not set directly. */
-export const HIDDEN_FIELDS = new Set(['_', 'id']);

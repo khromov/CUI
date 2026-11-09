@@ -109,7 +109,7 @@ export function native_wrappers(fns: NativeFn[], table: string): { c: string; er
 	for (const f of ok_fns) {
 		const numeric = (t: string) => TYPES[t] === 'num' || TYPES[t] === 'int' || TYPES[t] === 'bool';
 		if (!f.params.every((p) => numeric(p.type)) || !(numeric(f.ret) || f.ret === 'void')) continue;
-		const params = f.params.map((p, i) => `double a${i}`).join(', ') || 'void';
+		const params = f.params.map((_, i) => `double a${i}`).join(', ') || 'void';
 		const args = f.params.map((p, i) => `(${p.type})a${i}`).join(', ');
 		web.push(
 			`__attribute__((export_name("cuisv_native_${f.name}"))) ${f.ret === 'void' ? 'void' : 'double'} cuisv_wnative_${f.name}(${params}) { ${f.ret === 'void' ? '' : 'return (double)'}${f.name}(${args}); }`

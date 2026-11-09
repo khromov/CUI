@@ -9,43 +9,15 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import type { Field, Fn, Macro, Param } from '../src/compiler/api.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const header = readFileSync(join(root, '..', 'include', 'cui', 'cui.h'), 'utf8');
 const icons_header = readFileSync(join(root, '..', 'include', 'cui', 'cui_icons.h'), 'utf8');
 
-export interface Field {
-	name: string;
-	type: string;
-	array?: number;
-	comment?: string;
-}
-export interface Param {
-	name: string;
-	type: string;
-}
-export interface Fn {
-	name: string;
-	ret: string;
-	params: Param[];
-	comment?: string;
-}
-export interface Macro {
-	name: string;
-	params: string[];
-	kind: 'call' | 'scope' | 'scope_if';
-	/** The function the macro calls (or the begin function of a scope). */
-	fn: string;
-	/** The options struct for named arguments, when the macro takes `...`. */
-	opts?: string;
-	end?: string;
-	/** Arguments the macro passes before the options, as written (for `call` macros that fill in defaults). */
-	args: string[];
-}
-
-/** Strips comments but remembers a trailing one per line, which documents struct fields. */
+/** Blanks out comments, keeping line breaks (and so line numbers). */
 function strip_comments(src: string) {
-	return src.replace(/\/\*[\s\S]*?\*\//g, (m) => ' '.repeat(0) + m.replace(/[^\n]/g, ' '));
+	return src.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 }
 
 const clean = strip_comments(header);

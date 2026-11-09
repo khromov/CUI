@@ -6,14 +6,20 @@
  * Their look comes from <style>, so the same component runs in a browser unchanged.
  */
 import type { AST } from 'svelte/compiler';
-import { SPECS } from './specs.ts';
 import {
 	attr_source,
 	c_string,
+	init_str,
+	js_of,
+	setter_of,
+	src,
 	string_val,
 	text_of,
 	typed_val,
+	value_slot,
 	walk,
+	warn,
+	type Bound,
 	type CompileContext,
 	type Source,
 	type Template
@@ -22,7 +28,7 @@ import { bind_pointer, cond_c, type ElementInfo, type ElementStyle, type Layer }
 import { apply_fields, box_dir, display_none, has_facet, margins, text_style, facet_c } from './apply.ts';
 import { inline_layer } from './inline.ts';
 import type { Facet } from './css-props.ts';
-import { api, type Field } from './api.ts';
+import { fields_of } from './api.ts';
 import { parse_color } from '../shared/values.ts';
 
 type Node = AST.Fragment['nodes'][number];
@@ -129,11 +135,7 @@ export const HTML: Record<string, HtmlSpec> = {
 	br: { kind: 'void', inline: true }
 };
 
-const BOX_FIELDS: Map<string, Field> = new Map(api.structs.cui_box.filter((x) => x.name !== '_').map((x) => [x.name, x]));
-
-function warn(ctx: CompileContext, code: string, message: string, node?: { start?: number; end?: number }) {
-	ctx.warnings.push({ code, message, start: node?.start, end: node?.end });
-}
+const BOX_FIELDS = fields_of('cui_box');
 
 function attr(node: AST.RegularElement, name: string): AST.Attribute | undefined {
 	return node.attributes.find((a): a is AST.Attribute => a.type === 'Attribute' && a.name === name);
@@ -146,15 +148,9 @@ function event(ctx: CompileContext, node: AST.RegularElement, name: string): str
 	return s.kind === 'expr' ? s.js : null;
 }
 
-function bind(ctx: CompileContext, node: AST.RegularElement, name: string): { get: string; set: string } | null {
+function bind(ctx: CompileContext, node: AST.RegularElement, name: string): Bound | null {
 	const b = node.attributes.find((a): a is AST.BindDirective => a.type === 'BindDirective' && a.name === name);
-	if (!b) return null;
-	const e = b.expression as unknown as { type: string; expressions?: { start: number; end: number }[]; start: number; end: number };
-	if (e.type === 'SequenceExpression' && e.expressions?.length === 2) {
-		return { get: `(${ctx.source.slice(e.expressions[0].start, e.expressions[0].end)})()`, set: ctx.source.slice(e.expressions[1].start, e.expressions[1].end) };
-	}
-	const target = ctx.source.slice(e.start, e.end);
-	return { get: target, set: `(__cuisv_v) => { ${target} = __cuisv_v; }` };
+	return b ? setter_of(ctx, b.expression) : null;
 }
 
 function is_blank(n: Node) {
@@ -243,13 +239,12 @@ export function emit_html(ctx: CompileContext, t: Template, node: AST.RegularEle
 		clickable ||
 		has_elements(kids) ||
 		style.layers.some((l) => l.facets.some((x) => /^(bg|border|pad_|radius_|size_|elevation|min_|max_)/.test(x.name)));
-	if (!box_like) return emit_text_element(ctx, t, node, info, style);
+	if (!box_like) return emit_text_element(ctx, t, node, style);
 	emit_box(ctx, t, node, spec, info, style, clickable);
 }
 
 /** p, span, h1…: one text, styled. */
-function emit_text_element(ctx: CompileContext, t: Template, node: AST.RegularElement, info: ElementInfo, style: ElementStyle) {
-	void info;
+function emit_text_element(ctx: CompileContext, t: Template, node: AST.RegularElement, style: ElementStyle) {
 	const text = text_of(ctx, node.fragment.nodes);
 	if (!text) return;
 	const key = t.key();
@@ -335,7 +330,7 @@ function emit_box(ctx: CompileContext, t: Template, node: AST.RegularElement, sp
 	if (pointer) t.line(`cuisv_box_mark(ui, ${clickable ? 'true' : 'false'}, ${clickable || has_facet(style, 'cursor_hand') ? 'true' : 'false'}, &${pv});`);
 	if (ts_lines) t.line(`cuisv_text_push(&ts_${v});`);
 	ctx.ancestors.push(info);
-	if (node.name === 'li') emit_marker(ctx, t, node);
+	if (node.name === 'li') emit_marker(t);
 	const inline_flow = dir === 'row' && fallback === 'row' && kids.some((k) => k.type === 'Text' && k.data.trim());
 	walk(ctx, t, kids, undefined, inline_flow);
 	ctx.ancestors.pop();
@@ -373,19 +368,15 @@ function emit_box(ctx: CompileContext, t: Template, node: AST.RegularElement, sp
 	t.close();
 }
 
-function emit_marker(ctx: CompileContext, t: Template, node: AST.RegularElement) {
-	const parent = ctx.ancestors[ctx.ancestors.length - 2];
-	void node;
+function emit_marker(t: Template) {
 	// the li's box is a row: marker, then the content
-	t.line(`cuisv_text(ui, ${parent?.tag === 'ol' ? '"\\342\\200\\242"' : '"\\342\\200\\242"'}, NULL);`);
+	t.line('cuisv_text(ui, "\\342\\200\\242", NULL);');
 }
 
 // ---- form controls and media ------------------------------------------------------------------
 
 function label_text(ctx: CompileContext, node: AST.RegularElement): Source | null {
 	// <label>text <input …></label>: the text around the control is its label
-	const parent = ctx.ancestors[ctx.ancestors.length - 1];
-	void parent;
 	const own = attr(node, 'aria-label');
 	if (own) return attr_source(ctx, own);
 	return (node as unknown as { cuisv_label?: Source }).cuisv_label ?? null;
@@ -399,8 +390,7 @@ function opt_attr(ctx: CompileContext, t: Template, node: AST.RegularElement, na
 }
 
 function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement) {
-	const { info, style } = element_style(ctx, t, node, HTML[node.name]);
-	void info;
+	const { style } = element_style(ctx, t, node, HTML[node.name]);
 	bind_pointer(style, '((cuisv_pointer){0})');
 	const { key, name_line } = element_key(ctx, t, node);
 	const none = display_none(style, t);
@@ -411,9 +401,8 @@ function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement
 	if (none) t.open(`if (!${none}) {`);
 	const disabled = opt_attr(ctx, t, node, 'disabled', 'bool');
 	const parent_dir = ctx.ancestors[ctx.ancestors.length - 1]?.dir ?? null;
-	const fields_for = (opts: string) => new Map(api.structs[opts].filter((x) => x.name !== '_').map((x) => [x.name, x]));
 	const css = (opts: string, explicit: string[] = []) => {
-		for (const l of apply_fields(style, fields_for(opts), t, { parent_dir, explicit: new Set(explicit), opts: 'o' })) t.line(l);
+		for (const l of apply_fields(style, fields_of(opts), t, { parent_dir, explicit: new Set(explicit), opts: 'o' })) t.line(l);
 	};
 	const label = label_text(ctx, node);
 	const label_c = (fallback = '') => {
@@ -425,7 +414,7 @@ function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement
 	switch (node.name) {
 		case 'input': {
 			if (type === 'checkbox' || type === 'radio') {
-				emit_check(ctx, t, node, type, key, label_c(), disabled, css);
+				emit_check(ctx, t, node, type, label_c(), disabled, css);
 				break;
 			}
 			if (type === 'range') {
@@ -505,17 +494,12 @@ function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement
 }
 
 /** A numeric slot for a bound (or plain) value attribute, with its setter when bound. */
-function slot_number(ctx: CompileContext, t: Template, node: AST.RegularElement, b: { get: string; set: string } | null, name: string): { slot: number; setter: number } {
-	if (b) {
-		const slot = t.slot('n', `Number(${b.get})`);
-		return { slot, setter: t.setter(slot, b.set) };
-	}
+function slot_number(ctx: CompileContext, t: Template, node: AST.RegularElement, b: Bound | null, name: string): { slot: number; setter: number } {
 	const a = attr(node, name);
 	const s = a ? attr_source(ctx, a) : null;
-	if (s?.kind === 'expr') return { slot: t.slot('n', `Number(${s.js})`), setter: -1 };
-	const slot = t.slot('n', null);
-	if (s?.kind === 'static' && s.value != null) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_num(s, ${slot}, ${Number(s.value)});`);
-	return { slot, setter: -1 };
+	const { slot, setter, own } = value_slot(t, 'n', b, s, (js) => `Number(${js})`);
+	if (own && s?.kind === 'static' && s.value != null) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_num(s, ${slot}, ${Number(s.value)});`);
+	return { slot, setter };
 }
 
 /** The setter (for bind:), then onchange/oninput handlers, when the control changed. */
@@ -531,24 +515,15 @@ function emit_change(ctx: CompileContext, t: Template, node: AST.RegularElement,
 	t.line(`if (${changed}) { ${lines.join(' ')} }`);
 }
 
-function emit_check(ctx: CompileContext, t: Template, node: AST.RegularElement, type: string, key: string, label: string, disabled: string | null, css: (o: string) => void) {
-	void key;
+function emit_check(ctx: CompileContext, t: Template, node: AST.RegularElement, type: string, label: string, disabled: string | null, css: (o: string) => void) {
 	t.line('cui_check_opts o = {0};');
 	css('cui_check_opts');
 	if (disabled) t.line(`o.disabled = ${disabled};`);
 	if (type === 'checkbox') {
-		const b = bind(ctx, node, 'checked');
-		let slot: number;
-		let setter = -1;
-		if (b) {
-			slot = t.slot('b', b.get);
-			setter = t.setter(slot, b.set);
-		} else {
-			const a = attr(node, 'checked');
-			const s = a ? attr_source(ctx, a) : null;
-			slot = t.slot('b', s?.kind === 'expr' ? s.js : null);
-			if (s?.kind === 'static' && s.value !== false) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_bool(s, ${slot}, true);`);
-		}
+		const a = attr(node, 'checked');
+		const s = a ? attr_source(ctx, a) : null;
+		const { slot, setter, own } = value_slot(t, 'b', bind(ctx, node, 'checked'), s);
+		if (own && s?.kind === 'static' && s.value !== false) t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_bool(s, ${slot}, true);`);
 		t.line(`bool p_checked = cuisv_bool(s, ${slot}); bool p_was = p_checked;`);
 		t.line(`cui_checkbox_ex(ui, ${label}, &p_checked, &o);`);
 		emit_change(ctx, t, node, 'p_checked != p_was', `cuisv_set_bool(s, ${slot}, p_checked);`, setter, 'bool', 'p_checked');
@@ -556,8 +531,8 @@ function emit_check(ctx: CompileContext, t: Template, node: AST.RegularElement, 
 		// bind:group={x} value={v}: selected while x === v; choosing it sets x = v
 		const g = bind(ctx, node, 'group');
 		const va = attr(node, 'value');
-		const value_js = va ? (attr_source(ctx, va).kind === 'expr' ? (attr_source(ctx, va) as { js: string }).js : JSON.stringify((attr_source(ctx, va) as { value: unknown }).value)) : 'undefined';
-		const slot = t.slot('b', g ? `(${g.get}) === (${value_js})` : 'false');
+		const value_js = va ? js_of(attr_source(ctx, va)) : 'undefined';
+		const slot = t.slot('b', g ? `(${g.js}) === (${value_js})` : 'false');
 		const setter = g ? t.setter(slot, `() => { ${g.set.replace(/^\(__cuisv_v\) => /, '((__cuisv_v) => ')}${g.set.startsWith('(__cuisv_v)') ? ')' : ''}(${value_js}); }`) : -1;
 		t.line(`int p_sel = cuisv_bool(s, ${slot}) ? 1 : 0; int p_was = p_sel;`);
 		t.line(`cui_radio_ex(ui, ${label}, &p_sel, 1, &o);`);
@@ -566,21 +541,10 @@ function emit_check(ctx: CompileContext, t: Template, node: AST.RegularElement, 
 }
 
 function emit_text_input(ctx: CompileContext, t: Template, node: AST.RegularElement, fn: string, key: string, password: boolean, disabled: string | null, css: (o: string) => void) {
-	const b = bind(ctx, node, 'value');
-	let slot: number;
-	let setter = -1;
-	if (b) {
-		slot = t.slot('s', b.get);
-		setter = t.setter(slot, b.set);
-	} else {
-		const a = attr(node, 'value');
-		const s = a ? attr_source(ctx, a) : null;
-		slot = t.slot('s', s?.kind === 'expr' ? s.js : null);
-		if (s?.kind === 'static' && s.value != null) {
-			const init = String(s.value);
-			t.line(`if (!cuisv_has(s, ${slot})) cuisv_set_str(s, ${slot}, ${c_string(init)}, ${new TextEncoder().encode(init).length});`);
-		}
-	}
+	const a = attr(node, 'value');
+	const s = a ? attr_source(ctx, a) : null;
+	const { slot, setter, own } = value_slot(t, 's', bind(ctx, node, 'value'), s);
+	if (own && s?.kind === 'static' && s.value != null) t.line(init_str(slot, String(s.value)));
 	t.line('cui_input_opts o = {0};');
 	css('cui_input_opts');
 	if (password) t.line('o.password = true;');
@@ -629,19 +593,19 @@ function emit_select(ctx: CompileContext, t: Template, node: AST.RegularElement,
 			const text = text_of(ctx, n.fragment.nodes);
 			const lab = text ? (text.kind === 'static' ? JSON.stringify(String(text.value)) : text.js) : '""';
 			const va = attr(n, 'value');
-			const val = va ? (attr_source(ctx, va).kind === 'expr' ? (attr_source(ctx, va) as { js: string }).js : JSON.stringify((attr_source(ctx, va) as { value: unknown }).value)) : lab;
+			const val = va ? js_of(attr_source(ctx, va)) : lab;
 			labels.push(lab);
 			values.push(val);
 		} else if (n.type === 'EachBlock') {
 			const opt = n.body.nodes.find((x): x is AST.RegularElement => x.type === 'RegularElement' && x.name === 'option');
 			if (!opt) continue;
-			const ctx_src = n.context ? ctx.source.slice((n.context as unknown as { start: number }).start, (n.context as unknown as { end: number }).end) : '__cuisv_o';
+			const ctx_src = n.context ? src(ctx, n.context) : '__cuisv_o';
 			const params = `(${ctx_src}, ${n.index ?? '__cuisv_i'})`;
-			const list = ctx.source.slice((n.expression as unknown as { start: number }).start, (n.expression as unknown as { end: number }).end);
+			const list = src(ctx, n.expression);
 			const text = text_of(ctx, opt.fragment.nodes);
 			const lab = text ? (text.kind === 'static' ? JSON.stringify(String(text.value)) : text.js) : '""';
 			const va = attr(opt, 'value');
-			const val = va ? (attr_source(ctx, va).kind === 'expr' ? (attr_source(ctx, va) as { js: string }).js : JSON.stringify((attr_source(ctx, va) as { value: unknown }).value)) : lab;
+			const val = va ? js_of(attr_source(ctx, va)) : lab;
 			dynamic = { labels: `Array.from(${list}, ${params} => String(${lab}))`, values: `Array.from(${list}, ${params} => (${val}))` };
 		} else warn(ctx, 'select_children', '<select> takes <option>s (or one {#each} of them)', n as never);
 	}
@@ -652,7 +616,7 @@ function emit_select(ctx: CompileContext, t: Template, node: AST.RegularElement,
 	let index: number;
 	let setter = -1;
 	if (b) {
-		index = t.slot('n', `${values_js}.indexOf(${b.get})`);
+		index = t.slot('n', `${values_js}.indexOf(${b.js})`);
 		setter = t.setter(index, `(__cuisv_i) => (${b.set})(${values_js}[__cuisv_i])`);
 	} else {
 		const va = attr(node, 'value');
@@ -674,4 +638,3 @@ function emit_select(ctx: CompileContext, t: Template, node: AST.RegularElement,
 	t.line(`if (p_index != p_was) { ${lines.join(' ')} }`);
 }
 
-export { SPECS };
