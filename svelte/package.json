@@ -1,0 +1,70 @@
+{
+	"name": "cui-svelte",
+	"version": "0.1.0",
+	"description": "Svelte 5 for CUI: components compile to C views that call CUI, while <script>, runes and npm packages run in embedded QuickJS-ng",
+	"type": "module",
+	"license": "MIT",
+	"author": "Stanislav Khromov",
+	"bin": {
+		"cui-svelte": "bin/cui-svelte.js"
+	},
+	"exports": {
+		".": "./src/runtime/index.ts",
+		"./renderer": "./src/runtime/renderer.ts",
+		"./helpers": "./src/runtime/helpers.ts",
+		"./globals": "./src/runtime/globals.ts",
+		"./components": "./src/runtime/components.ts",
+		"./compiler": "./src/compiler/index.ts",
+		"./package.json": "./package.json",
+		"./svelte-config": "./src/svelte-config.js",
+		"./web": "./src/web/boot.ts",
+		"./test": "./src/runtime/test.ts"
+	},
+	"engines": {
+		"node": ">=24.0.0",
+		"bun": ">=1.4.0"
+	},
+	"scripts": {
+		"api": "node scripts/extract-api.ts && node scripts/gen-components.ts && node scripts/gen-docs.ts",
+		"typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json --threshold error --output human",
+		"test": "node test/run.ts",
+		"hello": "node bin/cui-svelte.js run examples/hello/main.ts",
+		"styled": "node bin/cui-svelte.js run examples/styled/main.ts",
+		"gallery": "node bin/cui-svelte.js run examples/gallery/main.ts",
+		"gallery:web": "node bin/cui-svelte.js dev examples/gallery/main.ts --web",
+		"pack": "node scripts/pack.ts",
+		"vendor": "node scripts/vendor-svelte.ts"
+	},
+	"dependencies": {
+		"esbuild": "^0.27.0",
+		"svelte": "file:vendor/svelte-5.57.3-7277a65.tgz"
+	},
+	"devDependencies": {
+		"@types/node": "^24.0.0",
+		"dayjs": "1",
+		"svelte-check": "4",
+		"typescript": "^5.9.3"
+	},
+	"files": [
+		"bin",
+		"src",
+		"runtime",
+		"third_party",
+		"cui",
+		"README.md",
+		"docs"
+	],
+	"bundleDependencies": [
+		"svelte"
+	],
+	"keywords": [
+		"svelte",
+		"cui",
+		"native",
+		"gui",
+		"c",
+		"quickjs",
+		"custom-renderer",
+		"wasm"
+	]
+}

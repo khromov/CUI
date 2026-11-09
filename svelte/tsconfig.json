@@ -1,0 +1,50 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"lib": [
+			"esnext",
+			"dom",
+			"dom.iterable"
+		],
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"customConditions": [
+			"custom-renderer"
+		],
+		"types": [
+			"node"
+		],
+		"strict": true,
+		"noEmit": true,
+		"allowImportingTsExtensions": true,
+		"erasableSyntaxOnly": true,
+		"verbatimModuleSyntax": true,
+		"allowJs": true,
+		"checkJs": false,
+		"skipLibCheck": true,
+		"paths": {
+			"cui-svelte": [
+				"./src/runtime/index.ts"
+			],
+			"cui-svelte/*": [
+				"./src/runtime/*.ts"
+			]
+		}
+	},
+	"include": [
+		"src",
+		"scripts",
+		"test",
+		"examples",
+		"bin",
+		"types"
+	],
+	"exclude": [
+		"**/node_modules",
+		"**/.cui-svelte",
+		"**/dist",
+		"**/dist-web",
+		"vendor",
+		"test/inline-c"
+	]
+}
