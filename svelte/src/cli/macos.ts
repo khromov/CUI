@@ -3,7 +3,7 @@
  *
  *   Name.app/Contents/Info.plist
  *   Name.app/Contents/MacOS/<binary>
- *   Name.app/Contents/Resources/AppIcon.icns     (from a PNG, with sips and iconutil)
+ *   Name.app/Contents/Resources/AppIcon.icns     (from a PNG: sizes by sips, compressed here)
  *
  * The binary links only system frameworks and has the app inside, so nothing else is
  * copied. The bundle is signed ad hoc unless a signing identity is given.
@@ -11,6 +11,8 @@
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { constants } from 'node:zlib';
+import { PNG } from 'pngjs';
 
 /** The oldest macOS the native builds target (CMAKE_OSX_DEPLOYMENT_TARGET in native.ts). */
 export const MACOS_MIN = '11.0';
@@ -66,22 +68,93 @@ ${body}
 `;
 }
 
-/** AppIcon.icns from a PNG: every size macOS asks for, scaled with sips, packed by iconutil. */
-function make_icns(png: string, dest: string, work: string): string | null {
-	const set = join(work, 'AppIcon.iconset');
-	rmSync(set, { recursive: true, force: true });
-	mkdirSync(set, { recursive: true });
-	for (const size of [16, 32, 128, 256, 512]) {
-		for (const scale of [1, 2]) {
-			const px = String(size * scale);
-			const file = join(set, `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`);
-			const r = run('sips', ['-s', 'format', 'png', '-z', px, px, png, '--out', file]);
-			if (!r.ok) return `sips could not scale ${png}: ${r.out.trim()}`;
-		}
+/* ---- the icon --------------------------------------------------------------------------------
+ * An .icns is a list of (type, data) entries. iconutil would store each size twice (256 px as
+ * both "256" and "128@2x", and so on) and recompress them all loosely; macOS picks an icon by
+ * pixel size, so one well compressed PNG per size is enough and about half as big.
+ *
+ * The 16 and 32 px icons for 1x screens are Apple's ARGB entries (ic04, ic05), which iconutil
+ * itself writes; a PNG in the older 16/32 px types (icp4, icp5) is not read back reliably. */
+
+const ICNS_PNG: [number, string][] = [
+	[32, 'ic11'],
+	[64, 'ic12'],
+	[128, 'ic07'],
+	[256, 'ic08'],
+	[512, 'ic09'],
+	[1024, 'ic10']
+];
+
+/** The (type, data) entries of an .icns file. */
+function icns_entries(buf: Buffer): [string, Buffer][] {
+	const out: [string, Buffer][] = [];
+	for (let p = 8; p + 8 <= buf.length; ) {
+		const len = buf.readUInt32BE(p + 4);
+		if (len < 8) break;
+		out.push([buf.toString('latin1', p, p + 4), buf.subarray(p + 8, p + len)]);
+		p += len;
 	}
-	const r = run('iconutil', ['-c', 'icns', set, '-o', dest]);
-	rmSync(set, { recursive: true, force: true });
-	return r.ok ? null : `iconutil failed: ${r.out.trim()}`;
+	return out;
+}
+
+/** The 16 and 32 px ARGB entries, encoded by iconutil from a two-image iconset. */
+function small_entries(src: string, work: string): [string, Buffer][] {
+	const set = join(work, '.AppIcon.iconset'), icns = join(work, '.AppIcon-small.icns');
+	try {
+		mkdirSync(set, { recursive: true });
+		for (const size of [16, 32]) {
+			const r = run('sips', ['-s', 'format', 'png', '-z', String(size), String(size), src, '--out', join(set, `icon_${size}x${size}.png`)]);
+			if (!r.ok) return [];
+		}
+		if (!run('iconutil', ['-c', 'icns', set, '-o', icns]).ok) return [];
+		return icns_entries(readFileSync(icns)).filter(([tag]) => tag === 'ic04' || tag === 'ic05');
+	} finally {
+		rmSync(set, { recursive: true, force: true });
+		rmSync(icns, { force: true });
+	}
+}
+
+/** The same image as a smaller PNG: pngjs picks each row's best filter, deflate at level 9
+ * with whichever strategy packs it tighter. The original when that is not smaller. */
+function recompress(png: Buffer): Buffer {
+	let best = png;
+	try {
+		const img = PNG.sync.read(png);
+		for (const deflateStrategy of [constants.Z_DEFAULT_STRATEGY, constants.Z_FILTERED, constants.Z_RLE]) {
+			const out = PNG.sync.write(img, { colorType: 6, filterType: -1, deflateLevel: 9, deflateStrategy });
+			if (out.length < best.length) best = out;
+		}
+	} catch {
+		/* a PNG pngjs cannot read stays as sips wrote it */
+	}
+	return best;
+}
+
+/** AppIcon.icns from a PNG (or anything sips reads): each size scaled by sips, then recompressed. */
+function make_icns(src: string, dest: string, work: string): string | null {
+	const tmp = join(work, '.AppIcon.png');
+	const entries: Buffer[] = [];
+	const add = (tag: string, data: Buffer) => {
+		const head = Buffer.alloc(8);
+		head.write(tag, 0, 'latin1');
+		head.writeUInt32BE(data.length + 8, 4);
+		entries.push(head, data);
+	};
+	try {
+		for (const [tag, data] of small_entries(src, work)) add(tag, data);
+		for (const [size, tag] of ICNS_PNG) {
+			const r = run('sips', ['-s', 'format', 'png', '-z', String(size), String(size), src, '--out', tmp]);
+			if (!r.ok) return `sips could not scale ${src}: ${r.out.trim()}`;
+			add(tag, recompress(readFileSync(tmp)));
+		}
+	} finally {
+		rmSync(tmp, { force: true });
+	}
+	const body = Buffer.concat(entries), head = Buffer.alloc(8);
+	head.write('icns', 0, 'latin1');
+	head.writeUInt32BE(body.length + 8, 4);
+	writeFileSync(dest, Buffer.concat([head, body]));
+	return null;
 }
 
 /** Writes Name.app (replacing an earlier one) and returns its path, or throws with the reason. */
@@ -154,10 +227,11 @@ export function notarize(app: string, profile: string, log: (s: string) => void)
 	if (!st.ok) throw new Error(`stapler failed: ${st.out.trim()}`);
 }
 
-/** What run(App, { title, app_id }) in the entry says, when it says it with string literals. */
+/** What run(App, { title, app_id }) (or set_app_id) in the entry says, with string literals. */
 export function run_options(entry: string): { title?: string; app_id?: string } {
 	const src = readFileSync(entry, 'utf8');
 	const call = src.match(/\brun\s*\([^,]+,\s*\{([\s\S]*?)\}\s*\)/)?.[1] ?? '';
 	const str = (key: string) => call.match(new RegExp(`\\b${key}\\s*:\\s*(['"\`])((?:(?!\\1)[^\\\\]|\\\\.)*)\\1`))?.[2];
-	return { title: str('title'), app_id: str('app_id') };
+	const set_id = src.match(/\bset_app_id\s*\(\s*(['"`])((?:(?!\1)[^\\])*)\1\s*\)/)?.[2];
+	return { title: str('title'), app_id: str('app_id') ?? set_id };
 }

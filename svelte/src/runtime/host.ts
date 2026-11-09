@@ -155,9 +155,19 @@ export const fs = {
 };
 
 let app_id = '';
+const REBIND = Symbol('rebind');
 
+/**
+ * Names the app's data folder (run()'s app_id does this too). Call it before anything reads
+ * localStorage when the app needs its data before run(), such as the theme to open the
+ * window in.
+ */
 export function set_app_id(id: string) {
-	app_id = id.replace(/[^\w.-]+/g, '-');
+	const next = id.replace(/[^\w.-]+/g, '-');
+	if (next === app_id) return;
+	// what localStorage held belongs to the old folder: unsaved changes go there, then it reads anew
+	local_storage[REBIND]();
+	app_id = next;
 }
 
 function default_app_id() {
@@ -225,6 +235,10 @@ class FileStorage {
 	clear() {
 		this.#load().clear();
 		this.#save();
+	}
+	[REBIND]() {
+		if (this.#timer) this.flush();
+		this.#data = null;
 	}
 }
 

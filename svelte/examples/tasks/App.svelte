@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Column, Row, Heading, Muted, Input, Button, IconButton, Checkbox, Tabs, Badge, EmptyState, ThemeToggle, Scroll, toast } from 'cui-svelte';
+	import { Column, Row, Heading, Muted, Input, Button, IconButton, Checkbox, Tabs, Badge, EmptyState, ThemeToggle, Scroll, toast, get_theme } from 'cui-svelte';
 	import Task from './Task.svelte';
-	import { load, save, type Item } from './store.ts';
+	import { load, save, save_theme, type Item } from './store.ts';
 
 	let items = $state<Item[]>(load());
 	let draft = $state('');
@@ -33,7 +33,8 @@
 		<Heading level={2}>Tasks</Heading>
 		<Badge tone={open ? 'accent' : 'success'}>{open ? `${open} open` : 'all done'}</Badge>
 		<div class="spacer"></div>
-		<ThemeToggle />
+		<!-- the toggle switches the theme itself; main.ts opens the window in the one saved here -->
+		<ThemeToggle onclick={() => save_theme(get_theme())} />
 	</div>
 	<Row gap={8}>
 		<Input id="new" bind:value={draft} placeholder="What needs doing?" icon="plus" width="fill" onsubmit={add} />

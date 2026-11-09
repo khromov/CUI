@@ -19,3 +19,21 @@ test('add, complete and filter tasks', () => {
 	localStorage.removeItem('tasks');
 	local_storage.flush();
 });
+
+test('the theme toggle saves its choice for the next launch', async () => {
+	const { get_theme } = await import('cui-svelte');
+	const { saved_theme } = await import('./store.ts');
+	localStorage.removeItem('theme');
+	const app = mount_test(App, { width: 520, height: 640 });
+	const heading = app.find('Tasks')!;
+	const toggle = { x: 520 - 28 - 16, y: heading.y + heading.h / 2 }; // right end of the header
+	app.click(toggle);
+	app.frame(2);
+	expect(get_theme()).toBe('dark');
+	expect(saved_theme()).toBe('dark');
+	app.click(toggle);
+	app.frame(2);
+	expect(saved_theme()).toBe('light');
+	localStorage.removeItem('theme');
+	local_storage.flush();
+});

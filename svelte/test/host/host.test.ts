@@ -76,3 +76,19 @@ test('clipboard', () => {
 	clipboard.write('copied text');
 	expect(clipboard.read()).toBe('copied text');
 });
+
+test('set_app_id: localStorage moves to the new folder without carrying data over', async () => {
+	const { set_app_id } = await import('cui-svelte');
+	const before = paths.data();
+	localStorage.setItem('probe', 'old folder'); // not written yet
+	set_app_id('cui-svelte-rebind-test');
+	const after = paths.data();
+	expect(after === before).toBe(false);
+	expect(localStorage.getItem('probe')).toBe(null);
+	expect(JSON.parse(fs.read_text(`${before}/localStorage.json`)!).probe).toBe('old folder');
+	fs.remove(after);
+	set_app_id(before.split('/').pop()!);
+	expect(localStorage.getItem('probe')).toBe('old folder');
+	localStorage.removeItem('probe');
+	local_storage.flush();
+});

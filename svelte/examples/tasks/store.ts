@@ -25,3 +25,12 @@ export function load(): Item[] {
 export function save(items: Item[]) {
 	localStorage.setItem(KEY, JSON.stringify(items));
 }
+
+/** The theme picked with the toggle last time; light until then. */
+export function saved_theme(): 'light' | 'dark' {
+	return localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+}
+
+export function save_theme(theme: 'light' | 'dark') {
+	localStorage.setItem('theme', theme);
+}

@@ -15,6 +15,26 @@ viewport.width;                    // reactive: read it in markup or an $effect
 platform();                        // 'macos' | 'windows' | 'linux' | 'web'
 ```
 
+### Remembering the theme
+
+`<ThemeToggle>` switches the theme by itself but does not save it. To save it, keep the
+choice in `localStorage` and open the window in that theme next time. The window has to
+be created in the right theme, so read it before `run()`. Name the data folder first with
+`set_app_id`, because `localStorage` lives in that folder:
+
+```ts
+// main.ts
+set_app_id('com.example.notes');
+const theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+run(App, { title: 'Notes', theme });
+```
+
+```svelte
+<ThemeToggle onclick={() => localStorage.setItem('theme', get_theme())} />
+```
+
+`examples/tasks` does exactly this.
+
 ## Keyboard
 
 ```ts

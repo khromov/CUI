@@ -19,6 +19,7 @@
 @property (nonatomic, strong) NSOpenGLContext *gl;
 @property (nonatomic, assign) cui_app *app;
 @property (nonatomic, assign) cui_cursor cursor;
+@property (nonatomic, assign) int theme_shown;   /* the theme the window's title bar shows, mode + 1 */
 @end
 
 static void *cui__mac_libgl;
@@ -298,6 +299,7 @@ bool cui__plat_init(cui_app *app) {
         [w makeFirstResponder:v];
         p.window = w;
         p.view = v;
+        p.theme_shown = (int)app->desc.theme + 1;
         app->plat = (__bridge_retained void *)p;
         cui_platform_iface pi;
         memset(&pi, 0, sizeof pi);
@@ -402,6 +404,20 @@ void cui__plat_set_size(cui_app *app, int w, int h) {
 
 void *cui__plat_native(cui_app *app) { return (__bridge void *)cui__p(app).window; }
 
+/* The title bar and the window behind the content follow the theme when it changes after
+ * the window opened: a theme toggle, cui_set_theme, or the system's appearance. */
+static void cui__mac_sync_theme(cui_app *app) {
+    CUIPlat *p = cui__p(app);
+    int mode = (int)cui_get_theme_mode(app->ui) + 1;
+    if (!p.window || p.theme_shown == mode) return;
+    p.theme_shown = mode;
+    cui_color bg = app->ui->theme.colors[CUI_TOKEN_BACKGROUND];
+    p.window.backgroundColor = [NSColor colorWithSRGBRed:bg.r / 255.0 green:bg.g / 255.0 blue:bg.b / 255.0 alpha:1];
+    if (@available(macOS 10.14, *)) {
+        p.window.appearance = [NSAppearance appearanceNamed:mode - 1 == CUI_THEME_DARK ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua];
+    }
+}
+
 void cui__plat_wait(cui_app *app, double timeout) {
     @autoreleasepool {
         NSDate *until = timeout < 0 ? [NSDate distantFuture] : [NSDate dateWithTimeIntervalSinceNow:timeout];
@@ -415,6 +431,7 @@ void cui__plat_wait(cui_app *app, double timeout) {
             int dark = cui__plat_system_dark();
             if (dark >= 0) cui_set_theme(app->ui, dark ? CUI_THEME_DARK : CUI_THEME_LIGHT);
         }
+        cui__mac_sync_theme(app);
     }
 }
 
