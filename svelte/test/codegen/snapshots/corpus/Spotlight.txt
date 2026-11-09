@@ -25,6 +25,7 @@ static void cuisv_t_65eb6d8f(cui_ctx *ui, cuisv_scope *s) {
         o.color = CUI_TOKEN_COLOR(11);
         o.beam = false;
         cui_spotlight_begin(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cuisv_text(ui, cuisv_str(s, 0), NULL);
         cui_spotlight_end(ui);
     }
@@ -80,6 +81,7 @@ static void cuisv_t_021cc969(cui_ctx *ui, cuisv_scope *s) {
         o.color = cuisv_color(s, 6, CUI_TRANSPARENT);
         o.beam = cuisv_bool(s, 7);
         cui_spotlight_begin(ui, cuisv_str(s, 1), &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cuisv_text(ui, cuisv_str(s, 8), NULL);
         cui_spotlight_end(ui);
     }
@@ -169,6 +171,7 @@ static void cuisv_t_e1d4ca24(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         cui_spotlight_begin(ui, "s_id", &o);
+        cuisv_name_last(ui, "s_id");
         cuisv_text_push(&ts_k0);
         cuisv_text(ui, "Static text", NULL);
         cuisv_text_pop();
@@ -178,6 +181,7 @@ static void cuisv_t_e1d4ca24(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_spotlight_opts o = {0};
         cui_spotlight_begin(ui, "fixed_id", &o);
+        cuisv_name_last(ui, "fixed_id");
         { /* <Text> k2 */
             cui_text_opts o = {0};
             cuisv_text_inherit(&o);

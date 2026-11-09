@@ -265,6 +265,7 @@ static void cuisv_t_61af4807(cui_ctx *ui, cuisv_scope *s) {
         bool p_open_was = p_open;
         cui_dock_panel_opts o = {0};
         if (cui_dock_panel_begin_ex(ui, "###fixed_id", &p_open, &o)) {
+            cuisv_name_last(ui, "fixed_id");
             { /* <Text> k2 */
                 cui_text_opts o = {0};
                 cuisv_text_inherit(&o);

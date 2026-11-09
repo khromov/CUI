@@ -24,6 +24,7 @@ static void cuisv_t_c5715c7a(cui_ctx *ui, cuisv_scope *s) {
         o.no_toolbar = false;
         o.size = -2.5f;
         cui_log_view_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_log_buffer(cuisv_num(s, 0)), &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -77,6 +78,7 @@ static void cuisv_t_95ed2300(cui_ctx *ui, cuisv_scope *s) {
         o.no_toolbar = cuisv_bool(s, 6);
         o.size = cuisv_float(s, 7);
         cui_log_view_ex(ui, cuisv_str(s, 1), cuisv_log_buffer(cuisv_num(s, 2)), &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 8));
     }
     cuisv_render_site(ui, s, 0);
@@ -153,12 +155,14 @@ static void cuisv_t_357aaf53(cui_ctx *ui, cuisv_scope *s) {
         o.no_toolbar = true;
         o.size = 3.0f;
         cui_log_view_ex(ui, "s_id", cuisv_log_buffer(cuisv_num(s, 0)), &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <LogView> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_log_view_opts o = {0};
         cui_log_view_ex(ui, "fixed_id", cuisv_log_buffer(cuisv_num(s, 1)), &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

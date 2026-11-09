@@ -21,6 +21,7 @@ static void cuisv_t_642f392e(cui_ctx *ui, cuisv_scope *s) {
         o.hide_days = false;
         o.compact = false;
         cui_countdown_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", -2.5, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -71,6 +72,7 @@ static void cuisv_t_9b8494dc(cui_ctx *ui, cuisv_scope *s) {
         o.hide_days = cuisv_bool(s, 3);
         o.compact = cuisv_bool(s, 4);
         cui_countdown_ex(ui, cuisv_str(s, 1), cuisv_num(s, 2), &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
     }
     cuisv_render_site(ui, s, 0);
@@ -143,12 +145,14 @@ static void cuisv_t_531d69bf(cui_ctx *ui, cuisv_scope *s) {
         o.hide_days = true;
         o.compact = true;
         cui_countdown_ex(ui, "s_id", 3, &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Countdown> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_countdown_opts o = {0};
         cui_countdown_ex(ui, "fixed_id", 0, &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

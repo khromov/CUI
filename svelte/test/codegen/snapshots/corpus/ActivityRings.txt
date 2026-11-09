@@ -33,6 +33,7 @@ static void cuisv_t_532891a7(cui_ctx *ui, cuisv_scope *s) {
         o.legend = false;
         int r = cui_activity_rings_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_viz_item *)rec_rings->items, rec_rings->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -95,6 +96,7 @@ static void cuisv_t_2457d6f1(cui_ctx *ui, cuisv_scope *s) {
         o.legend = cuisv_bool(s, 7);
         int r = cui_activity_rings_ex(ui, cuisv_str(s, 1), (const cui_viz_item *)rec_rings->items, rec_rings->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 9));
         if (r >= 0) cuisv_emit_num(s, 8, r);
     }
@@ -182,6 +184,7 @@ static void cuisv_t_387ff06c(cui_ctx *ui, cuisv_scope *s) {
         o.legend = true;
         int r = cui_activity_rings_ex(ui, "s_id", (const cui_viz_item *)rec_rings->items, rec_rings->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <ActivityRings> k1 */
@@ -190,6 +193,7 @@ static void cuisv_t_387ff06c(cui_ctx *ui, cuisv_scope *s) {
         cui_rings_opts o = {0};
         int r = cui_activity_rings_ex(ui, "fixed_id", (const cui_viz_item *)rec_rings->items, rec_rings->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

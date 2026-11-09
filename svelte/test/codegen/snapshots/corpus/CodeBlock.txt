@@ -27,6 +27,7 @@ static void cuisv_t_da2da415(cui_ctx *ui, cuisv_scope *s) {
         o.size = -2.5f;
         o.no_header = false;
         cui_code_block_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -83,6 +84,7 @@ static void cuisv_t_1c6d0bcf(cui_ctx *ui, cuisv_scope *s) {
         o.size = cuisv_float(s, 9);
         o.no_header = cuisv_bool(s, 10);
         cui_code_block_ex(ui, cuisv_str(s, 1), cuisv_str(s, 2), &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 11));
     }
     cuisv_render_site(ui, s, 0);
@@ -161,12 +163,14 @@ static void cuisv_t_726edcfe(cui_ctx *ui, cuisv_scope *s) {
         o.size = 3.0f;
         o.no_header = true;
         cui_code_block_ex(ui, "s_id", "s_code", &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <CodeBlock> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_code_opts o = {0};
         cui_code_block_ex(ui, "fixed_id", "", &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

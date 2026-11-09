@@ -32,6 +32,7 @@ static void cuisv_t_25110929(cui_ctx *ui, cuisv_scope *s) {
         o.filter_label = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         bool r = cui_file_picker_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &p_open, p_out, cap_out, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_open != p_open_was) { cuisv_set_bool(s, 0, p_open); }
         if (r) { cuisv_buf_changed(s, 1, -1); }
@@ -170,6 +171,7 @@ static void cuisv_t_86aee5cb(cui_ctx *ui, cuisv_scope *s) {
         o.filter_label = cuisv_cstr(s, 10);
         bool r = cui_file_picker_ex(ui, cuisv_str(s, 1), &p_open, p_out, cap_out, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 12));
         if (p_open != p_open_was) { cuisv_set_bool(s, 2, p_open); }
         if (r) { cuisv_buf_changed(s, 3, -1); }
@@ -262,6 +264,7 @@ static void cuisv_t_5d648daa(cui_ctx *ui, cuisv_scope *s) {
         o.filter_label = "s_filter_label";
         bool r = cui_file_picker_ex(ui, "s_id", &p_open, p_out, cap_out, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_open != p_open_was) { cuisv_set_bool(s, 0, p_open); }
         if (r) { cuisv_buf_changed(s, 1, -1); }
@@ -274,6 +277,7 @@ static void cuisv_t_5d648daa(cui_ctx *ui, cuisv_scope *s) {
         cui_file_picker_opts o = {0};
         bool r = cui_file_picker_ex(ui, "fixed_id", &p_open, p_out, cap_out, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_open != p_open_was) { cuisv_set_bool(s, 2, p_open); }
         if (r) { cuisv_buf_changed(s, 3, -1); }
     }

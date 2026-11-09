@@ -272,6 +272,7 @@ static void cuisv_t_bd35df0c(cui_ctx *ui, cuisv_scope *s) {
         cui_prop_opts o = {0};
         bool r = cui_prop_color_ex(ui, "###fixed_id", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_color, &p_value); }
     }
 }

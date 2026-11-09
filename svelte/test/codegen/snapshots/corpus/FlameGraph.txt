@@ -45,6 +45,7 @@ static void cuisv_t_ebd557a2(cui_ctx *ui, cuisv_scope *s) {
         o.min_range = -2.5;
         cui_flame_result r = cui_flame_graph_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 2, p_selected); }
@@ -217,6 +218,7 @@ static void cuisv_t_c9d2e598(cui_ctx *ui, cuisv_scope *s) {
         o.min_range = cuisv_num(s, 8);
         cui_flame_result r = cui_flame_graph_ex(ui, cuisv_str(s, 1), (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 11));
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 3, -1, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 4, p_selected); }
@@ -326,6 +328,7 @@ static void cuisv_t_6799966b(cui_ctx *ui, cuisv_scope *s) {
         o.min_range = 3;
         cui_flame_result r = cui_flame_graph_ex(ui, "s_id", (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 2, p_selected); }
@@ -340,6 +343,7 @@ static void cuisv_t_6799966b(cui_ctx *ui, cuisv_scope *s) {
         cui_flame_opts o = {0};
         cui_flame_result r = cui_flame_graph_ex(ui, "fixed_id", (const cui_flame_span *)rec_spans->items, rec_spans->count, &p_view, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 4, -1, &cuisv_sd_cui_flame_view, &p_view); }
         if (p_selected != p_selected_was) { cuisv_set_num(s, 5, p_selected); }
     }

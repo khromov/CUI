@@ -27,6 +27,7 @@ static void cuisv_t_5962cdfb(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PCT(50.0f);
         o.height = CUI_PCT(50.0f);
         cui_split_begin(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &p_ratio, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cuisv_text(ui, "Alt", NULL);
         cui_split_next(ui);
         cuisv_text(ui, cuisv_str(s, 1), NULL);
@@ -163,6 +164,7 @@ static void cuisv_t_83552edd(cui_ctx *ui, cuisv_scope *s) {
         o.width = cuisv_size(s, 6, CUI_FIT);
         o.height = cuisv_size(s, 7, CUI_FIT);
         cui_split_begin(ui, cuisv_str(s, 1), &p_ratio, &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cuisv_text(ui, "Dyn", NULL);
         cui_split_next(ui);
         cuisv_text(ui, cuisv_str(s, 9), NULL);
@@ -262,6 +264,7 @@ static void cuisv_t_a31658a8(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         cui_split_begin(ui, "s_id", &p_ratio, &o);
+        cuisv_name_last(ui, "s_id");
         cuisv_text_push(&ts_k0);
         cuisv_text(ui, "Static text", NULL);
         cui_split_next(ui);
@@ -276,6 +279,7 @@ static void cuisv_t_a31658a8(cui_ctx *ui, cuisv_scope *s) {
         float p_ratio_was = p_ratio;
         cui_split_opts o = {0};
         cui_split_begin(ui, "fixed_id", &p_ratio, &o);
+        cuisv_name_last(ui, "fixed_id");
         { /* <Text> k2 */
             cui_text_opts o = {0};
             cuisv_text_inherit(&o);

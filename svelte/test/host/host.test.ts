@@ -25,6 +25,19 @@ test('toast', () => {
 	expect(app.text()).toContain('All good');
 });
 
+test('a toast keeps its action while the pointer holds it open', () => {
+	const app = mount_test(Host, { width: 500, height: 400 });
+	app.click('delete');
+	app.frame(3);
+	// CUI pauses a toast's time while the pointer is over the stack: 0.5 s plus several more
+	app.move('Deleted');
+	app.frame(300);
+	expect(app.text()).toContain('Deleted');
+	app.click('Undo');
+	app.frame(3);
+	expect(app.text()).toContain('undone=1');
+});
+
 test('files, app data and localStorage', () => {
 	const dir = paths.data();
 	expect(fs.exists(dir)).toBe(true);

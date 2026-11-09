@@ -103,6 +103,9 @@ export class TestApp {
 		key(code, true, m);
 		this.frame();
 		key(code, false, m);
+		// then the modifiers (CUI samples them at presses and at modifier-only changes), or
+		// typing after a shortcut would still hold them
+		if (m) key(0, false, 0);
 		this.frame();
 	}
 

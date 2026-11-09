@@ -36,6 +36,7 @@ static void cuisv_t_29dca1ad(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PCT(50.0f);
         int r = cui_chat_composer_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 0, -1); }
         if (po_removed != po_removed_was) { cuisv_set_num(s, 1, po_removed); }
@@ -185,6 +186,7 @@ static void cuisv_t_4d35cc97(cui_ctx *ui, cuisv_scope *s) {
         o.width = cuisv_size(s, 11, CUI_FIT);
         int r = cui_chat_composer_ex(ui, cuisv_str(s, 1), p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 13));
         if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 2, -1); }
         if (po_removed != po_removed_was) { cuisv_set_num(s, 3, po_removed); }
@@ -280,6 +282,7 @@ static void cuisv_t_945ad426(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PX(120.0f);
         int r = cui_chat_composer_ex(ui, "s_id", p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 0, -1); }
         if (po_removed != po_removed_was) { cuisv_set_num(s, 1, po_removed); }
@@ -291,6 +294,7 @@ static void cuisv_t_945ad426(cui_ctx *ui, cuisv_scope *s) {
         cui_composer_opts o = {0};
         int r = cui_chat_composer_ex(ui, "fixed_id", p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 3, -1); }
     }
 }

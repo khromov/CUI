@@ -18,6 +18,7 @@ static void cuisv_t_1d451e44(cui_ctx *ui, cuisv_scope *s) {
     { /* <Kanban> k0 */
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_kanban_begin(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cuisv_text(ui, cuisv_str(s, 0), NULL);
         cui_kanban_move mv; memset(&mv, 0, sizeof mv);
         cui_kanban_end(ui, &mv);
@@ -67,6 +68,7 @@ static void cuisv_t_a50ae72a(cui_ctx *ui, cuisv_scope *s) {
     { /* <Kanban> k0 */
         cuisv_name(ui, cuisv_str(s, 0), cuisv_str(s, 0));
         cui_kanban_begin(ui, cuisv_str(s, 1));
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cuisv_text(ui, cuisv_str(s, 2), NULL);
         cui_kanban_move mv; memset(&mv, 0, sizeof mv);
         bool e = cui_kanban_end(ui, &mv);
@@ -149,6 +151,7 @@ static void cuisv_t_22f94d39(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         cui_kanban_begin(ui, "s_id");
+        cuisv_name_last(ui, "s_id");
         cuisv_text_push(&ts_k0);
         cuisv_text(ui, "Static text", NULL);
         cuisv_text_pop();
@@ -158,6 +161,7 @@ static void cuisv_t_22f94d39(cui_ctx *ui, cuisv_scope *s) {
     { /* <Kanban> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_kanban_begin(ui, "fixed_id");
+        cuisv_name_last(ui, "fixed_id");
         { /* <Text> k2 */
             cui_text_opts o = {0};
             cuisv_text_inherit(&o);

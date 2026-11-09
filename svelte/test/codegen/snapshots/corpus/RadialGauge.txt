@@ -29,6 +29,7 @@ static void cuisv_t_8811de5d(cui_ctx *ui, cuisv_scope *s) {
         o.show_target = false;
         o.no_needle = false;
         cui_radial_gauge_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", -2.5f, -2.5f, -2.5f, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -87,6 +88,7 @@ static void cuisv_t_0dfa7dc7(cui_ctx *ui, cuisv_scope *s) {
         o.show_target = cuisv_bool(s, 13);
         o.no_needle = cuisv_bool(s, 14);
         cui_radial_gauge_ex(ui, cuisv_str(s, 1), cuisv_float(s, 2), cuisv_float(s, 3), cuisv_float(s, 4), &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 15));
     }
     cuisv_render_site(ui, s, 0);
@@ -167,12 +169,14 @@ static void cuisv_t_c57b8076(cui_ctx *ui, cuisv_scope *s) {
         o.show_target = true;
         o.no_needle = true;
         cui_radial_gauge_ex(ui, "s_id", 3.0f, 3.0f, 3.0f, &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <RadialGauge> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_radial_gauge_opts o = {0};
         cui_radial_gauge_ex(ui, "fixed_id", 0, 0, 100, &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

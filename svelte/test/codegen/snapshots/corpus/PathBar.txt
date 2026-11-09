@@ -30,6 +30,7 @@ static void cuisv_t_3e5e66c7(cui_ctx *ui, cuisv_scope *s) {
         o.no_edit = false;
         cui_path_bar_result r = cui_path_bar_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_strs_0, n_segments, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -87,6 +88,7 @@ static void cuisv_t_a0fbec91(cui_ctx *ui, cuisv_scope *s) {
         o.no_edit = cuisv_bool(s, 9);
         cui_path_bar_result r = cui_path_bar_ex(ui, cuisv_str(s, 1), cuisv_strs(s, 2, &n_segments), n_segments, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 12));
         if (r.clicked >= 0) cuisv_emit_num(s, 10, r.clicked);
         if (r.submitted != NULL) cuisv_emit_str(s, 11, r.submitted);
@@ -172,6 +174,7 @@ static void cuisv_t_f10d5f0c(cui_ctx *ui, cuisv_scope *s) {
         o.no_edit = true;
         cui_path_bar_result r = cui_path_bar_ex(ui, "s_id", cuisv_strs_0, n_segments, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <PathBar> k1 */
@@ -179,6 +182,7 @@ static void cuisv_t_f10d5f0c(cui_ctx *ui, cuisv_scope *s) {
         cui_path_bar_opts o = {0};
         cui_path_bar_result r = cui_path_bar_ex(ui, "fixed_id", NULL, 0, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

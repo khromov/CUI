@@ -27,6 +27,7 @@ static void cuisv_t_f9c63962(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         const cuisv_records *rec_users = cuisv_records_get(s, 0, &cuisv_sd_cui_presence_user);
         cui_presence(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_presence_user *)rec_users->items, rec_users->count, -2, -2.5f);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -83,6 +84,7 @@ static void cuisv_t_2436cc58(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, cuisv_str(s, 0), cuisv_str(s, 0));
         const cuisv_records *rec_users = cuisv_records_get(s, 2, &cuisv_sd_cui_presence_user);
         cui_presence(ui, cuisv_str(s, 1), (const cui_presence_user *)rec_users->items, rec_users->count, cuisv_int(s, 3), cuisv_float(s, 4));
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
     }
     cuisv_render_site(ui, s, 0);
@@ -161,12 +163,14 @@ static void cuisv_t_26ad9a2b(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "s_id", "s_id");
         const cuisv_records *rec_users = cuisv_records_get(s, 0, &cuisv_sd_cui_presence_user);
         cui_presence(ui, "s_id", (const cui_presence_user *)rec_users->items, rec_users->count, 3, 3.0f);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Presence> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         const cuisv_records *rec_users = cuisv_records_get(s, 1, &cuisv_sd_cui_presence_user);
         cui_presence(ui, "fixed_id", (const cui_presence_user *)rec_users->items, rec_users->count, 4, 28);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

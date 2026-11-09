@@ -30,6 +30,7 @@ static void cuisv_t_049c61a0(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PCT(50.0f);
         bool r = cui_multi_select_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_strs_0, n_items, p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(p_selected, p_selected_was, (size_t)n_items) != 0) { cuisv_slot_bools(s, 0, p_selected, n_items); }
     }
@@ -165,6 +166,7 @@ static void cuisv_t_7c5c00ce(cui_ctx *ui, cuisv_scope *s) {
         o.width = cuisv_size(s, 9, CUI_FIT);
         bool r = cui_multi_select_ex(ui, cuisv_str(s, 1), cuisv_strs(s, 2, &n_items), n_items, p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 11));
         if (memcmp(p_selected, p_selected_was, (size_t)n_items) != 0) { cuisv_slot_bools(s, 3, p_selected, n_items); }
         if (memcmp(p_selected, p_selected_was, (size_t)n_items) != 0) { cuisv_emit_bytes(s, 10, p_selected, (uint32_t)n_items); }
@@ -254,6 +256,7 @@ static void cuisv_t_f3482f6d(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PX(120.0f);
         bool r = cui_multi_select_ex(ui, "s_id", cuisv_strs_0, n_items, p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(p_selected, p_selected_was, (size_t)n_items) != 0) { cuisv_slot_bools(s, 0, p_selected, n_items); }
     }
@@ -265,6 +268,7 @@ static void cuisv_t_f3482f6d(cui_ctx *ui, cuisv_scope *s) {
         cui_multi_select_opts o = {0};
         bool r = cui_multi_select_ex(ui, "fixed_id", NULL, n_items, p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(p_selected, p_selected_was, (size_t)n_items) != 0) { cuisv_slot_bools(s, 1, p_selected, n_items); }
     }
 }

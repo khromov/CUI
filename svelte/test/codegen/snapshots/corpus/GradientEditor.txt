@@ -34,6 +34,7 @@ static void cuisv_t_d7eb9616(cui_ctx *ui, cuisv_scope *s) {
         o.height = -2.5f;
         cui_gradient_result r = cui_gradient_editor_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", p_stops, &n_stops, cap_stops, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if ((n_stops != n_stops_was || memcmp(p_stops, rec_stops->items, sizeof(cui_gradient_stop) * (size_t)n_stops) != 0)) { cuisv_records_store(s, 0, &cuisv_sd_cui_gradient_stop, p_stops, n_stops); }
         if (po_selected != po_selected_was) { cuisv_set_num(s, 1, po_selected); }
@@ -188,6 +189,7 @@ static void cuisv_t_19965474(cui_ctx *ui, cuisv_scope *s) {
         o.height = cuisv_float(s, 5);
         cui_gradient_result r = cui_gradient_editor_ex(ui, cuisv_str(s, 1), p_stops, &n_stops, cap_stops, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 7));
         if ((n_stops != n_stops_was || memcmp(p_stops, rec_stops->items, sizeof(cui_gradient_stop) * (size_t)n_stops) != 0)) { cuisv_records_store(s, 2, &cuisv_sd_cui_gradient_stop, p_stops, n_stops); }
         if (po_selected != po_selected_was) { cuisv_set_num(s, 3, po_selected); }
@@ -283,6 +285,7 @@ static void cuisv_t_1c8bd177(cui_ctx *ui, cuisv_scope *s) {
         o.height = 3.0f;
         cui_gradient_result r = cui_gradient_editor_ex(ui, "s_id", p_stops, &n_stops, cap_stops, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if ((n_stops != n_stops_was || memcmp(p_stops, rec_stops->items, sizeof(cui_gradient_stop) * (size_t)n_stops) != 0)) { cuisv_records_store(s, 0, &cuisv_sd_cui_gradient_stop, p_stops, n_stops); }
         if (po_selected != po_selected_was) { cuisv_set_num(s, 1, po_selected); }
@@ -296,6 +299,7 @@ static void cuisv_t_1c8bd177(cui_ctx *ui, cuisv_scope *s) {
         cui_gradient_opts o = {0};
         cui_gradient_result r = cui_gradient_editor_ex(ui, "fixed_id", p_stops, &n_stops, cap_stops, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if ((n_stops != n_stops_was || memcmp(p_stops, rec_stops->items, sizeof(cui_gradient_stop) * (size_t)n_stops) != 0)) { cuisv_records_store(s, 2, &cuisv_sd_cui_gradient_stop, p_stops, n_stops); }
     }
 }

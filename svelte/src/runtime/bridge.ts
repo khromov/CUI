@@ -40,6 +40,8 @@ export interface Hooks {
 	paint(handle: number, slot: number, x: number, y: number, w: number, h: number): void;
 	resize(w: number, h: number): void;
 	toast_action(handle: number): void;
+	/** A toast with an action left without the action being clicked. */
+	toast_gone(handle: number): void;
 	key(key: number, mods: number): void;
 	/** Test builds: the host found the tests unfinished (timed out, or nothing left to run). */
 	unfinished(): void;

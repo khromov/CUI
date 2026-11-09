@@ -25,6 +25,7 @@ static void cuisv_t_08061d8f(cui_ctx *ui, cuisv_scope *s) {
         int p_index_was = p_index;
         bool r = cui_radio_group(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_strs_0, n_items, &p_index);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_index != p_index_was) { cuisv_set_num(s, 0, p_index); }
     }
@@ -148,6 +149,7 @@ static void cuisv_t_97327969(cui_ctx *ui, cuisv_scope *s) {
         int p_index_was = p_index;
         bool r = cui_radio_group(ui, cuisv_str(s, 1), cuisv_strs(s, 2, &n_items), n_items, &p_index);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
         if (p_index != p_index_was) { cuisv_set_num(s, 3, p_index); }
         if (p_index != p_index_was) cuisv_emit_num(s, 4, p_index);
@@ -229,6 +231,7 @@ static void cuisv_t_28b65a24(cui_ctx *ui, cuisv_scope *s) {
         int p_index_was = p_index;
         bool r = cui_radio_group(ui, "s_id", cuisv_strs_0, n_items, &p_index);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_index != p_index_was) { cuisv_set_num(s, 0, p_index); }
     }
@@ -238,6 +241,7 @@ static void cuisv_t_28b65a24(cui_ctx *ui, cuisv_scope *s) {
         int p_index_was = p_index;
         bool r = cui_radio_group(ui, "fixed_id", NULL, 0, &p_index);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_index != p_index_was) { cuisv_set_num(s, 1, p_index); }
     }
 }

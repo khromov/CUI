@@ -36,6 +36,7 @@ static void cuisv_t_e6787d7c(cui_ctx *ui, cuisv_scope *s) {
         o.min_size = -2.5f;
         bool r = cui_cropper_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", 0, -2, -2, &p_crop, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(&p_crop, &p_crop_was, sizeof p_crop) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_rect, &p_crop); }
     }
@@ -185,6 +186,7 @@ static void cuisv_t_2fe26492(cui_ctx *ui, cuisv_scope *s) {
         o.min_size = cuisv_float(s, 10);
         bool r = cui_cropper_ex(ui, cuisv_str(s, 1), p_tex, cuisv_int(s, 3), cuisv_int(s, 4), &p_crop, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 12));
         if (memcmp(&p_crop, &p_crop_was, sizeof p_crop) != 0) { cuisv_record_write(s, 5, -1, &cuisv_sd_cui_rect, &p_crop); }
         if (memcmp(&p_crop, &p_crop_was, sizeof p_crop) != 0) { cuisv_emit_records(s, 11, &cuisv_sd_cui_rect, &p_crop, 1); }
@@ -280,6 +282,7 @@ static void cuisv_t_36626701(cui_ctx *ui, cuisv_scope *s) {
         o.min_size = 3.0f;
         bool r = cui_cropper_ex(ui, "s_id", 0, 3, 3, &p_crop, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(&p_crop, &p_crop_was, sizeof p_crop) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_rect, &p_crop); }
     }
@@ -291,6 +294,7 @@ static void cuisv_t_36626701(cui_ctx *ui, cuisv_scope *s) {
         cui_cropper_opts o = {0};
         bool r = cui_cropper_ex(ui, "fixed_id", 0, tw_tex, th_tex, &p_crop, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(&p_crop, &p_crop_was, sizeof p_crop) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_rect, &p_crop); }
     }
 }

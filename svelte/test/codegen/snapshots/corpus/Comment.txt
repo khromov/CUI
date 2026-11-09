@@ -28,6 +28,7 @@ static void cuisv_t_2f96ad14(cui_ctx *ui, cuisv_scope *s) {
         o.badge = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         int r = cui_comment_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (po_likes != po_likes_was) { cuisv_set_num(s, 0, po_likes); }
         if (po_liked != po_liked_was) { cuisv_set_bool(s, 1, po_liked); }
@@ -167,6 +168,7 @@ static void cuisv_t_0258d9ba(cui_ctx *ui, cuisv_scope *s) {
         o.badge = cuisv_cstr(s, 9);
         int r = cui_comment_ex(ui, cuisv_str(s, 1), cuisv_str(s, 2), cuisv_str(s, 3), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 12));
         if (po_likes != po_likes_was) { cuisv_set_num(s, 4, po_likes); }
         if (po_liked != po_liked_was) { cuisv_set_bool(s, 5, po_liked); }
@@ -251,6 +253,7 @@ static void cuisv_t_c28bbca9(cui_ctx *ui, cuisv_scope *s) {
         o.badge = "s_badge";
         int r = cui_comment_ex(ui, "s_id", "s_author", "s_text", &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (po_likes != po_likes_was) { cuisv_set_num(s, 0, po_likes); }
         if (po_liked != po_liked_was) { cuisv_set_bool(s, 1, po_liked); }
@@ -260,6 +263,7 @@ static void cuisv_t_c28bbca9(cui_ctx *ui, cuisv_scope *s) {
         cui_comment_opts o = {0};
         int r = cui_comment_ex(ui, "fixed_id", "", "", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

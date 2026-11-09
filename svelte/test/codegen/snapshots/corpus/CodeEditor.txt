@@ -32,6 +32,7 @@ static void cuisv_t_5f131755(cui_ctx *ui, cuisv_scope *s) {
         o.placeholder = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         cui_code_editor_result r = cui_code_editor_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (r.changed) { cuisv_buf_changed(s, 0, -1); }
     }
@@ -164,6 +165,7 @@ static void cuisv_t_f9dffc0f(cui_ctx *ui, cuisv_scope *s) {
         o.placeholder = cuisv_cstr(s, 12);
         cui_code_editor_result r = cui_code_editor_ex(ui, cuisv_str(s, 1), p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 14));
         if (r.changed) { cuisv_buf_changed(s, 2, -1); }
         if (r.changed) cuisv_emit_str(s, 13, p_buf);
@@ -253,6 +255,7 @@ static void cuisv_t_e183513e(cui_ctx *ui, cuisv_scope *s) {
         o.placeholder = "s_placeholder";
         cui_code_editor_result r = cui_code_editor_ex(ui, "s_id", p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (r.changed) { cuisv_buf_changed(s, 0, -1); }
     }
@@ -262,6 +265,7 @@ static void cuisv_t_e183513e(cui_ctx *ui, cuisv_scope *s) {
         cui_code_editor_opts o = {0};
         cui_code_editor_result r = cui_code_editor_ex(ui, "fixed_id", p_buf, cap_buf, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (r.changed) { cuisv_buf_changed(s, 1, -1); }
     }
 }

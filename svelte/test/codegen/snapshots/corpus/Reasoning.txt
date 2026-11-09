@@ -22,6 +22,7 @@ static void cuisv_t_6399806f(cui_ctx *ui, cuisv_scope *s) {
         o.seconds = -2.5f;
         o.title = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         if (cui_reasoning_begin(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o)) {
+            cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
             cuisv_text(ui, cuisv_str(s, 0), NULL);
             cui_reasoning_end(ui);
         }
@@ -75,6 +76,7 @@ static void cuisv_t_d06164c9(cui_ctx *ui, cuisv_scope *s) {
         o.seconds = cuisv_float(s, 3);
         o.title = cuisv_cstr(s, 4);
         if (cui_reasoning_begin(ui, cuisv_str(s, 1), &o)) {
+            cuisv_name_last(ui, cuisv_str(s, 0));
             cuisv_text(ui, cuisv_str(s, 6), NULL);
             cui_reasoning_end(ui);
         }
@@ -162,6 +164,7 @@ static void cuisv_t_1e96db84(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         if (cui_reasoning_begin(ui, "s_id", &o)) {
+            cuisv_name_last(ui, "s_id");
             cuisv_text_push(&ts_k0);
             cuisv_text(ui, "Static text", NULL);
             cuisv_text_pop();
@@ -172,6 +175,7 @@ static void cuisv_t_1e96db84(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_reasoning_opts o = {0};
         if (cui_reasoning_begin(ui, "fixed_id", &o)) {
+            cuisv_name_last(ui, "fixed_id");
             { /* <Text> k2 */
                 cui_text_opts o = {0};
                 cuisv_text_inherit(&o);

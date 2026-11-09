@@ -27,6 +27,7 @@ static void cuisv_t_d0a5b978(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_left = cuisv_records_get(s, 0, &cuisv_sd_cui_swipe_action);
         const cuisv_records *rec_right = cuisv_records_get(s, 1, &cuisv_sd_cui_swipe_action);
         cui_swipe_item_begin(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_swipe_action *)rec_left->items, rec_left->count, (const cui_swipe_action *)rec_right->items, rec_right->count);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cuisv_text(ui, cuisv_str(s, 2), NULL);
         cui_swipe_item_end(ui);
     }
@@ -84,6 +85,7 @@ static void cuisv_t_e2d92ad6(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_left = cuisv_records_get(s, 2, &cuisv_sd_cui_swipe_action);
         const cuisv_records *rec_right = cuisv_records_get(s, 3, &cuisv_sd_cui_swipe_action);
         cui_swipe_item_begin(ui, cuisv_str(s, 1), (const cui_swipe_action *)rec_left->items, rec_left->count, (const cui_swipe_action *)rec_right->items, rec_right->count);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cuisv_text(ui, cuisv_str(s, 4), NULL);
         int e = cui_swipe_item_end(ui);
         if (e >= 0) cuisv_emit_num(s, 5, e);
@@ -175,6 +177,7 @@ static void cuisv_t_8fe12cf5(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         cui_swipe_item_begin(ui, "s_id", (const cui_swipe_action *)rec_left->items, rec_left->count, (const cui_swipe_action *)rec_right->items, rec_right->count);
+        cuisv_name_last(ui, "s_id");
         cuisv_text_push(&ts_k0);
         cuisv_text(ui, "Static text", NULL);
         cuisv_text_pop();
@@ -185,6 +188,7 @@ static void cuisv_t_8fe12cf5(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_left = cuisv_records_get(s, 2, &cuisv_sd_cui_swipe_action);
         const cuisv_records *rec_right = cuisv_records_get(s, 3, &cuisv_sd_cui_swipe_action);
         cui_swipe_item_begin(ui, "fixed_id", (const cui_swipe_action *)rec_left->items, rec_left->count, (const cui_swipe_action *)rec_right->items, rec_right->count);
+        cuisv_name_last(ui, "fixed_id");
         { /* <Text> k2 */
             cui_text_opts o = {0};
             cuisv_text_inherit(&o);

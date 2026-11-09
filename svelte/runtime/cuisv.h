@@ -318,6 +318,17 @@ void cuisv_open_url(const char *url);
 /* Records that markup id `name` is the CUI id `cui_make_id(ui, idstr)` under the current id
  * stack, so JS can find the element (scroll_to, rect_of, tests) from outside the frame. */
 void cuisv_name(cui_ctx *ui, const char *name, const char *idstr);
+/* Right after the component's call (or its begin call). Many components' CUI id is not their
+ * label's (a checkbox mixes a constant into it, a copy button draws inside its own id scope):
+ * when no node the call made has the label's id, `name` becomes the id of the outermost node
+ * the call made, if that has one. (The last id a call reports can be an inner part, such as an
+ * alert's close button, so it is not used.) */
+void cuisv_name_last(cui_ctx *ui, const char *name);
+/* Where CUI's next node goes: its index, and the parent it will have. */
+void cuisv_node_mark(cui_ctx *ui, int *count, int *parent);
+/* `label` when a node made since the mark has it; else the id of the first node made under
+ * that parent (the call's outermost), or `label` when that has none. */
+cui_id cuisv_node_pick(cui_ctx *ui, int count, int parent, cui_id label);
 /* The CUI id of a named element from the latest frame (or, while a frame is built, from the
  * one before), 0 when unknown. */
 cui_id cuisv_named(const char *name);
@@ -328,6 +339,8 @@ cui_id cuisv_named_drawn(const char *name);
  * its state is not a scroll position). */
 bool cuisv_scroll_to(cui_ctx *ui, const char *name, float y);
 bool cuisv_rect_of(cui_ctx *ui, const char *name, cui_rect *out);
+/* Whether CUI still holds the toast (shown, or leaving). */
+bool cuisv_toast_alive(cui_ctx *ui, int handle);
 /* After the templates: notes which nodes scroll, for scroll_to. */
 void cuisv_collect_scrolls(cui_ctx *ui);
 

@@ -256,6 +256,7 @@ static void cuisv_t_3e87af2c(cui_ctx *ui, cuisv_scope *s) {
         float p_hi_was = p_hi;
         bool r = cui_range_slider(ui, "###fixed_id", &p_lo, &p_hi, 0, 100);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_lo != p_lo_was) { cuisv_set_num(s, 2, p_lo); }
         if (p_hi != p_hi_was) { cuisv_set_num(s, 3, p_hi); }
     }

@@ -32,6 +32,7 @@ static void cuisv_t_13e9fa31(cui_ctx *ui, cuisv_scope *s) {
         o.color = CUI_TOKEN_COLOR(11);
         int r = cui_funnel_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_viz_item *)rec_stages->items, rec_stages->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -93,6 +94,7 @@ static void cuisv_t_ccf6f4c3(cui_ctx *ui, cuisv_scope *s) {
         o.color = cuisv_color(s, 6, CUI_TRANSPARENT);
         int r = cui_funnel_ex(ui, cuisv_str(s, 1), (const cui_viz_item *)rec_stages->items, rec_stages->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 8));
         if (r >= 0) cuisv_emit_num(s, 7, r);
     }
@@ -181,6 +183,7 @@ static void cuisv_t_109d96e2(cui_ctx *ui, cuisv_scope *s) {
         o.color = ((cui_color){ 51, 102, 153, 255 });
         int r = cui_funnel_ex(ui, "s_id", (const cui_viz_item *)rec_stages->items, rec_stages->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Funnel> k1 */
@@ -189,6 +192,7 @@ static void cuisv_t_109d96e2(cui_ctx *ui, cuisv_scope *s) {
         cui_funnel_opts o = {0};
         int r = cui_funnel_ex(ui, "fixed_id", (const cui_viz_item *)rec_stages->items, rec_stages->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

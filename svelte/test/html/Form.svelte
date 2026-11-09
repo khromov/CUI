@@ -11,6 +11,7 @@
 	const fruits = [{ id: 'a', name: 'Apple' }, { id: 'b', name: 'Banana' }];
 	let fruit = $state('');
 	let nullcheck = $state('untouched');
+	let draft = $state('');
 	const px = (n) => n * 40;
 </script>
 
@@ -56,6 +57,9 @@
 	<input id="c*/d" />
 	<input id="half" type="range" value="half" />
 	<p style="line-height: x%">line height</p>
+	<input id="draft" bind:value={draft} />
+	<button onclick={() => (draft = null)}>forget draft</button>
+	<p>draft={draft?.length ?? 'null'}</p>
 </div>
 
 <style>

@@ -269,6 +269,7 @@ static void cuisv_t_bb011bc6(cui_ctx *ui, cuisv_scope *s) {
         cui_prop_opts o = {0};
         bool r = cui_prop_enum_ex(ui, "###fixed_id", NULL, 0, &p_index, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_index != p_index_was) { cuisv_set_num(s, 1, p_index); }
     }
 }

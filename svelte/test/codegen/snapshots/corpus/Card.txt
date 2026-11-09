@@ -35,6 +35,7 @@ static void cuisv_t_83851f97(cui_ctx *ui, cuisv_scope *s) {
         o.selected = false;
         bool r = cui_card_begin(ui, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cuisv_text(ui, cuisv_str(s, 0), NULL);
         cui_card_end(ui);
     }
@@ -100,6 +101,7 @@ static void cuisv_t_ba43a0a1(cui_ctx *ui, cuisv_scope *s) {
         o.id = cuisv_cstr(s, 15);
         bool r = cui_card_begin(ui, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cuisv_text(ui, cuisv_str(s, 17), NULL);
         cui_card_end(ui);
         if (r) cuisv_emit(s, 16);
@@ -200,6 +202,7 @@ static void cuisv_t_b63820fc(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.set |= CUISV_TS_COLOR;
         bool r = cui_card_begin(ui, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cuisv_text_push(&ts_k0);
         cuisv_text(ui, "Static text", NULL);
         cuisv_text_pop();
@@ -211,6 +214,7 @@ static void cuisv_t_b63820fc(cui_ctx *ui, cuisv_scope *s) {
         o.id = "fixed_id";
         bool r = cui_card_begin(ui, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         { /* <Text> k2 */
             cui_text_opts o = {0};
             cuisv_text_inherit(&o);

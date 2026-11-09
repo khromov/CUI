@@ -147,6 +147,7 @@ static void cuisv_t_9bc46212(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "fixed_id", "###fixed_id");
         bool r = cui_link(ui, "###fixed_id");
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

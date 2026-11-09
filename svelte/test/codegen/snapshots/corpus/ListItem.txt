@@ -167,6 +167,7 @@ static void cuisv_t_fd735e9d(cui_ctx *ui, cuisv_scope *s) {
         cui_list_item_opts o = {0};
         bool r = cui_list_item_ex(ui, "###fixed_id", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

@@ -3,6 +3,7 @@
 	let level = $state(0.5);
 	let pressed = $state('');
 	let painted = $state(0);
+	let undone = $state(0);
 	const h = native.hypotenuse(3, 4);
 	const g = native.greet('C');
 </script>
@@ -14,4 +15,6 @@
 	<Text>pressed={pressed} painted={painted > 0}</Text>
 	<Button onclick={() => (level = 1)}>full</Button>
 	<Button onclick={() => toast('Saved', { tone: 'success', description: 'All good' })}>toast</Button>
+	<Button onclick={() => toast('Deleted', { duration: 0.5, action: 'Undo', onaction: () => undone++ })}>delete</Button>
+	<Text>undone={undone}</Text>
 </Column>

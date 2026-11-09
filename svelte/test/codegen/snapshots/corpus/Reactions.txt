@@ -29,6 +29,7 @@ static void cuisv_t_e845eac3(cui_ctx *ui, cuisv_scope *s) {
         void *was_items = cuisv_frame_alloc(sz_items ? sz_items : 1); memcpy(was_items, rec_items->items, sz_items);
         int r = cui_reactions(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (cui_reaction *)rec_items->items, rec_items->count);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -167,6 +168,7 @@ static void cuisv_t_dc259d75(cui_ctx *ui, cuisv_scope *s) {
         void *was_items = cuisv_frame_alloc(sz_items ? sz_items : 1); memcpy(was_items, rec_items->items, sz_items);
         int r = cui_reactions(ui, cuisv_str(s, 1), (cui_reaction *)rec_items->items, rec_items->count);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 4));
         if (memcmp(was_items, rec_items->items, sz_items) != 0) { cuisv_emit_records(s, 3, &cuisv_sd_cui_reaction, rec_items->items, rec_items->count); }
     }
@@ -251,6 +253,7 @@ static void cuisv_t_0b04e060(cui_ctx *ui, cuisv_scope *s) {
         void *was_items = cuisv_frame_alloc(sz_items ? sz_items : 1); memcpy(was_items, rec_items->items, sz_items);
         int r = cui_reactions(ui, "s_id", (cui_reaction *)rec_items->items, rec_items->count);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Reactions> k1 */
@@ -260,6 +263,7 @@ static void cuisv_t_0b04e060(cui_ctx *ui, cuisv_scope *s) {
         void *was_items = cuisv_frame_alloc(sz_items ? sz_items : 1); memcpy(was_items, rec_items->items, sz_items);
         int r = cui_reactions(ui, "fixed_id", (cui_reaction *)rec_items->items, rec_items->count);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

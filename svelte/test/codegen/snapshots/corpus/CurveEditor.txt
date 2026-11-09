@@ -49,6 +49,7 @@ static void cuisv_t_1128caf5(cui_ctx *ui, cuisv_scope *s) {
         o.playhead = -2.5f;
         cui_curve_result r = cui_curve_editor_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", p_keys, &n_keys, cap_keys, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if ((n_keys != n_keys_was || memcmp(p_keys, rec_keys->items, sizeof(cui_curve_key) * (size_t)n_keys) != 0)) { cuisv_records_store(s, 0, &cuisv_sd_cui_curve_key, p_keys, n_keys); }
         if (po_selected != po_selected_was) { cuisv_set_num(s, 1, po_selected); }
@@ -222,6 +223,7 @@ static void cuisv_t_5d962aaf(cui_ctx *ui, cuisv_scope *s) {
         o.playhead = cuisv_float(s, 16);
         cui_curve_result r = cui_curve_editor_ex(ui, cuisv_str(s, 1), p_keys, &n_keys, cap_keys, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 18));
         if ((n_keys != n_keys_was || memcmp(p_keys, rec_keys->items, sizeof(cui_curve_key) * (size_t)n_keys) != 0)) { cuisv_records_store(s, 2, &cuisv_sd_cui_curve_key, p_keys, n_keys); }
         if (po_selected != po_selected_was) { cuisv_set_num(s, 3, po_selected); }
@@ -332,6 +334,7 @@ static void cuisv_t_c793f7de(cui_ctx *ui, cuisv_scope *s) {
         o.playhead = 3.0f;
         cui_curve_result r = cui_curve_editor_ex(ui, "s_id", p_keys, &n_keys, cap_keys, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if ((n_keys != n_keys_was || memcmp(p_keys, rec_keys->items, sizeof(cui_curve_key) * (size_t)n_keys) != 0)) { cuisv_records_store(s, 0, &cuisv_sd_cui_curve_key, p_keys, n_keys); }
         if (po_selected != po_selected_was) { cuisv_set_num(s, 1, po_selected); }
@@ -345,6 +348,7 @@ static void cuisv_t_c793f7de(cui_ctx *ui, cuisv_scope *s) {
         cui_curve_opts o = {0};
         cui_curve_result r = cui_curve_editor_ex(ui, "fixed_id", p_keys, &n_keys, cap_keys, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if ((n_keys != n_keys_was || memcmp(p_keys, rec_keys->items, sizeof(cui_curve_key) * (size_t)n_keys) != 0)) { cuisv_records_store(s, 2, &cuisv_sd_cui_curve_key, p_keys, n_keys); }
     }
 }

@@ -42,6 +42,7 @@ static void cuisv_t_8ba268f4(cui_ctx *ui, cuisv_scope *s) {
         o.min = -2.5f;
         o.max = -2.5f;
         cui_bar_chart_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_series *)rec_series->items, rec_series->count, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -112,6 +113,7 @@ static void cuisv_t_c398e41a(cui_ctx *ui, cuisv_scope *s) {
         o.min = cuisv_float(s, 13);
         o.max = cuisv_float(s, 14);
         cui_bar_chart_ex(ui, cuisv_str(s, 1), (const cui_series *)rec_series->items, rec_series->count, &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 15));
     }
     cuisv_render_site(ui, s, 0);
@@ -207,6 +209,7 @@ static void cuisv_t_f751bc89(cui_ctx *ui, cuisv_scope *s) {
         o.min = 3.0f;
         o.max = 3.0f;
         cui_bar_chart_ex(ui, "s_id", (const cui_series *)rec_series->items, rec_series->count, &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <BarChart> k1 */
@@ -214,6 +217,7 @@ static void cuisv_t_f751bc89(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_series = cuisv_records_get(s, 1, &cuisv_sd_cui_series);
         cui_chart_opts o = {0};
         cui_bar_chart_ex(ui, "fixed_id", (const cui_series *)rec_series->items, rec_series->count, &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

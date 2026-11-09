@@ -28,6 +28,7 @@ static void cuisv_t_067c4af3(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PCT(50.0f);
         bool r = cui_date_picker_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_date, &p_value); }
     }
@@ -162,6 +163,7 @@ static void cuisv_t_5bba1c65(cui_ctx *ui, cuisv_scope *s) {
         o.width = cuisv_size(s, 5, CUI_FIT);
         bool r = cui_date_picker_ex(ui, cuisv_str(s, 1), &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 7));
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 2, -1, &cuisv_sd_cui_date, &p_value); }
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_emit_records(s, 6, &cuisv_sd_cui_date, &p_value, 1); }
@@ -249,6 +251,7 @@ static void cuisv_t_3c007770(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PX(120.0f);
         bool r = cui_date_picker_ex(ui, "s_id", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_date, &p_value); }
     }
@@ -260,6 +263,7 @@ static void cuisv_t_3c007770(cui_ctx *ui, cuisv_scope *s) {
         cui_date_opts o = {0};
         bool r = cui_date_picker_ex(ui, "fixed_id", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_date, &p_value); }
     }
 }

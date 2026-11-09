@@ -78,6 +78,10 @@ hooks().toast_action = (handle: number) => {
 	toast_actions.delete(handle);
 	fn?.();
 };
+// the toast left without its action being clicked
+hooks().toast_gone = (handle: number) => {
+	toast_actions.delete(handle);
+};
 
 // ---- the window size ------------------------------------------------------------------------------
 

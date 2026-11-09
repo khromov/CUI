@@ -31,6 +31,7 @@ static void cuisv_t_0a4714e6(cui_ctx *ui, cuisv_scope *s) {
         size_t cap_search; char *p_search = cuisv_buf(s, 2, cuisv_edit_room(ui, 256), &cap_search);
         bool r = cui_filter_bar(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_filter_field *)rec_fields->items, rec_fields->count, p_selected, p_search, cap_search);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(p_selected, p_selected_was, sizeof(uint32_t) * (size_t)rec_fields->count) != 0) { cuisv_slot_blob(s, 1, (const uint8_t *)p_selected, (uint32_t)(sizeof(uint32_t) * (size_t)rec_fields->count)); }
         if (r) { cuisv_buf_changed(s, 2, -1); }
@@ -176,6 +177,7 @@ static void cuisv_t_83fa7bc4(cui_ctx *ui, cuisv_scope *s) {
         size_t cap_search; char *p_search = cuisv_buf(s, 4, cuisv_edit_room(ui, 256), &cap_search);
         bool r = cui_filter_bar(ui, cuisv_str(s, 1), (const cui_filter_field *)rec_fields->items, rec_fields->count, p_selected, p_search, cap_search);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 6));
         if (memcmp(p_selected, p_selected_was, sizeof(uint32_t) * (size_t)rec_fields->count) != 0) { cuisv_slot_blob(s, 3, (const uint8_t *)p_selected, (uint32_t)(sizeof(uint32_t) * (size_t)rec_fields->count)); }
         if (r) { cuisv_buf_changed(s, 4, -1); }
@@ -267,6 +269,7 @@ static void cuisv_t_720c4927(cui_ctx *ui, cuisv_scope *s) {
         size_t cap_search; char *p_search = cuisv_buf(s, 2, cuisv_edit_room(ui, 256), &cap_search);
         bool r = cui_filter_bar(ui, "s_id", (const cui_filter_field *)rec_fields->items, rec_fields->count, p_selected, p_search, cap_search);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(p_selected, p_selected_was, sizeof(uint32_t) * (size_t)rec_fields->count) != 0) { cuisv_slot_blob(s, 1, (const uint8_t *)p_selected, (uint32_t)(sizeof(uint32_t) * (size_t)rec_fields->count)); }
         if (r) { cuisv_buf_changed(s, 2, -1); }
@@ -279,6 +282,7 @@ static void cuisv_t_720c4927(cui_ctx *ui, cuisv_scope *s) {
         size_t cap_search; char *p_search = cuisv_buf(s, 5, cuisv_edit_room(ui, 256), &cap_search);
         bool r = cui_filter_bar(ui, "fixed_id", (const cui_filter_field *)rec_fields->items, rec_fields->count, p_selected, p_search, cap_search);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(p_selected, p_selected_was, sizeof(uint32_t) * (size_t)rec_fields->count) != 0) { cuisv_slot_blob(s, 4, (const uint8_t *)p_selected, (uint32_t)(sizeof(uint32_t) * (size_t)rec_fields->count)); }
         if (r) { cuisv_buf_changed(s, 5, -1); }
     }

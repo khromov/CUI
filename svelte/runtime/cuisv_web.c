@@ -168,7 +168,6 @@ EXPORT(cuisv_w_toast) int cuisv_w_toast(const char *title, const char *desc, int
     return cui_toast_ex(g_ui, title, &o);
 }
 EXPORT(cuisv_w_toast_clicked) int cuisv_w_toast_clicked(int h) { return g_ui && cui_toast_action_clicked(g_ui, h); }
-bool cuisv_toast_alive(cui_ctx *ui, int handle);
 EXPORT(cuisv_w_toast_alive) int cuisv_w_toast_alive(int h) { return cuisv_toast_alive(g_ui, h); }
 EXPORT(cuisv_w_toast_dismiss) void cuisv_w_toast_dismiss(int h) { if (g_ui) cui_toast_dismiss(g_ui, h); }
 EXPORT(cuisv_w_theme_dark) int cuisv_w_theme_dark(void) { return g_ui && cui_get_theme_mode(g_ui) == CUI_THEME_DARK; }

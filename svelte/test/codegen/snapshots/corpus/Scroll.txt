@@ -27,6 +27,7 @@ static void cuisv_t_fd6da59a(cui_ctx *ui, cuisv_scope *s) {
         o.fade_edges = false;
         o.fade_color = CUI_TOKEN_COLOR(11);
         cui_scroll_begin(ui, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cuisv_text(ui, cuisv_str(s, 0), NULL);
         cui_scroll_end(ui);
     }
@@ -84,6 +85,7 @@ static void cuisv_t_4dbb20a0(cui_ctx *ui, cuisv_scope *s) {
         o.fade_color = cuisv_color(s, 7, CUI_TRANSPARENT);
         o.id = cuisv_cstr(s, 8);
         cui_scroll_begin(ui, &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cuisv_text(ui, cuisv_str(s, 9), NULL);
         cui_scroll_end(ui);
     }
@@ -174,6 +176,7 @@ static void cuisv_t_b00e3473(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         cui_scroll_begin(ui, &o);
+        cuisv_name_last(ui, "s_id");
         cuisv_text_push(&ts_k0);
         cuisv_text(ui, "Static text", NULL);
         cuisv_text_pop();
@@ -184,6 +187,7 @@ static void cuisv_t_b00e3473(cui_ctx *ui, cuisv_scope *s) {
         cui_scroll_opts o = {0};
         o.id = "fixed_id";
         cui_scroll_begin(ui, &o);
+        cuisv_name_last(ui, "fixed_id");
         { /* <Text> k2 */
             cui_text_opts o = {0};
             cuisv_text_inherit(&o);

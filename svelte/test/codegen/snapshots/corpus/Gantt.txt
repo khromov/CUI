@@ -40,6 +40,7 @@ static void cuisv_t_b53d1719(cui_ctx *ui, cuisv_scope *s) {
         o.read_only = false;
         int r = cui_gantt_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (cui_gantt_task *)rec_tasks->items, rec_tasks->count, cui_date_today(), -2, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -200,6 +201,7 @@ static void cuisv_t_9710417b(cui_ctx *ui, cuisv_scope *s) {
         o.read_only = cuisv_bool(s, 9);
         int r = cui_gantt_ex(ui, cuisv_str(s, 1), (cui_gantt_task *)rec_tasks->items, rec_tasks->count, p_origin, cuisv_int(s, 4), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 12));
         if (memcmp(was_tasks, rec_tasks->items, sz_tasks) != 0) { cuisv_emit_records(s, 10, &cuisv_sd_cui_gantt_task, rec_tasks->items, rec_tasks->count); }
         if (r >= 0) cuisv_emit_num(s, 11, r);
@@ -297,6 +299,7 @@ static void cuisv_t_692f3c7a(cui_ctx *ui, cuisv_scope *s) {
         o.read_only = true;
         int r = cui_gantt_ex(ui, "s_id", (cui_gantt_task *)rec_tasks->items, rec_tasks->count, (cui_date){ 2026, 1, 2 }, 3, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Gantt> k1 */
@@ -307,6 +310,7 @@ static void cuisv_t_692f3c7a(cui_ctx *ui, cuisv_scope *s) {
         cui_gantt_opts o = {0};
         int r = cui_gantt_ex(ui, "fixed_id", (cui_gantt_task *)rec_tasks->items, rec_tasks->count, cui_date_today(), 0, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

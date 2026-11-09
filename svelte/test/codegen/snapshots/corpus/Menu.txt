@@ -182,6 +182,7 @@ static void cuisv_t_0bab495d(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "fixed_id", "###fixed_id");
         cui_menu_opts o = {0};
         if (cui_menu_begin(ui, "###fixed_id", &o)) {
+            cuisv_name_last(ui, "fixed_id");
             { /* <Text> k2 */
                 cui_text_opts o = {0};
                 cuisv_text_inherit(&o);

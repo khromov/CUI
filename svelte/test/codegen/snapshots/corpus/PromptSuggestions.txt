@@ -29,6 +29,7 @@ static void cuisv_t_8e6ad54e(cui_ctx *ui, cuisv_scope *s) {
         o.columns = -2;
         int r = cui_prompt_suggestions_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_prompt_suggestion *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -87,6 +88,7 @@ static void cuisv_t_603e1a7c(cui_ctx *ui, cuisv_scope *s) {
         o.columns = cuisv_int(s, 3);
         int r = cui_prompt_suggestions_ex(ui, cuisv_str(s, 1), (const cui_prompt_suggestion *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
         if (r >= 0) cuisv_emit_num(s, 4, r);
     }
@@ -170,6 +172,7 @@ static void cuisv_t_03d5b85f(cui_ctx *ui, cuisv_scope *s) {
         o.columns = 3;
         int r = cui_prompt_suggestions_ex(ui, "s_id", (const cui_prompt_suggestion *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <PromptSuggestions> k1 */
@@ -178,6 +181,7 @@ static void cuisv_t_03d5b85f(cui_ctx *ui, cuisv_scope *s) {
         cui_prompt_suggestions_opts o = {0};
         int r = cui_prompt_suggestions_ex(ui, "fixed_id", (const cui_prompt_suggestion *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

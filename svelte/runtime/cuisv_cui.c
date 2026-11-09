@@ -26,6 +26,28 @@ void cuisv_box_mark(cui_ctx *ui, bool focusable, bool hand_cursor, const cuisv_p
     if (hand_cursor && p && p->hovered) cui__set_cursor(ui, CUI_CURSOR_HAND);
 }
 
+/* On a frame that undoes or redoes: the longest step in the focused field's history. CUI copies
+ * the step into the field's buffer, which can be smaller than the step by now: the history is
+ * kept by the field's id, and outlives the buffer when the value was null for a while or the
+ * field was mounted again. Which buffer is the focused field's is not known here, so every
+ * field gets the room on that frame. */
+static size_t undo_room(cui_ctx *ui) {
+    if (!(ui->mods & CUI_MOD_PRIMARY) || !ui->focus) return 0;
+    if (!cui_key_pressed(ui, CUI_KEY_Z) && !cui_key_pressed(ui, CUI_KEY_Y)) return 0;
+    for (int i = 0; i < ui->state_count; i++) {
+        const cui_state_entry *st = &ui->states[i];
+        if (st->id != ui->focus || st->size != sizeof(cui_edit_state) || !st->data) continue;
+        const cui_edit_state *e = st->data;
+        size_t most = 0;
+        for (int k = 0; k < e->undo_count && k < CUI__UNDO_MAX; k++) {
+            size_t n = e->undo[k] ? strlen(e->undo[k]) : 0;
+            if (n > most) most = n;
+        }
+        return most;
+    }
+    return 0;
+}
+
 size_t cuisv_edit_room(cui_ctx *ui, size_t floor) {
     if (!ui) return floor;
     size_t pending = ui->text_in_len > 0 ? (size_t)ui->text_in_len : 0;
@@ -34,6 +56,8 @@ size_t cuisv_edit_room(cui_ctx *ui, size_t floor) {
         const char *clip = ui->platform.get_clipboard(ui->platform.user);
         if (clip) pending += strlen(clip);
     }
+    size_t undo = undo_room(ui);
+    if (undo > pending) pending = undo;
     return pending > floor ? pending : floor;
 }
 
@@ -91,11 +115,32 @@ bool cuisv_scroll_to(cui_ctx *ui, const char *name, float y) {
     return true;
 }
 
+void cuisv_node_mark(cui_ctx *ui, int *count, int *parent) {
+    *count = ui ? ui->node_count : 0;
+    *parent = ui ? cui__current(ui) : -1;
+}
+
+cui_id cuisv_node_pick(cui_ctx *ui, int count, int parent, cui_id label) {
+    if (!ui || count < 0) return label;
+    cui_id root = 0;
+    bool have_root = false;
+    for (int i = count; i < ui->node_count; i++) {
+        if (ui->nodes[i].id == label) return label;
+        if (!have_root && ui->nodes[i].parent == parent) {
+            root = ui->nodes[i].id;
+            have_root = true;
+        }
+    }
+    return root ? root : label;
+}
+
 /* rect_of(id) from JS: the layout of the latest frame. CUI keeps a rect for a while after its
  * element is gone, so a name that was not drawn in that frame has none. */
 bool cuisv_rect_of(cui_ctx *ui, const char *name, cui_rect *out) {
     cui_id id = cuisv_named_drawn(name);
     if (!ui || !id) return false;
+    /* named but never laid out: a closed overlay, or a component whose nodes have no id */
+    if (!cui__has_prev_rect(ui, id)) return false;
     *out = cui_get_rect(ui, id);
     return true;
 }

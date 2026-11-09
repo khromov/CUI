@@ -34,6 +34,7 @@ static void cuisv_t_485d1251(cui_ctx *ui, cuisv_scope *s) {
         o.min = -2.5f;
         o.max = -2.5f;
         cui_donut_chart_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_floats_0, cuisv_strs_1, n_labels, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -94,6 +95,7 @@ static void cuisv_t_551eeee3(cui_ctx *ui, cuisv_scope *s) {
         o.min = cuisv_float(s, 13);
         o.max = cuisv_float(s, 14);
         cui_donut_chart_ex(ui, cuisv_str(s, 1), cuisv_floats(s, 2, &(int){0}), cuisv_strs(s, 3, &n_labels), n_labels, &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 15));
     }
     cuisv_render_site(ui, s, 0);
@@ -180,12 +182,14 @@ static void cuisv_t_f5483c82(cui_ctx *ui, cuisv_scope *s) {
         o.min = 3.0f;
         o.max = 3.0f;
         cui_donut_chart_ex(ui, "s_id", cuisv_floats_0, cuisv_strs_1, n_labels, &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <DonutChart> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_chart_opts o = {0};
         cui_donut_chart_ex(ui, "fixed_id", NULL, NULL, 0, &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

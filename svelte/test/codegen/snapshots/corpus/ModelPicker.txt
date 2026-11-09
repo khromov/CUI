@@ -34,6 +34,7 @@ static void cuisv_t_13adac66(cui_ctx *ui, cuisv_scope *s) {
         o.placement = CUI_PLACE_LEFT;
         bool r = cui_model_picker_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_selected != p_selected_was) { cuisv_set_num(s, 1, p_selected); }
     }
@@ -180,6 +181,7 @@ static void cuisv_t_6d130b44(cui_ctx *ui, cuisv_scope *s) {
         o.placement = (cui_placement)cuisv_int(s, 5);
         bool r = cui_model_picker_ex(ui, cuisv_str(s, 1), (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 7));
         if (p_selected != p_selected_was) { cuisv_set_num(s, 3, p_selected); }
         if (p_selected != p_selected_was) cuisv_emit_num(s, 6, p_selected);
@@ -272,6 +274,7 @@ static void cuisv_t_0c092ba7(cui_ctx *ui, cuisv_scope *s) {
         o.placement = CUI_PLACE_BOTTOM_START;
         bool r = cui_model_picker_ex(ui, "s_id", (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_selected != p_selected_was) { cuisv_set_num(s, 1, p_selected); }
     }
@@ -283,6 +286,7 @@ static void cuisv_t_0c092ba7(cui_ctx *ui, cuisv_scope *s) {
         cui_model_picker_opts o = {0};
         bool r = cui_model_picker_ex(ui, "fixed_id", (const cui_model *)rec_models->items, rec_models->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_selected != p_selected_was) { cuisv_set_num(s, 3, p_selected); }
     }
 }

@@ -32,6 +32,7 @@ static void cuisv_t_6b699897(cui_ctx *ui, cuisv_scope *s) {
         o.compact = false;
         o.selectable = false;
         if (cui_table_begin_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_table_column *)rec_columns->items, rec_columns->count, &o)) {
+            cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
             cuisv_text(ui, cuisv_str(s, 1), NULL);
             cui_table_end(ui);
         }
@@ -193,6 +194,7 @@ static void cuisv_t_2636a9a1(cui_ctx *ui, cuisv_scope *s) {
         o.compact = cuisv_bool(s, 6);
         o.selectable = cuisv_bool(s, 7);
         if (cui_table_begin_ex(ui, cuisv_str(s, 1), (const cui_table_column *)rec_columns->items, rec_columns->count, &o)) {
+            cuisv_name_last(ui, cuisv_str(s, 0));
             cuisv_text(ui, cuisv_str(s, 8), NULL);
             cui_table_end(ui);
         }
@@ -291,6 +293,7 @@ static void cuisv_t_1cc293fc(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         if (cui_table_begin_ex(ui, "s_id", (const cui_table_column *)rec_columns->items, rec_columns->count, &o)) {
+            cuisv_name_last(ui, "s_id");
             cuisv_text_push(&ts_k0);
             cuisv_text(ui, "Static text", NULL);
             cuisv_text_pop();
@@ -302,6 +305,7 @@ static void cuisv_t_1cc293fc(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_columns = cuisv_records_get(s, 1, &cuisv_sd_cui_table_column);
         cui_table_opts o = {0};
         if (cui_table_begin_ex(ui, "fixed_id", (const cui_table_column *)rec_columns->items, rec_columns->count, &o)) {
+            cuisv_name_last(ui, "fixed_id");
             { /* <Text> k2 */
                 cui_text_opts o = {0};
                 cuisv_text_inherit(&o);

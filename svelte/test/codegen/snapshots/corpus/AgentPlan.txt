@@ -29,6 +29,7 @@ static void cuisv_t_f3a32275(cui_ctx *ui, cuisv_scope *s) {
         o.title = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         int r = cui_agent_plan_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_plan_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -87,6 +88,7 @@ static void cuisv_t_8d3e7a2f(cui_ctx *ui, cuisv_scope *s) {
         o.title = cuisv_cstr(s, 3);
         int r = cui_agent_plan_ex(ui, cuisv_str(s, 1), (const cui_plan_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
         if (r >= 0) cuisv_emit_num(s, 4, r);
     }
@@ -170,6 +172,7 @@ static void cuisv_t_499a1a5e(cui_ctx *ui, cuisv_scope *s) {
         o.title = "s_title";
         int r = cui_agent_plan_ex(ui, "s_id", (const cui_plan_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <AgentPlan> k1 */
@@ -178,6 +181,7 @@ static void cuisv_t_499a1a5e(cui_ctx *ui, cuisv_scope *s) {
         cui_agent_plan_opts o = {0};
         int r = cui_agent_plan_ex(ui, "fixed_id", (const cui_plan_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

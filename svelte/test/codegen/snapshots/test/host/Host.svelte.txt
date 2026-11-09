@@ -60,7 +60,7 @@ const int cuisv_natives_56674323_count = 0;
 
 static void cuisv_t_56674323(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_56674323 = { 0x56674323u, "Host.svelte#0", cuisv_t_56674323, 7, 0 };
+const cuisv_template cuisv_tpl_56674323 = { 0x56674323u, "Host.svelte#0", cuisv_t_56674323, 9, 0 };
 
 static void cuisv_t_56674323(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
@@ -104,6 +104,17 @@ static void cuisv_t_56674323(cui_ctx *ui, cuisv_scope *s) {
             (void)r;
             if (r) cuisv_emit(s, 6);
         }
+        { /* <Button> k7 */
+            cui_button_opts o = {0};
+            bool r = cui_button_ex(ui, "delete###k7", &o);
+            (void)r;
+            if (r) cuisv_emit(s, 7);
+        }
+        { /* <Text> k8 */
+            cui_text_opts o = {0};
+            cuisv_text_inherit(&o);
+            cui_text_ex(ui, cuisv_str(s, 8), &o);
+        }
         cui_box_end(ui);
     }
 }
@@ -114,10 +125,11 @@ static void cuisv_t_56674323(cui_ctx *ui, cuisv_scope *s) {
 	let level = $state(0.5);
 	let pressed = $state('');
 	let painted = $state(0);
+	let undone = $state(0);
 	const h = native.hypotenuse(3, 4);
 	const g = native.greet('C');
 </script>
-<t1449607971 s0={`native: ${__cuisv_h.t(h)} ${__cuisv_h.t(g)}`} d1={[level]} f2={(x, y) => (pressed = `${Math.round(x)},${Math.round(y)}`)} f3={(p) => { p.rect(0, 0, p.width / 2, p.height, { fill: 'accent', radius: 6 }); p.text(8, 8, 'js paint', { color: 'white' }); painted++; }} s4={`pressed=${__cuisv_h.t(pressed)} painted=${__cuisv_h.t(painted > 0)}`} f5={() => (level = 1)} f6={() => toast('Saved', { tone: 'success', description: 'All good' })}></t1449607971>
+<t1449607971 s0={`native: ${__cuisv_h.t(h)} ${__cuisv_h.t(g)}`} d1={[level]} f2={(x, y) => (pressed = `${Math.round(x)},${Math.round(y)}`)} f3={(p) => { p.rect(0, 0, p.width / 2, p.height, { fill: 'accent', radius: 6 }); p.text(8, 8, 'js paint', { color: 'white' }); painted++; }} s4={`pressed=${__cuisv_h.t(pressed)} painted=${__cuisv_h.t(painted > 0)}`} f5={() => (level = 1)} f6={() => toast('Saved', { tone: 'success', description: 'All good' })} f7={() => toast('Deleted', { duration: 0.5, action: 'Undo', onaction: () => undone++ })} s8={`undone=${__cuisv_h.t(undone)}`}></t1449607971>
 
 ---- metadata ----
 {
@@ -126,7 +138,7 @@ static void cuisv_t_56674323(cui_ctx *ui, cuisv_scope *s) {
    "id": 1449607971,
    "symbol": "cuisv_tpl_56674323",
    "name": "Host.svelte#0",
-   "slots": 7,
+   "slots": 9,
    "sites": 0
   }
  ],

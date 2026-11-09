@@ -27,6 +27,7 @@ static void cuisv_t_5ae411f0(cui_ctx *ui, cuisv_scope *s) {
         o.compact = false;
         int r = cui_dropzone_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -83,6 +84,7 @@ static void cuisv_t_9122045e(cui_ctx *ui, cuisv_scope *s) {
         o.compact = cuisv_bool(s, 8);
         int r = cui_dropzone_ex(ui, cuisv_str(s, 1), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 10));
         if (r > 0) cuisv_emit_num(s, 9, r);
     }
@@ -164,6 +166,7 @@ static void cuisv_t_497c059d(cui_ctx *ui, cuisv_scope *s) {
         o.compact = true;
         int r = cui_dropzone_ex(ui, "s_id", &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Dropzone> k1 */
@@ -171,6 +174,7 @@ static void cuisv_t_497c059d(cui_ctx *ui, cuisv_scope *s) {
         cui_dropzone_opts o = {0};
         int r = cui_dropzone_ex(ui, "fixed_id", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

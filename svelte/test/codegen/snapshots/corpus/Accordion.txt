@@ -252,6 +252,7 @@ static void cuisv_t_a4956ec2(cui_ctx *ui, cuisv_scope *s) {
         bool p_open = cuisv_bool(s, 1);
         bool p_open_was = p_open;
         if (cui_accordion_begin(ui, "###fixed_id", &p_open)) {
+            cuisv_name_last(ui, "fixed_id");
             { /* <Text> k2 */
                 cui_text_opts o = {0};
                 cuisv_text_inherit(&o);

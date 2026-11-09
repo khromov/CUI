@@ -35,6 +35,7 @@ static void cuisv_t_50b36e4e(cui_ctx *ui, cuisv_scope *s) {
         o.minimap = false;
         bool r = cui_node_editor_begin_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &p_view, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cuisv_text(ui, cuisv_str(s, 1), NULL);
         int ne_from = 0, ne_to = 0, ne_link = 0, ne_node = 0; bool ne_c = cui_node_link_created(ui, &ne_from, &ne_to); bool ne_r = cui_node_link_removed(ui, &ne_link); bool ne_d = cui_node_deleted(ui, &ne_node);
         cui_node_editor_end(ui);
@@ -191,6 +192,7 @@ static void cuisv_t_70b7437c(cui_ctx *ui, cuisv_scope *s) {
         o.minimap = cuisv_bool(s, 8);
         bool r = cui_node_editor_begin_ex(ui, cuisv_str(s, 1), &p_view, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cuisv_text(ui, cuisv_str(s, 10), NULL);
         int ne_from = 0, ne_to = 0, ne_link = 0, ne_node = 0; bool ne_c = cui_node_link_created(ui, &ne_from, &ne_to); bool ne_r = cui_node_link_removed(ui, &ne_link); bool ne_d = cui_node_deleted(ui, &ne_node);
         if (ne_c) cuisv_emit_str(s, 11, cuisv_fmt("{\"from\":%d,\"to\":%d}", ne_from, ne_to));
@@ -300,6 +302,7 @@ static void cuisv_t_28158b5f(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.set |= CUISV_TS_COLOR;
         bool r = cui_node_editor_begin_ex(ui, "s_id", &p_view, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cuisv_text_push(&ts_k0);
         cuisv_text(ui, "Static text", NULL);
         cuisv_text_pop();
@@ -314,6 +317,7 @@ static void cuisv_t_28158b5f(cui_ctx *ui, cuisv_scope *s) {
         cui_node_editor_opts o = {0};
         bool r = cui_node_editor_begin_ex(ui, "fixed_id", &p_view, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         { /* <Text> k2 */
             cui_text_opts o = {0};
             cuisv_text_inherit(&o);

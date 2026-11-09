@@ -39,6 +39,7 @@ static void cuisv_t_b751a8fb(cui_ctx *ui, cuisv_scope *s) {
         o.count_format = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         int r = cui_tour_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_step != p_step_was) { cuisv_set_num(s, 1, p_step); }
     }
@@ -191,6 +192,7 @@ static void cuisv_t_2c16b9dd(cui_ctx *ui, cuisv_scope *s) {
         o.count_format = cuisv_cstr(s, 10);
         int r = cui_tour_ex(ui, cuisv_str(s, 1), (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 13));
         if (p_step != p_step_was) { cuisv_set_num(s, 3, p_step); }
         if (p_step != p_step_was) cuisv_emit_num(s, 11, p_step);
@@ -290,6 +292,7 @@ static void cuisv_t_ed3181a8(cui_ctx *ui, cuisv_scope *s) {
         o.count_format = "s_count_format";
         int r = cui_tour_ex(ui, "s_id", (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_step != p_step_was) { cuisv_set_num(s, 1, p_step); }
     }
@@ -301,6 +304,7 @@ static void cuisv_t_ed3181a8(cui_ctx *ui, cuisv_scope *s) {
         cui_tour_opts o = {0};
         int r = cui_tour_ex(ui, "fixed_id", (const cui_tour_step *)rec_steps->items, rec_steps->count, &p_step, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_step != p_step_was) { cuisv_set_num(s, 3, p_step); }
     }
 }

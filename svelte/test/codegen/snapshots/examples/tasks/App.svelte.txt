@@ -68,6 +68,7 @@ static void cuisv_t_2c42d366(cui_ctx *ui, cuisv_scope *s) {
                 o.width = CUI_GROW(1.0f);
                 int r = cui_input_ex(ui, "new", p_buf, cap_buf, &o);
                 (void)r;
+                cuisv_name_last(ui, "new");
                 if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 3, 4); }
                 if (r & CUI_SUBMITTED) cuisv_emit_str(s, 5, p_buf);
             }

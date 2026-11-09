@@ -29,6 +29,7 @@ static void cuisv_t_d6694ac8(cui_ctx *ui, cuisv_scope *s) {
         o.placement = CUI_PLACE_LEFT;
         int r = cui_speed_dial_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_speed_action *)rec_actions->items, rec_actions->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
 
@@ -86,6 +87,7 @@ static void cuisv_t_50badfe6(cui_ctx *ui, cuisv_scope *s) {
         o.placement = (cui_placement)cuisv_int(s, 4);
         int r = cui_speed_dial_ex(ui, cuisv_str(s, 1), (const cui_speed_action *)rec_actions->items, rec_actions->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         if (r >= 0) cuisv_emit_num(s, 5, r);
     }
     cuisv_render_site(ui, s, 0);
@@ -168,6 +170,7 @@ static void cuisv_t_b604c125(cui_ctx *ui, cuisv_scope *s) {
         o.placement = CUI_PLACE_BOTTOM_START;
         int r = cui_speed_dial_ex(ui, "s_id", (const cui_speed_action *)rec_actions->items, rec_actions->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
     }
     { /* <SpeedDial> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
@@ -175,6 +178,7 @@ static void cuisv_t_b604c125(cui_ctx *ui, cuisv_scope *s) {
         cui_speed_dial_opts o = {0};
         int r = cui_speed_dial_ex(ui, "fixed_id", (const cui_speed_action *)rec_actions->items, rec_actions->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

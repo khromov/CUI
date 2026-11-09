@@ -141,6 +141,7 @@ static void cuisv_t_2d3f2865(cui_ctx *ui, cuisv_scope *s) {
     { /* <Meter> fixed_id */
         cuisv_name(ui, "fixed_id", "###fixed_id");
         cui_meter(ui, "###fixed_id", 0, 0, "");
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

@@ -26,6 +26,7 @@ static void cuisv_t_07aa82e9(cui_ctx *ui, cuisv_scope *s) {
         o.unit = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         int r = cui_calendar_heatmap_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cui_date_today(), cuisv_floats_0, -2, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -83,6 +84,7 @@ static void cuisv_t_c926378b(cui_ctx *ui, cuisv_scope *s) {
         o.unit = cuisv_cstr(s, 8);
         int r = cui_calendar_heatmap_ex(ui, cuisv_str(s, 1), p_start, cuisv_floats(s, 3, &(int){0}), cuisv_int(s, 4), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 10));
         if (r >= 0) cuisv_emit_num(s, 9, r);
     }
@@ -163,6 +165,7 @@ static void cuisv_t_68b5246a(cui_ctx *ui, cuisv_scope *s) {
         o.unit = "s_unit";
         int r = cui_calendar_heatmap_ex(ui, "s_id", (cui_date){ 2026, 1, 2 }, cuisv_floats_0, 3, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <CalendarHeatmap> k1 */
@@ -170,6 +173,7 @@ static void cuisv_t_68b5246a(cui_ctx *ui, cuisv_scope *s) {
         cui_calendar_heatmap_opts o = {0};
         int r = cui_calendar_heatmap_ex(ui, "fixed_id", cui_date_today(), NULL, 0, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

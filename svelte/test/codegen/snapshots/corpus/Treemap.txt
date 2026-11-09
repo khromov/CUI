@@ -31,6 +31,7 @@ static void cuisv_t_b871c629(cui_ctx *ui, cuisv_scope *s) {
         o.format = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         int r = cui_treemap_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_viz_item *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -91,6 +92,7 @@ static void cuisv_t_9a9e72cb(cui_ctx *ui, cuisv_scope *s) {
         o.format = cuisv_cstr(s, 5);
         int r = cui_treemap_ex(ui, cuisv_str(s, 1), (const cui_viz_item *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 7));
         if (r >= 0) cuisv_emit_num(s, 6, r);
     }
@@ -177,6 +179,7 @@ static void cuisv_t_fce2ecaa(cui_ctx *ui, cuisv_scope *s) {
         o.format = "s_format";
         int r = cui_treemap_ex(ui, "s_id", (const cui_viz_item *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Treemap> k1 */
@@ -185,6 +188,7 @@ static void cuisv_t_fce2ecaa(cui_ctx *ui, cuisv_scope *s) {
         cui_treemap_opts o = {0};
         int r = cui_treemap_ex(ui, "fixed_id", (const cui_viz_item *)rec_items->items, rec_items->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

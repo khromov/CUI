@@ -22,6 +22,7 @@ static void cuisv_t_27eb52ef(cui_ctx *ui, cuisv_scope *s) {
         o.width = -2.5f;
         o.delay = -2.5f;
         if (cui_hover_card_begin(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o)) {
+            cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
             cuisv_text(ui, cuisv_str(s, 0), NULL);
             cui_hover_card_end(ui);
         }
@@ -75,6 +76,7 @@ static void cuisv_t_2a9ddf49(cui_ctx *ui, cuisv_scope *s) {
         o.width = cuisv_float(s, 3);
         o.delay = cuisv_float(s, 4);
         if (cui_hover_card_begin(ui, cuisv_str(s, 1), &o)) {
+            cuisv_name_last(ui, cuisv_str(s, 0));
             cuisv_text(ui, cuisv_str(s, 6), NULL);
             cui_hover_card_end(ui);
         }
@@ -163,6 +165,7 @@ static void cuisv_t_f7bf0704(cui_ctx *ui, cuisv_scope *s) {
         ts_k0.color = ((cui_color){ 255, 0, 0, 255 });
         ts_k0.set |= CUISV_TS_COLOR;
         if (cui_hover_card_begin(ui, "s_id", &o)) {
+            cuisv_name_last(ui, "s_id");
             cuisv_text_push(&ts_k0);
             cuisv_text(ui, "Static text", NULL);
             cuisv_text_pop();
@@ -173,6 +176,7 @@ static void cuisv_t_f7bf0704(cui_ctx *ui, cuisv_scope *s) {
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_hover_card_opts o = {0};
         if (cui_hover_card_begin(ui, "fixed_id", &o)) {
+            cuisv_name_last(ui, "fixed_id");
             { /* <Text> k2 */
                 cui_text_opts o = {0};
                 cuisv_text_inherit(&o);

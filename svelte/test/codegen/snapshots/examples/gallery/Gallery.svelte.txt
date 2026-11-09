@@ -118,6 +118,7 @@ static void cuisv_t_7edc7475(cui_ctx *ui, cuisv_scope *s) {
         o.pad = 24.0f;
         o.gap = 20.0f;
         cui_scroll_begin(ui, &o);
+        cuisv_name_last(ui, "page");
         { /* <Heading> k1 */
             cui_heading(ui, "cui-svelte gallery", 1);
         }
@@ -656,6 +657,7 @@ static void cuisv_t_7edc7475(cui_ctx *ui, cuisv_scope *s) {
             o.sort = &po_sort;
             o.striped = true;
             if (cui_table_begin_ex(ui, "t", (const cui_table_column *)rec_columns->items, rec_columns->count, &o)) {
+                cuisv_name_last(ui, "t");
                 cuisv_render_site(ui, s, 0);
                 cui_table_end(ui);
             }

@@ -28,6 +28,7 @@ static void cuisv_t_f3cbf01a(cui_ctx *ui, cuisv_scope *s) {
         o.size = CUI_SIZE_LG;
         bool r = cui_toggle_group_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_strs_0, n_labels, p_values, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 0, p_values, n_labels); }
     }
@@ -161,6 +162,7 @@ static void cuisv_t_ac539320(cui_ctx *ui, cuisv_scope *s) {
         o.size = (cui_control_size)cuisv_int(s, 7);
         bool r = cui_toggle_group_ex(ui, cuisv_str(s, 1), cuisv_strs(s, 2, &n_labels), n_labels, p_values, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 9));
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 3, p_values, n_labels); }
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_emit_bytes(s, 8, p_values, (uint32_t)n_labels); }
@@ -247,6 +249,7 @@ static void cuisv_t_bac587f3(cui_ctx *ui, cuisv_scope *s) {
         o.size = CUI_SIZE_MD;
         bool r = cui_toggle_group_ex(ui, "s_id", cuisv_strs_0, n_labels, p_values, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 0, p_values, n_labels); }
     }
@@ -258,6 +261,7 @@ static void cuisv_t_bac587f3(cui_ctx *ui, cuisv_scope *s) {
         cui_toggle_group_opts o = {0};
         bool r = cui_toggle_group_ex(ui, "fixed_id", NULL, n_labels, p_values, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 1, p_values, n_labels); }
     }
 }

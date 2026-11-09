@@ -35,6 +35,7 @@ static void cuisv_t_6ef9c2c5(cui_ctx *ui, cuisv_scope *s) {
         o.no_reorder = false;
         cui_doc_tabs_result r = cui_doc_tabs_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_selected != p_selected_was) { cuisv_set_num(s, 1, p_selected); }
     }
@@ -183,6 +184,7 @@ static void cuisv_t_f4f9bdff(cui_ctx *ui, cuisv_scope *s) {
         o.no_reorder = cuisv_bool(s, 6);
         cui_doc_tabs_result r = cui_doc_tabs_ex(ui, cuisv_str(s, 1), (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 9));
         if (p_selected != p_selected_was) { cuisv_set_num(s, 3, p_selected); }
         if (p_selected != p_selected_was) cuisv_emit_num(s, 7, p_selected);
@@ -277,6 +279,7 @@ static void cuisv_t_795dddce(cui_ctx *ui, cuisv_scope *s) {
         o.no_reorder = true;
         cui_doc_tabs_result r = cui_doc_tabs_ex(ui, "s_id", (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_selected != p_selected_was) { cuisv_set_num(s, 1, p_selected); }
     }
@@ -288,6 +291,7 @@ static void cuisv_t_795dddce(cui_ctx *ui, cuisv_scope *s) {
         cui_doc_tabs_opts o = {0};
         cui_doc_tabs_result r = cui_doc_tabs_ex(ui, "fixed_id", (const cui_doc_tab *)rec_tabs->items, rec_tabs->count, &p_selected, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_selected != p_selected_was) { cuisv_set_num(s, 3, p_selected); }
     }
 }

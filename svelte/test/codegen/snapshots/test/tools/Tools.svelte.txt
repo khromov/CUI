@@ -286,6 +286,7 @@ static void cuisv_t_0d004bb6(cui_ctx *ui, cuisv_scope *s) {
                 cui_multi_select_opts o = {0};
                 bool r = cui_multi_select_ex(ui, "multi", NULL, n_items, p_selected, &o);
                 (void)r;
+                cuisv_name_last(ui, "multi");
                 if (memcmp(p_selected, p_selected_was, (size_t)n_items) != 0) { cuisv_slot_bools(s, 33, p_selected, n_items); cuisv_emit_bytes(s, 34, p_selected, (uint32_t)n_items); }
             }
             { /* <ToggleGroup> k25 */
@@ -296,6 +297,7 @@ static void cuisv_t_0d004bb6(cui_ctx *ui, cuisv_scope *s) {
                 cui_toggle_group_opts o = {0};
                 bool r = cui_toggle_group_ex(ui, "toggles", NULL, n_labels, p_values, &o);
                 (void)r;
+                cuisv_name_last(ui, "toggles");
                 if (memcmp(p_values, p_values_was, (size_t)n_labels) != 0) { cuisv_slot_bools(s, 35, p_values, n_labels); cuisv_emit_bytes(s, 36, p_values, (uint32_t)n_labels); }
             }
             { /* <Slider> k26 */
@@ -317,6 +319,7 @@ static void cuisv_t_0d004bb6(cui_ctx *ui, cuisv_scope *s) {
             o.height = 60.0f;
             cui_hex_result r = cui_hex_view_ex(ui, "hex", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
             (void)r;
+            cuisv_name_last(ui, "hex");
             if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 39, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
         }
         { /* <ImageViewer> k28 */
@@ -328,6 +331,7 @@ static void cuisv_t_0d004bb6(cui_ctx *ui, cuisv_scope *s) {
             o.height = CUI_PX(40.0f);
             bool r = cui_image_viewer_ex(ui, "viewer", 0, tw_tex, th_tex, &p_view, &o);
             (void)r;
+            cuisv_name_last(ui, "viewer");
             if (memcmp(&p_view, &p_view_was, sizeof p_view) != 0) { cuisv_record_write(s, 40, -1, &cuisv_sd_cui_image_view, &p_view); }
         }
         cui_box_end(ui);

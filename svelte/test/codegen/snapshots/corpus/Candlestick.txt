@@ -42,6 +42,7 @@ static void cuisv_t_91507606(cui_ctx *ui, cuisv_scope *s) {
         o.down = CUI_TOKEN_COLOR(11);
         int r = cui_candlestick_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_candle *)rec_candles->items, rec_candles->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -112,6 +113,7 @@ static void cuisv_t_7ff4a7e4(cui_ctx *ui, cuisv_scope *s) {
         o.down = cuisv_color(s, 11, CUI_TRANSPARENT);
         int r = cui_candlestick_ex(ui, cuisv_str(s, 1), (const cui_candle *)rec_candles->items, rec_candles->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 13));
         if (r >= 0) cuisv_emit_num(s, 12, r);
     }
@@ -209,6 +211,7 @@ static void cuisv_t_fab8c647(cui_ctx *ui, cuisv_scope *s) {
         o.down = ((cui_color){ 51, 102, 153, 255 });
         int r = cui_candlestick_ex(ui, "s_id", (const cui_candle *)rec_candles->items, rec_candles->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Candlestick> k1 */
@@ -217,6 +220,7 @@ static void cuisv_t_fab8c647(cui_ctx *ui, cuisv_scope *s) {
         cui_candlestick_opts o = {0};
         int r = cui_candlestick_ex(ui, "fixed_id", (const cui_candle *)rec_candles->items, rec_candles->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

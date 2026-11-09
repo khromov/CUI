@@ -268,6 +268,7 @@ static void cuisv_t_95d27ea7(cui_ctx *ui, cuisv_scope *s) {
         bool p_open_was = p_open;
         cui_sheet_opts o = {0};
         if (cui_sheet_begin(ui, "###fixed_id", &p_open, &o)) {
+            cuisv_name_last(ui, "fixed_id");
             { /* <Text> k2 */
                 cui_text_opts o = {0};
                 cuisv_text_inherit(&o);

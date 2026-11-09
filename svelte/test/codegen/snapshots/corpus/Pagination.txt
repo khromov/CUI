@@ -22,6 +22,7 @@ static void cuisv_t_dc349ee1(cui_ctx *ui, cuisv_scope *s) {
         int p_page_was = p_page;
         bool r = cui_pagination(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &p_page, -2);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_page != p_page_was) { cuisv_set_num(s, 0, p_page); }
     }
@@ -144,6 +145,7 @@ static void cuisv_t_25f453b3(cui_ctx *ui, cuisv_scope *s) {
         int p_page_was = p_page;
         bool r = cui_pagination(ui, cuisv_str(s, 1), &p_page, cuisv_int(s, 3));
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
         if (p_page != p_page_was) { cuisv_set_num(s, 2, p_page); }
         if (p_page != p_page_was) cuisv_emit_num(s, 4, p_page);
@@ -222,6 +224,7 @@ static void cuisv_t_54335632(cui_ctx *ui, cuisv_scope *s) {
         int p_page_was = p_page;
         bool r = cui_pagination(ui, "s_id", &p_page, 3);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_page != p_page_was) { cuisv_set_num(s, 0, p_page); }
     }
@@ -231,6 +234,7 @@ static void cuisv_t_54335632(cui_ctx *ui, cuisv_scope *s) {
         int p_page_was = p_page;
         bool r = cui_pagination(ui, "fixed_id", &p_page, 0);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_page != p_page_was) { cuisv_set_num(s, 1, p_page); }
     }
 }

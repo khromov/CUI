@@ -9,7 +9,7 @@ static void cuisv_t_02f193cb(cui_ctx *ui, cuisv_scope *s);
 static void cuisv_t_01f19238(cui_ctx *ui, cuisv_scope *s);
 static void cuisv_t_04f196f1(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_02f193cb = { 0x02f193cbu, "Form.svelte#0", cuisv_t_02f193cb, 27, 2 };
+const cuisv_template cuisv_tpl_02f193cb = { 0x02f193cbu, "Form.svelte#0", cuisv_t_02f193cb, 31, 2 };
 const cuisv_template cuisv_tpl_01f19238 = { 0x01f19238u, "Form.svelte#1", cuisv_t_01f19238, 3, 0 };
 const cuisv_template cuisv_tpl_04f196f1 = { 0x04f196f1u, "Form.svelte#2", cuisv_t_04f196f1, 1, 0 };
 
@@ -211,9 +211,43 @@ static void cuisv_t_02f193cb(cui_ctx *ui, cuisv_scope *s) {
             float p_value = (float)cuisv_num(s, 26); float p_was = p_value;
             cui_slider_ex(ui, "###half", &p_value, 0.0f, 100.0f, &o);
             if (p_value != p_was) { cuisv_set_num(s, 26, p_value); }
+            cuisv_name_last(ui, "half");
         }
         { /* <p> k17 */
             cuisv_text(ui, "line height", NULL);
+        }
+        { /* <input type=text> draft */
+            cuisv_name(ui, "draft", "draft");
+            cui_input_opts o = {0};
+            size_t cap; char *p_value = cuisv_buf(s, 27, cuisv_edit_room(ui, 256), &cap);
+            int r = cui_input_ex(ui, "draft", p_value, cap, &o);
+            if (r & CUI_CHANGED) { cuisv_buf_changed(s, 27, 28); }
+        }
+        { /* <button> k18 */
+            cuisv_pointer pt_k18 = cuisv_box_pointer(ui, "k18", true);
+            cui_box o = {0};
+            o.id = "k18";
+            o.dir = CUI_ROW;
+            o.align = CUI_ALIGN_CENTER;
+            o.justify = CUI_JUSTIFY_CENTER;
+            o.gap = 6.0f;
+            o.pad_top = 6.0f;
+            o.pad_bottom = 6.0f;
+            o.pad_left = 12.0f;
+            o.pad_right = 12.0f;
+            o.radius = 8.0f;
+            o.border = 1.0f;
+            o.border_color = CUI_TOKEN_COLOR(8);
+            o.bg = CUI_TOKEN_COLOR(2);
+            if (pt_k18.hovered) { o.bg = CUI_TOKEN_COLOR(25); }
+            cui_box_begin(ui, &o);
+            cuisv_box_mark(ui, true, true, &pt_k18);
+            cuisv_text(ui, "forget draft", NULL);
+            cui_box_end(ui);
+            if (pt_k18.clicked) cuisv_emit(s, 29);
+        }
+        { /* <p> k19 */
+            cuisv_text(ui, cuisv_str(s, 30), NULL);
         }
         cui_box_end(ui);
     }
@@ -276,9 +310,10 @@ static void cuisv_t_04f196f1(cui_ctx *ui, cuisv_scope *s) {
 	const fruits = [{ id: 'a', name: 'Apple' }, { id: 'b', name: 'Banana' }];
 	let fruit = $state('');
 	let nullcheck = $state('untouched');
+	let draft = $state('');
 	const px = (n) => n * 40;
 </script>
-<t49386443 s0={name} g1v0={(__cuisv_v) => { name = __cuisv_v; }} f2={__cuisv_h.dom_event((e) => { e.preventDefault(); submitted++; }, "value")} f4={__cuisv_h.dom_event((e) => (last = e.target.value), "value")} b5={agree} g6v5={(__cuisv_v) => { agree = __cuisv_v; }} b7={(color) === ("red")} g8v7={() => ((__cuisv_v) => { color = __cuisv_v; })("red")} b9={(color) === ("blue")} g10v9={() => ((__cuisv_v) => { color = __cuisv_v; })("blue")} a11={Array.from(sizes, (s, __cuisv_i) => String(__cuisv_h.t(s.label)))} n12={Array.from(sizes, (s, __cuisv_i) => (s.v)).indexOf(size)} g13v12={(__cuisv_i) => ((__cuisv_v) => { size = __cuisv_v; })(Array.from(sizes, (s, __cuisv_i) => (s.v))[__cuisv_i])} f15={() => (hovered = true)} f16={() => (hovered = false)} s17={`name=${__cuisv_h.t(name)} agree=${__cuisv_h.t(agree)} color=${__cuisv_h.t(color)} size=${__cuisv_h.t(size)} last=${__cuisv_h.t(last)} hovered=${__cuisv_h.t(hovered)} submitted=${__cuisv_h.t(submitted)} tab=${__cuisv_h.t(tab)}`} a18={["Choose a fruit", ...Array.from(fruits, (f, __cuisv_i) => String(__cuisv_h.t(f.name))), "Something else"]} n19={["", ...Array.from(fruits, (f, __cuisv_i) => (f.id)), "z"].indexOf(fruit)} g20v19={(__cuisv_i) => ((__cuisv_v) => { fruit = __cuisv_v; })(["", ...Array.from(fruits, (f, __cuisv_i) => (f.id)), "z"][__cuisv_i])} f22={__cuisv_h.dom_event((e) => (nullcheck = String(e.target.checked)), "checked")} s23={`fruit=${__cuisv_h.t(fruit)} nullcheck=${__cuisv_h.t(nullcheck)}`} n24={__cuisv_h.size(`${px(`${fruit}?`.length)}px`)}><s0>{#each ['One', 'Two'] as label, i}<t32608824 b0={!!(tab === i)} s1={__cuisv_h.t(label)} f2={__cuisv_h.dom_click(() => (tab = i), "click")}></t32608824>{/each}</s0><s1>{#each ['four', 'five'] as x (x)}<t82941681 s0={__cuisv_h.t(x)}></t82941681>{/each}</s1></t49386443>
+<t49386443 s0={name} g1v0={(__cuisv_v) => { name = __cuisv_v; }} f2={__cuisv_h.dom_event((e) => { e.preventDefault(); submitted++; }, "value")} f4={__cuisv_h.dom_event((e) => (last = e.target.value), "value")} b5={agree} g6v5={(__cuisv_v) => { agree = __cuisv_v; }} b7={(color) === ("red")} g8v7={() => ((__cuisv_v) => { color = __cuisv_v; })("red")} b9={(color) === ("blue")} g10v9={() => ((__cuisv_v) => { color = __cuisv_v; })("blue")} a11={Array.from(sizes, (s, __cuisv_i) => String(__cuisv_h.t(s.label)))} n12={Array.from(sizes, (s, __cuisv_i) => (s.v)).indexOf(size)} g13v12={(__cuisv_i) => ((__cuisv_v) => { size = __cuisv_v; })(Array.from(sizes, (s, __cuisv_i) => (s.v))[__cuisv_i])} f15={() => (hovered = true)} f16={() => (hovered = false)} s17={`name=${__cuisv_h.t(name)} agree=${__cuisv_h.t(agree)} color=${__cuisv_h.t(color)} size=${__cuisv_h.t(size)} last=${__cuisv_h.t(last)} hovered=${__cuisv_h.t(hovered)} submitted=${__cuisv_h.t(submitted)} tab=${__cuisv_h.t(tab)}`} a18={["Choose a fruit", ...Array.from(fruits, (f, __cuisv_i) => String(__cuisv_h.t(f.name))), "Something else"]} n19={["", ...Array.from(fruits, (f, __cuisv_i) => (f.id)), "z"].indexOf(fruit)} g20v19={(__cuisv_i) => ((__cuisv_v) => { fruit = __cuisv_v; })(["", ...Array.from(fruits, (f, __cuisv_i) => (f.id)), "z"][__cuisv_i])} f22={__cuisv_h.dom_event((e) => (nullcheck = String(e.target.checked)), "checked")} s23={`fruit=${__cuisv_h.t(fruit)} nullcheck=${__cuisv_h.t(nullcheck)}`} n24={__cuisv_h.size(`${px(`${fruit}?`.length)}px`)} s27={draft} g28v27={(__cuisv_v) => { draft = __cuisv_v; }} f29={__cuisv_h.dom_click(() => (draft = null), "click")} s30={`draft=${__cuisv_h.t(draft?.length ?? 'null')}`}><s0>{#each ['One', 'Two'] as label, i}<t32608824 b0={!!(tab === i)} s1={__cuisv_h.t(label)} f2={__cuisv_h.dom_click(() => (tab = i), "click")}></t32608824>{/each}</s0><s1>{#each ['four', 'five'] as x (x)}<t82941681 s0={__cuisv_h.t(x)}></t82941681>{/each}</s1></t49386443>
 
 ---- metadata ----
 {
@@ -287,7 +322,7 @@ static void cuisv_t_04f196f1(cui_ctx *ui, cuisv_scope *s) {
    "id": 49386443,
    "symbol": "cuisv_tpl_02f193cb",
    "name": "Form.svelte#0",
-   "slots": 27,
+   "slots": 31,
    "sites": 2
   },
   {
@@ -309,14 +344,14 @@ static void cuisv_t_04f196f1(cui_ctx *ui, cuisv_scope *s) {
   {
    "code": "bad_value",
    "message": "value: expected a number, got \"half\"",
-   "start": 2269,
-   "end": 2281
+   "start": 2294,
+   "end": 2306
   },
   {
    "code": "css_unsupported",
    "message": "line-height: x% is not a number, percentage or length",
-   "start": 2286,
-   "end": 2328
+   "start": 2311,
+   "end": 2353
   }
  ],
  "natives": null

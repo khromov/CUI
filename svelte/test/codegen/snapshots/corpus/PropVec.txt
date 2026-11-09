@@ -275,6 +275,7 @@ static void cuisv_t_102a4c7d(cui_ctx *ui, cuisv_scope *s) {
         cui_prop_opts o = {0};
         bool r = cui_prop_vec_ex(ui, "###fixed_id", p_value, 3, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(p_value, p_value_was, sizeof p_value) != 0) { cuisv_slot_floats_set(s, 1, p_value, 3); }
     }
 }

@@ -29,6 +29,7 @@ static void cuisv_t_a1236bd8(cui_ctx *ui, cuisv_scope *s) {
         o.delay = -2.5f;
         o.caret = false;
         cui_word_rotate_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_strs_0, n_words, -2.5f, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -92,6 +93,7 @@ static void cuisv_t_5866f3b6(cui_ctx *ui, cuisv_scope *s) {
         o.delay = cuisv_float(s, 9);
         o.caret = cuisv_bool(s, 10);
         cui_word_rotate_ex(ui, cuisv_str(s, 1), cuisv_strs(s, 2, &n_words), n_words, cuisv_float(s, 3), &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 11));
     }
     cuisv_render_site(ui, s, 0);
@@ -180,12 +182,14 @@ static void cuisv_t_2f525655(cui_ctx *ui, cuisv_scope *s) {
         o.delay = 3.0f;
         o.caret = true;
         cui_word_rotate_ex(ui, "s_id", cuisv_strs_0, n_words, 3.0f, &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <WordRotate> k1 */
         cuisv_name(ui, "fixed_id", "fixed_id");
         cui_text_fx_opts o = {0};
         cui_word_rotate_ex(ui, "fixed_id", NULL, 0, 2.0f, &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

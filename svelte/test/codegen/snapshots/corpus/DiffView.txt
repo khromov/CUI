@@ -33,6 +33,7 @@ static void cuisv_t_e661066b(cui_ctx *ui, cuisv_scope *s) {
         o.size = -2.5f;
         cui_diff_result r = cui_diff_view_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (po_current != po_current_was) { cuisv_set_num(s, 0, po_current); }
     }
@@ -168,6 +169,7 @@ static void cuisv_t_17e2b94d(cui_ctx *ui, cuisv_scope *s) {
         o.size = cuisv_float(s, 15);
         cui_diff_result r = cui_diff_view_ex(ui, cuisv_str(s, 1), cuisv_str(s, 2), cuisv_str(s, 3), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 16));
         if (po_current != po_current_was) { cuisv_set_num(s, 4, po_current); }
     }
@@ -255,6 +257,7 @@ static void cuisv_t_bb429138(cui_ctx *ui, cuisv_scope *s) {
         o.size = 3.0f;
         cui_diff_result r = cui_diff_view_ex(ui, "s_id", "s_old_text", "s_new_text", &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (po_current != po_current_was) { cuisv_set_num(s, 0, po_current); }
     }
@@ -263,6 +266,7 @@ static void cuisv_t_bb429138(cui_ctx *ui, cuisv_scope *s) {
         cui_diff_opts o = {0};
         cui_diff_result r = cui_diff_view_ex(ui, "fixed_id", "", "", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

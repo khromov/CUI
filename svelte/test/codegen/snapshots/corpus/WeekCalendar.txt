@@ -38,6 +38,7 @@ static void cuisv_t_02bd48bf(cui_ctx *ui, cuisv_scope *s) {
         o.read_only = false;
         int r = cui_week_calendar_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cui_date_today(), (cui_cal_event *)rec_events->items, rec_events->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -194,6 +195,7 @@ static void cuisv_t_cc5b3e99(cui_ctx *ui, cuisv_scope *s) {
         o.read_only = cuisv_bool(s, 8);
         int r = cui_week_calendar_ex(ui, cuisv_str(s, 1), p_week_start, (cui_cal_event *)rec_events->items, rec_events->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 11));
         if (memcmp(was_events, rec_events->items, sz_events) != 0) { cuisv_emit_records(s, 9, &cuisv_sd_cui_cal_event, rec_events->items, rec_events->count); }
         if (r >= 0) cuisv_emit_num(s, 10, r);
@@ -289,6 +291,7 @@ static void cuisv_t_0afa6634(cui_ctx *ui, cuisv_scope *s) {
         o.read_only = true;
         int r = cui_week_calendar_ex(ui, "s_id", (cui_date){ 2026, 1, 2 }, (cui_cal_event *)rec_events->items, rec_events->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <WeekCalendar> k1 */
@@ -299,6 +302,7 @@ static void cuisv_t_0afa6634(cui_ctx *ui, cuisv_scope *s) {
         cui_week_opts o = {0};
         int r = cui_week_calendar_ex(ui, "fixed_id", cui_date_today(), (cui_cal_event *)rec_events->items, rec_events->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

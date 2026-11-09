@@ -24,6 +24,7 @@ static void cuisv_t_d48f9e20(cui_ctx *ui, cuisv_scope *s) {
         cui_color p_value_was = p_value;
         bool r = cui_color_picker(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &p_value);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_color, &p_value); }
     }
@@ -152,6 +153,7 @@ static void cuisv_t_8d66854e(cui_ctx *ui, cuisv_scope *s) {
         cui_color p_value_was = p_value;
         bool r = cui_color_picker(ui, cuisv_str(s, 1), &p_value);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 4));
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 2, -1, &cuisv_sd_cui_color, &p_value); }
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_emit_records(s, 3, &cuisv_sd_cui_color, &p_value, 1); }
@@ -232,6 +234,7 @@ static void cuisv_t_4dd868ed(cui_ctx *ui, cuisv_scope *s) {
         cui_color p_value_was = p_value;
         bool r = cui_color_picker(ui, "s_id", &p_value);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 0, -1, &cuisv_sd_cui_color, &p_value); }
     }
@@ -241,6 +244,7 @@ static void cuisv_t_4dd868ed(cui_ctx *ui, cuisv_scope *s) {
         cui_color p_value_was = p_value;
         bool r = cui_color_picker(ui, "fixed_id", &p_value);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(&p_value, &p_value_was, sizeof p_value) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_color, &p_value); }
     }
 }

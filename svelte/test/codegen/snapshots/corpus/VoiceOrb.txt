@@ -22,6 +22,7 @@ static void cuisv_t_13cd05bc(cui_ctx *ui, cuisv_scope *s) {
         o.color = CUI_TOKEN_COLOR(11);
         bool r = cui_voice_orb_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", CUI_VOICE_SPEAKING, -2.5f, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -73,6 +74,7 @@ static void cuisv_t_6950c9d2(cui_ctx *ui, cuisv_scope *s) {
         o.color = cuisv_color(s, 5, CUI_TRANSPARENT);
         bool r = cui_voice_orb_ex(ui, cuisv_str(s, 1), (cui_voice_state)cuisv_int(s, 2), cuisv_float(s, 3), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 7));
         if (r) cuisv_emit(s, 6);
     }
@@ -149,6 +151,7 @@ static void cuisv_t_e42aed41(cui_ctx *ui, cuisv_scope *s) {
         o.color = ((cui_color){ 51, 102, 153, 255 });
         bool r = cui_voice_orb_ex(ui, "s_id", CUI_VOICE_IDLE, 3.0f, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <VoiceOrb> k1 */
@@ -156,6 +159,7 @@ static void cuisv_t_e42aed41(cui_ctx *ui, cuisv_scope *s) {
         cui_voice_orb_opts o = {0};
         bool r = cui_voice_orb_ex(ui, "fixed_id", (cui_voice_state)0, 0, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

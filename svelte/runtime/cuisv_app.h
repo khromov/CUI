@@ -41,7 +41,8 @@ uint8_t *cuisv_read_file(const char *path, size_t *len);
 
 void cuisv_clipboard_set(cui_ctx *ui, const char *text);
 const char *cuisv_clipboard_get(cui_ctx *ui);
-/* Once per frame: toasts whose action was clicked, and a changed window size, go to JS. */
+/* Once per frame: toasts whose action was clicked or that are gone, and a changed window size,
+ * go to JS. */
 bool cuisv_app_frame(cui_ctx *ui);
 
 /* Registers the host natives on the bridge (cuisv_js_on_setup). */

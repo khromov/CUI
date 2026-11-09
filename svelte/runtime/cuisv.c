@@ -668,7 +668,9 @@ void cuisv_text(cui_ctx *ui, const char *text, const cuisv_text_style *own) {
  * and a name that was not drawn in the latest frame (or, while a frame is built, the one
  * before) is gone: lookups miss it and the table drops it the next time it is rebuilt, which
  * happens as it grows and every 64 frames, so ids that come and go do not pile up. */
-typedef struct name_entry { char *name; cui_id id; uint32_t seen; } name_entry;
+/* mark, parent: where CUI's next node went when cuisv_name ran, to find the node the
+ * component's call made (cuisv_name_last) */
+typedef struct name_entry { char *name; cui_id id; int mark, parent; uint32_t seen; } name_entry;
 static name_entry *names;
 static int name_count, name_cap;
 static uint32_t name_now;   /* counts frames: the one being built, or the latest between frames */
@@ -730,7 +732,15 @@ void cuisv_name(cui_ctx *ui, const char *name, const char *idstr) {
         name_count++;
     }
     e->id = cui_make_id(ui, idstr ? idstr : name);
+    cuisv_node_mark(ui, &e->mark, &e->parent);
     e->seen = name_now;
+}
+
+void cuisv_name_last(cui_ctx *ui, const char *name) {
+    if (!ui || !name || !*name || !name_cap) return;
+    name_entry *e = name_find(names, name_cap, name);
+    if (!e->name || e->seen != name_now) return;
+    e->id = cuisv_node_pick(ui, e->mark, e->parent, e->id);
 }
 
 cui_id cuisv_named(const char *name) {

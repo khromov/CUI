@@ -1083,12 +1083,15 @@ function emit_component(ctx: CompileContext, t: Template, node: AST.Component, s
 	const has_id_param = spec.params.some((p) => p.role === 'id');
 	const has_label = spec.params.some((p) => p.role === 'label');
 	let name_line: string | null = null;
+	let name_c: string | null = null;
 	if (user_id) {
 		if (user_id.kind === 'static' && (has_label || has_id_param || spec.fields.has('id'))) {
 			if (has_label && !has_id_param) key = String(user_id.value);
-			name_line = `cuisv_name(ui, ${c_string(String(user_id.value))}, ${c_string(has_label && !has_id_param ? `###${user_id.value}` : String(user_id.value))});`;
+			name_c = c_string(String(user_id.value));
+			name_line = `cuisv_name(ui, ${name_c}, ${c_string(has_label && !has_id_param ? `###${user_id.value}` : String(user_id.value))});`;
 		} else if (user_id.kind === 'expr' && (has_id_param || spec.fields.has('id'))) {
 			const v = string_val(t, user_id);
+			name_c = v.c;
 			name_line = `cuisv_name(ui, ${v.c}, ${v.c});`;
 			if (!has_id_param) g.props.set('id', { kind: 'expr', js: `(${user_id.js}) ?? ''` });
 		}
@@ -1138,9 +1141,12 @@ function emit_component(ctx: CompileContext, t: Template, node: AST.Component, s
 	const call = `${spec.fn}(${call_args})`;
 	/** The call as a statement, with its result in `r` when it has one. */
 	const emit_call = () => {
-		if (spec.ret === 'void') return t.line(`${call};`);
-		t.line(`${spec.ret} r = ${call};`);
-		t.line('(void)r;');
+		if (spec.ret === 'void') t.line(`${call};`);
+		else {
+			t.line(`${spec.ret} r = ${call};`);
+			t.line('(void)r;');
+		}
+		if (name_c) t.line(`cuisv_name_last(ui, ${name_c});`);
 	};
 
 	// events: allocate a function slot for each one markup handles
@@ -1229,6 +1235,7 @@ function emit_component(ctx: CompileContext, t: Template, node: AST.Component, s
 		for (const l of ev_lines) t.line(l);
 	} else {
 		t.open(`if (${call}) {`);
+		if (name_c) t.line(`cuisv_name_last(ui, ${name_c});`);
 		inside();
 		end_call();
 		t.close();

@@ -25,6 +25,7 @@ static void cuisv_t_b6bc7afd(cui_ctx *ui, cuisv_scope *s) {
         o.no_share = false;
         int r = cui_response_actions_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (po_vote != po_vote_was) { cuisv_set_num(s, 0, po_vote); }
     }
@@ -153,6 +154,7 @@ static void cuisv_t_27e821e7(cui_ctx *ui, cuisv_scope *s) {
         o.no_share = cuisv_bool(s, 5);
         int r = cui_response_actions_ex(ui, cuisv_str(s, 1), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 7));
         if (po_vote != po_vote_was) { cuisv_set_num(s, 2, po_vote); }
         if (r != 0) cuisv_emit_num(s, 6, r);
@@ -232,6 +234,7 @@ static void cuisv_t_3197a496(cui_ctx *ui, cuisv_scope *s) {
         o.no_share = true;
         int r = cui_response_actions_ex(ui, "s_id", &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (po_vote != po_vote_was) { cuisv_set_num(s, 0, po_vote); }
     }
@@ -240,6 +243,7 @@ static void cuisv_t_3197a496(cui_ctx *ui, cuisv_scope *s) {
         cui_response_actions_opts o = {0};
         int r = cui_response_actions_ex(ui, "fixed_id", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

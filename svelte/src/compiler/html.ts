@@ -213,16 +213,16 @@ function element_style(ctx: CompileContext, t: Template, node: AST.RegularElemen
  * The element's identity: its id="…" when static, else a key unique in the template.
  * `labelled`: CUI knows the element by a label, "…###key", whose identity is "###key".
  */
-function element_key(ctx: CompileContext, t: Template, node: AST.RegularElement, labelled = false): { key: string; name_line: string | null } {
+function element_key(ctx: CompileContext, t: Template, node: AST.RegularElement, labelled = false): { key: string; name_line: string | null; name_c: string | null } {
 	const id = attr(node, 'id');
 	if (id) {
 		const s = attr_source(ctx, id);
 		if (s.kind === 'static' && s.value) {
 			const v = String(s.value);
-			return { key: v, name_line: `cuisv_name(ui, ${c_string(v)}, ${c_string(labelled ? `###${v}` : v)});` };
+			return { key: v, name_line: `cuisv_name(ui, ${c_string(v)}, ${c_string(labelled ? `###${v}` : v)});`, name_c: c_string(v) };
 		}
 	}
-	return { key: t.key(), name_line: null };
+	return { key: t.key(), name_line: null, name_c: null };
 }
 
 export function emit_html(ctx: CompileContext, t: Template, node: AST.RegularElement) {
@@ -420,7 +420,8 @@ function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement
 	const typeAttr = attr(node, 'type');
 	const type = typeAttr && typeAttr.value !== true ? String((attr_source(ctx, typeAttr) as { value?: unknown }).value ?? 'text') : 'text';
 	// checkboxes, radios and sliders are CUI controls with a label (label_c below)
-	const { key, name_line } = element_key(ctx, t, node, node.name === 'input' && ['checkbox', 'radio', 'range'].includes(type));
+	const labelled = node.name === 'input' && ['checkbox', 'radio', 'range'].includes(type);
+	const { key, name_line, name_c } = element_key(ctx, t, node, labelled);
 	const none = display_none(style, t);
 	t.open(`{ /* ${c_comment(`<${node.name}${node.name === 'input' ? ` type=${type}` : ''}> ${key}`)} */`);
 	if (name_line) t.line(name_line);
@@ -514,6 +515,8 @@ function emit_control(ctx: CompileContext, t: Template, node: AST.RegularElement
 			break;
 		}
 	}
+	// a checkbox's or radio's CUI id is not its label's (see cuisv_name_last)
+	if (labelled && name_c) t.line(`cuisv_name_last(ui, ${name_c});`);
 	emit_title_tooltip(ctx, t, node);
 	if (none) t.close();
 	t.close();

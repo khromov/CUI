@@ -32,6 +32,7 @@ static void cuisv_t_8ff0c79b(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PCT(50.0f);
         int r = cui_heatmap_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_floats_0, -2, -2, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -91,6 +92,7 @@ static void cuisv_t_60bc097d(cui_ctx *ui, cuisv_scope *s) {
         o.width = cuisv_size(s, 12, CUI_FIT);
         int r = cui_heatmap_ex(ui, cuisv_str(s, 1), cuisv_floats(s, 2, &(int){0}), cuisv_int(s, 3), cuisv_int(s, 4), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 14));
         if (r >= 0) cuisv_emit_num(s, 13, r);
     }
@@ -178,6 +180,7 @@ static void cuisv_t_74eafe48(cui_ctx *ui, cuisv_scope *s) {
         o.width = CUI_PX(120.0f);
         int r = cui_heatmap_ex(ui, "s_id", cuisv_floats_0, 3, 3, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Heatmap> k1 */
@@ -185,6 +188,7 @@ static void cuisv_t_74eafe48(cui_ctx *ui, cuisv_scope *s) {
         cui_heatmap_opts o = {0};
         int r = cui_heatmap_ex(ui, "fixed_id", NULL, 0, 0, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

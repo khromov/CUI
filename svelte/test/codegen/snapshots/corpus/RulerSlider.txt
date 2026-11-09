@@ -260,6 +260,7 @@ static void cuisv_t_1f446ae5(cui_ctx *ui, cuisv_scope *s) {
         cui_ruler_opts o = {0};
         bool r = cui_ruler_slider_ex(ui, "###fixed_id", &p_value, 0, 100, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_value != p_value_was) { cuisv_set_num(s, 1, p_value); }
     }
 }

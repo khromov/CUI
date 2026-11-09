@@ -30,6 +30,7 @@ static void cuisv_t_9c50392b(cui_ctx *ui, cuisv_scope *s) {
         o.speed = -2.5f;
         o.height = -2.5f;
         cui_ticker_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_ticker_item *)rec_items->items, rec_items->count, &o);
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -89,6 +90,7 @@ static void cuisv_t_d2cabe0d(cui_ctx *ui, cuisv_scope *s) {
         o.speed = cuisv_float(s, 3);
         o.height = cuisv_float(s, 4);
         cui_ticker_ex(ui, cuisv_str(s, 1), (const cui_ticker_item *)rec_items->items, rec_items->count, &o);
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
     }
     cuisv_render_site(ui, s, 0);
@@ -171,6 +173,7 @@ static void cuisv_t_ee7a21f8(cui_ctx *ui, cuisv_scope *s) {
         o.speed = 3.0f;
         o.height = 3.0f;
         cui_ticker_ex(ui, "s_id", (const cui_ticker_item *)rec_items->items, rec_items->count, &o);
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Ticker> k1 */
@@ -178,6 +181,7 @@ static void cuisv_t_ee7a21f8(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_items = cuisv_records_get(s, 1, &cuisv_sd_cui_ticker_item);
         cui_ticker_opts o = {0};
         cui_ticker_ex(ui, "fixed_id", (const cui_ticker_item *)rec_items->items, rec_items->count, &o);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

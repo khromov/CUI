@@ -33,6 +33,7 @@ static void cuisv_t_cfad0b27(cui_ctx *ui, cuisv_scope *s) {
         o.description = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         int r = cui_checklist_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (cui_check_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -179,6 +180,7 @@ static void cuisv_t_e50a6871(cui_ctx *ui, cuisv_scope *s) {
         o.description = cuisv_cstr(s, 4);
         int r = cui_checklist_ex(ui, cuisv_str(s, 1), (cui_check_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 7));
         if (memcmp(was_steps, rec_steps->items, sz_steps) != 0) { cuisv_emit_records(s, 5, &cuisv_sd_cui_check_step, rec_steps->items, rec_steps->count); }
         if (r >= 0) cuisv_emit_num(s, 6, r);
@@ -269,6 +271,7 @@ static void cuisv_t_7d4408ec(cui_ctx *ui, cuisv_scope *s) {
         o.description = "s_description";
         int r = cui_checklist_ex(ui, "s_id", (cui_check_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Checklist> k1 */
@@ -279,6 +282,7 @@ static void cuisv_t_7d4408ec(cui_ctx *ui, cuisv_scope *s) {
         cui_checklist_opts o = {0};
         int r = cui_checklist_ex(ui, "fixed_id", (cui_check_step *)rec_steps->items, rec_steps->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

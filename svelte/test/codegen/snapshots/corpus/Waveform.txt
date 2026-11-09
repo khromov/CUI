@@ -31,6 +31,7 @@ static void cuisv_t_75632cd8(cui_ctx *ui, cuisv_scope *s) {
         o.color = CUI_TOKEN_COLOR(11);
         bool r = cui_waveform_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_floats_0, n_peaks, &p_progress, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_progress != p_progress_was) { cuisv_set_num(s, 0, p_progress); }
     }
@@ -162,6 +163,7 @@ static void cuisv_t_4d21c4b6(cui_ctx *ui, cuisv_scope *s) {
         o.color = cuisv_color(s, 8, CUI_TRANSPARENT);
         bool r = cui_waveform_ex(ui, cuisv_str(s, 1), cuisv_floats(s, 2, &n_peaks), n_peaks, &p_progress, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 10));
         if (p_progress != p_progress_was) { cuisv_set_num(s, 3, p_progress); }
         if (r) cuisv_emit_num(s, 9, p_progress);
@@ -252,6 +254,7 @@ static void cuisv_t_57f2e155(cui_ctx *ui, cuisv_scope *s) {
         o.color = ((cui_color){ 51, 102, 153, 255 });
         bool r = cui_waveform_ex(ui, "s_id", cuisv_floats_0, n_peaks, &p_progress, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_progress != p_progress_was) { cuisv_set_num(s, 0, p_progress); }
     }
@@ -262,6 +265,7 @@ static void cuisv_t_57f2e155(cui_ctx *ui, cuisv_scope *s) {
         cui_waveform_opts o = {0};
         bool r = cui_waveform_ex(ui, "fixed_id", NULL, 0, &p_progress, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_progress != p_progress_was) { cuisv_set_num(s, 1, p_progress); }
     }
 }

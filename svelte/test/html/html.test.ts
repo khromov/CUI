@@ -64,6 +64,22 @@ test('a paste longer than a line of typing is kept whole', () => {
 	expect(state(app)).toContain(`name=${'x'.repeat(1000)} agree`);
 });
 
+test('undo brings back a long value after JS set it to null', () => {
+	const app = mount_test(Form, { width: 600, height: 1400 });
+	const draft = () => app.find(/^draft=/)!.text;
+	const primary = platform() === 'macos' ? 'cmd' : 'ctrl';
+	app.click(app.rect('draft')!);
+	for (let i = 0; i < 3; i++) app.type('y'.repeat(200)); // CUI takes 256 bytes of typing a frame
+	app.key('backspace'); // an undo step that holds all 600
+	expect(draft()).toBe('draft=599');
+	app.click('forget draft');
+	expect(draft()).toBe('draft=null');
+	app.click(app.rect('draft')!);
+	app.key('z', primary);
+	app.frame(2);
+	expect(draft()).toBe('draft=600');
+});
+
 const more = (app: ReturnType<typeof mount_test>) => app.find(/^fruit=/)!.text;
 
 test('markup the build warns about still builds and runs', () => {

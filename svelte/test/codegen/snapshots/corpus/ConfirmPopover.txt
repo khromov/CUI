@@ -26,6 +26,7 @@ static void cuisv_t_29428f9e(cui_ctx *ui, cuisv_scope *s) {
         o.placement = CUI_PLACE_LEFT;
         bool r = cui_confirm_popover_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -81,6 +82,7 @@ static void cuisv_t_ebeb120c(cui_ctx *ui, cuisv_scope *s) {
         o.placement = (cui_placement)cuisv_int(s, 7);
         bool r = cui_confirm_popover_ex(ui, cuisv_str(s, 1), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 9));
         if (r) cuisv_emit(s, 8);
     }
@@ -160,6 +162,7 @@ static void cuisv_t_4812ad8f(cui_ctx *ui, cuisv_scope *s) {
         o.placement = CUI_PLACE_BOTTOM_START;
         bool r = cui_confirm_popover_ex(ui, "s_id", &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <ConfirmPopover> k1 */
@@ -167,6 +170,7 @@ static void cuisv_t_4812ad8f(cui_ctx *ui, cuisv_scope *s) {
         cui_confirm_popover_opts o = {0};
         bool r = cui_confirm_popover_ex(ui, "fixed_id", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

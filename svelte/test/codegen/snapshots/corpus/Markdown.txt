@@ -27,6 +27,7 @@ static void cuisv_t_f5fc77fa(cui_ctx *ui, cuisv_scope *s) {
         o.compact = false;
         cui_markdown_result r = cui_markdown_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -83,6 +84,7 @@ static void cuisv_t_c4ee7680(cui_ctx *ui, cuisv_scope *s) {
         o.compact = cuisv_bool(s, 9);
         cui_markdown_result r = cui_markdown_ex(ui, cuisv_str(s, 1), cuisv_str(s, 2), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 10));
     }
     cuisv_render_site(ui, s, 0);
@@ -164,6 +166,7 @@ static void cuisv_t_67763dd3(cui_ctx *ui, cuisv_scope *s) {
         o.compact = true;
         cui_markdown_result r = cui_markdown_ex(ui, "s_id", "s_text", &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Markdown> k1 */
@@ -171,6 +174,7 @@ static void cuisv_t_67763dd3(cui_ctx *ui, cuisv_scope *s) {
         cui_markdown_opts o = {0};
         cui_markdown_result r = cui_markdown_ex(ui, "fixed_id", "", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

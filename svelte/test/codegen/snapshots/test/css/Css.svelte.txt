@@ -203,6 +203,7 @@ static void cuisv_t_99504b12(cui_ctx *ui, cuisv_scope *s) {
             o.width = CUI_PX(300.0f);
             bool r = cui_button_ex(ui, "Wide###wide", &o);
             (void)r;
+            cuisv_name_last(ui, "wide");
         }
         { /* <div> glob */
             cuisv_name(ui, "glob", "glob");

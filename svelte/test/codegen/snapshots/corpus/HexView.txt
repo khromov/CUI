@@ -35,6 +35,7 @@ static void cuisv_t_15c65c3b(cui_ctx *ui, cuisv_scope *s) {
         o.no_header = false;
         cui_hex_result r = cui_hex_view_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
@@ -179,6 +180,7 @@ static void cuisv_t_42d3c71d(cui_ctx *ui, cuisv_scope *s) {
         o.no_header = cuisv_bool(s, 10);
         cui_hex_result r = cui_hex_view_ex(ui, cuisv_str(s, 1), has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 11));
         if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 3, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
@@ -272,6 +274,7 @@ static void cuisv_t_7a8cfee8(cui_ctx *ui, cuisv_scope *s) {
         o.no_header = true;
         cui_hex_result r = cui_hex_view_ex(ui, "s_id", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 1, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
@@ -283,6 +286,7 @@ static void cuisv_t_7a8cfee8(cui_ctx *ui, cuisv_scope *s) {
         cui_hex_view_opts o = {0};
         cui_hex_result r = cui_hex_view_ex(ui, "fixed_id", has_data ? blob_data->u.blob.p : NULL, has_data ? (size_t)blob_data->u.blob.len : 0, &p_sel, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (memcmp(&p_sel, &p_sel_was, sizeof p_sel) != 0) { cuisv_record_write(s, 3, -1, &cuisv_sd_cui_hex_selection, &p_sel); }
     }
 }

@@ -35,6 +35,7 @@ static void cuisv_t_4c5a5bdd(cui_ctx *ui, cuisv_scope *s) {
         o.no_legend = false;
         int r = cui_radar_chart_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_series *)rec_series->items, rec_series->count, cuisv_strs_0, n_axes, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -97,6 +98,7 @@ static void cuisv_t_7fad5347(cui_ctx *ui, cuisv_scope *s) {
         o.no_legend = cuisv_bool(s, 7);
         int r = cui_radar_chart_ex(ui, cuisv_str(s, 1), (const cui_series *)rec_series->items, rec_series->count, cuisv_strs(s, 3, &n_axes), n_axes, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 9));
         if (r >= 0) cuisv_emit_num(s, 8, r);
     }
@@ -186,6 +188,7 @@ static void cuisv_t_b778c4f6(cui_ctx *ui, cuisv_scope *s) {
         o.no_legend = true;
         int r = cui_radar_chart_ex(ui, "s_id", (const cui_series *)rec_series->items, rec_series->count, cuisv_strs_0, n_axes, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <RadarChart> k1 */
@@ -194,6 +197,7 @@ static void cuisv_t_b778c4f6(cui_ctx *ui, cuisv_scope *s) {
         cui_radar_opts o = {0};
         int r = cui_radar_chart_ex(ui, "fixed_id", (const cui_series *)rec_series->items, rec_series->count, NULL, 0, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

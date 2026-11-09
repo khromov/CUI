@@ -471,9 +471,10 @@ FN(file_dialog) {
 
 /* ---- toasts ----------------------------------------------------------------------------- */
 
-typedef struct watched_toast { int handle; double until; } watched_toast;
-static watched_toast toasts[64];
-static int toast_count;
+/* Toasts with an action, watched until it is clicked or CUI lets the toast go. CUI decides when
+ * that is (it pauses a toast's time while the pointer is over the stack), so this asks it. */
+static int *toasts;
+static int toast_count, toast_cap;
 
 FN(toast) {
     UNUSED;
@@ -494,11 +495,12 @@ FN(toast) {
         t.show_timer = opt_bool(c, o, "show_timer");
     }
     int h = cui_toast_ex(ui, title, &t);
-    if (action && toast_count < 64) {
-        toasts[toast_count].handle = h;
-        toasts[toast_count].until = cui_time(ui) + (t.duration > 0 ? t.duration : t.duration < 0 ? 3600 : 4) + 2;
-        toast_count++;
+    if (action && toast_count == toast_cap) {
+        int cap = toast_cap ? toast_cap * 2 : 8;
+        int *grown = realloc(toasts, sizeof *toasts * (size_t)cap);
+        if (grown) { toasts = grown; toast_cap = cap; }
     }
+    if (action && toast_count < toast_cap) toasts[toast_count++] = h;
     JS_FreeCString(c, title);
     free(desc);
     free(action);
@@ -517,16 +519,13 @@ static float last_w = -1, last_h = -1;
 
 bool cuisv_app_frame(cui_ctx *ui) {
     bool changed = false;
-    double now = cui_time(ui);
     for (int i = 0; i < toast_count;) {
-        if (cui_toast_action_clicked(ui, toasts[i].handle)) {
-            JSValue h = JS_NewInt32(cuisv_js_ctx(), toasts[i].handle);
-            JS_FreeValue(cuisv_js_ctx(), cuisv_js_hook("toast_action", 1, &h));
-            toasts[i] = toasts[--toast_count];
-            changed = true;
-        } else if (now > toasts[i].until) {
-            toasts[i] = toasts[--toast_count];
-        } else i++;
+        const char *hook = cui_toast_action_clicked(ui, toasts[i]) ? "toast_action" : !cuisv_toast_alive(ui, toasts[i]) ? "toast_gone" : NULL;
+        if (!hook) { i++; continue; }
+        JSValue h = JS_NewInt32(cuisv_js_ctx(), toasts[i]);
+        JS_FreeValue(cuisv_js_ctx(), cuisv_js_hook(hook, 1, &h));
+        toasts[i] = toasts[--toast_count];
+        changed = true;
     }
     cui_vec2 v = cui_viewport_size(ui);
     if (v.x != last_w || v.y != last_h) {

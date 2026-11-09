@@ -22,6 +22,7 @@ static void cuisv_t_1a493aac(cui_ctx *ui, cuisv_scope *s) {
         o.max_height = -2.5f;
         bool r = cui_json_view_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -73,6 +74,7 @@ static void cuisv_t_8ad8c042(cui_ctx *ui, cuisv_scope *s) {
         o.max_height = cuisv_float(s, 4);
         bool r = cui_json_view_ex(ui, cuisv_str(s, 1), cuisv_str(s, 2), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 5));
     }
     cuisv_render_site(ui, s, 0);
@@ -147,6 +149,7 @@ static void cuisv_t_2f45d091(cui_ctx *ui, cuisv_scope *s) {
         o.max_height = 3.0f;
         bool r = cui_json_view_ex(ui, "s_id", "s_json", &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <JsonView> k1 */
@@ -154,6 +157,7 @@ static void cuisv_t_2f45d091(cui_ctx *ui, cuisv_scope *s) {
         cui_json_opts o = {0};
         bool r = cui_json_view_ex(ui, "fixed_id", "", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

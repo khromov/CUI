@@ -29,6 +29,7 @@ static void cuisv_t_0a706de5(cui_ctx *ui, cuisv_scope *s) {
         o.hint = "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t";
         bool r = cui_money_input_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         if (p_value != p_value_was) { cuisv_set_num(s, 0, p_value); }
     }
@@ -160,6 +161,7 @@ static void cuisv_t_953ffb1f(cui_ctx *ui, cuisv_scope *s) {
         o.hint = cuisv_cstr(s, 8);
         bool r = cui_money_input_ex(ui, cuisv_str(s, 1), &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 10));
         if (p_value != p_value_was) { cuisv_set_num(s, 2, p_value); }
         if (p_value != p_value_was) cuisv_emit_num(s, 9, p_value);
@@ -247,6 +249,7 @@ static void cuisv_t_0964b3ee(cui_ctx *ui, cuisv_scope *s) {
         o.hint = "s_hint";
         bool r = cui_money_input_ex(ui, "s_id", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
         if (p_value != p_value_was) { cuisv_set_num(s, 0, p_value); }
     }
@@ -257,6 +260,7 @@ static void cuisv_t_0964b3ee(cui_ctx *ui, cuisv_scope *s) {
         cui_money_opts o = {0};
         bool r = cui_money_input_ex(ui, "fixed_id", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_value != p_value_was) { cuisv_set_num(s, 1, p_value); }
     }
 }

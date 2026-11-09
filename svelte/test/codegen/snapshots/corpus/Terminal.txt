@@ -25,6 +25,7 @@ static void cuisv_t_b7aa08b9(cui_ctx *ui, cuisv_scope *s) {
         o.no_input = false;
         cui_terminal_result r = cui_terminal_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", cuisv_terminal_buffer(cuisv_num(s, 0)), &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -79,6 +80,7 @@ static void cuisv_t_7edb631b(cui_ctx *ui, cuisv_scope *s) {
         o.no_input = cuisv_bool(s, 7);
         cui_terminal_result r = cui_terminal_ex(ui, cuisv_str(s, 1), cuisv_terminal_buffer(cuisv_num(s, 2)), &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 10));
         if (r.command != NULL) cuisv_emit_str(s, 8, r.command);
         if (r.interrupt) cuisv_emit(s, 9);
@@ -159,6 +161,7 @@ static void cuisv_t_a69d7f1a(cui_ctx *ui, cuisv_scope *s) {
         o.no_input = true;
         cui_terminal_result r = cui_terminal_ex(ui, "s_id", cuisv_terminal_buffer(cuisv_num(s, 0)), &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <Terminal> k1 */
@@ -166,6 +169,7 @@ static void cuisv_t_a69d7f1a(cui_ctx *ui, cuisv_scope *s) {
         cui_terminal_opts o = {0};
         cui_terminal_result r = cui_terminal_ex(ui, "fixed_id", cuisv_terminal_buffer(cuisv_num(s, 1)), &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

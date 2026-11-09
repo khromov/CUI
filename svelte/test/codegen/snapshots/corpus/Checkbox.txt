@@ -250,6 +250,7 @@ static void cuisv_t_1b549757(cui_ctx *ui, cuisv_scope *s) {
         cui_check_opts o = {0};
         bool r = cui_checkbox_ex(ui, "###fixed_id", &p_value, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_value != p_value_was) { cuisv_set_bool(s, 1, p_value); }
     }
 }

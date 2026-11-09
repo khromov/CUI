@@ -258,7 +258,10 @@ export async function boot(o: BootOptions) {
 			if (x.cuisv_w_toast_clicked(h)) {
 				toasts.delete(h);
 				hooks().toast_action?.(h);
-			} else if (!x.cuisv_w_toast_alive(h)) toasts.delete(h);
+			} else if (!x.cuisv_w_toast_alive(h)) {
+				toasts.delete(h);
+				hooks().toast_gone?.(h);
+			}
 		}
 		const [w, h] = (bridge.viewport as () => number[])();
 		if (w !== last_w || h !== last_h) {

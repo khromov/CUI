@@ -141,6 +141,7 @@ static void cuisv_t_5bec78c3(cui_ctx *ui, cuisv_scope *s) {
     { /* <ProgressRing> fixed_id */
         cuisv_name(ui, "fixed_id", "###fixed_id");
         cui_progress_ring(ui, "###fixed_id", 0, 64);
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

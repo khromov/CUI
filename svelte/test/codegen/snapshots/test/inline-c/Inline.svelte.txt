@@ -112,6 +112,7 @@ static void cuisv_t_9286643e(cui_ctx *ui, cuisv_scope *s) {
         cui_slider_opts o = {0};
         bool r = cui_slider_ex(ui, "slider###slider */ end", &p_value, 0, 100, &o);
         (void)r;
+        cuisv_name_last(ui, "slider */ end");
         if (p_value != p_value_was) { cuisv_set_num(s, 6, p_value); }
     }
 }

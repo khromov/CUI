@@ -36,6 +36,7 @@ static void cuisv_t_513b82bf(cui_ctx *ui, cuisv_scope *s) {
         o.no_legend = false;
         int r = cui_scatter_chart_ex(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_scatter_series *)rec_series->items, rec_series->count, &o);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -101,6 +102,7 @@ static void cuisv_t_0b031899(cui_ctx *ui, cuisv_scope *s) {
         o.no_legend = cuisv_bool(s, 9);
         int r = cui_scatter_chart_ex(ui, cuisv_str(s, 1), (const cui_scatter_series *)rec_series->items, rec_series->count, &o);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 11));
         if (r >= 0) cuisv_emit_num(s, 10, r);
     }
@@ -192,6 +194,7 @@ static void cuisv_t_68836434(cui_ctx *ui, cuisv_scope *s) {
         o.no_legend = true;
         int r = cui_scatter_chart_ex(ui, "s_id", (const cui_scatter_series *)rec_series->items, rec_series->count, &o);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <ScatterChart> k1 */
@@ -200,6 +203,7 @@ static void cuisv_t_68836434(cui_ctx *ui, cuisv_scope *s) {
         cui_scatter_opts o = {0};
         int r = cui_scatter_chart_ex(ui, "fixed_id", (const cui_scatter_series *)rec_series->items, rec_series->count, &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

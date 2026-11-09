@@ -89,6 +89,7 @@ static void cuisv_t_4624c6a8(cui_ctx *ui, cuisv_scope *s) {
             o.placeholder = "name";
             int r = cui_input_ex(ui, "name", p_buf, cap_buf, &o);
             (void)r;
+            cuisv_name_last(ui, "name");
             if ((r & CUI_CHANGED)) { cuisv_buf_changed(s, 6, 7); }
         }
         { /* <Text> k6 */
@@ -160,6 +161,7 @@ static void cuisv_t_4624c6a8(cui_ctx *ui, cuisv_scope *s) {
             o.id = "list";
             o.height = CUI_PX(40.0f);
             cui_scroll_begin(ui, &o);
+            cuisv_name_last(ui, "list");
             cuisv_render_site(ui, s, 7);
             cui_scroll_end(ui);
         }

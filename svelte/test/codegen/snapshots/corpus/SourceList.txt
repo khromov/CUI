@@ -27,6 +27,7 @@ static void cuisv_t_8f8ea1ce(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_sources = cuisv_records_get(s, 0, &cuisv_sd_cui_source);
         int r = cui_source_list(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t", (const cui_source *)rec_sources->items, rec_sources->count);
         (void)r;
+        cuisv_name_last(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
         cui_tooltip(ui, "line one\n\303\274\303\261\303\255 \"q\" \?\?= \\ tab\t");
     }
 }
@@ -83,6 +84,7 @@ static void cuisv_t_68f22efc(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_sources = cuisv_records_get(s, 2, &cuisv_sd_cui_source);
         int r = cui_source_list(ui, cuisv_str(s, 1), (const cui_source *)rec_sources->items, rec_sources->count);
         (void)r;
+        cuisv_name_last(ui, cuisv_str(s, 0));
         cui_tooltip(ui, cuisv_str(s, 4));
         if (r >= 0) cuisv_emit_num(s, 3, r);
     }
@@ -163,6 +165,7 @@ static void cuisv_t_1c5021df(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_sources = cuisv_records_get(s, 0, &cuisv_sd_cui_source);
         int r = cui_source_list(ui, "s_id", (const cui_source *)rec_sources->items, rec_sources->count);
         (void)r;
+        cuisv_name_last(ui, "s_id");
         cui_tooltip(ui, "s_tooltip");
     }
     { /* <SourceList> k1 */
@@ -170,6 +173,7 @@ static void cuisv_t_1c5021df(cui_ctx *ui, cuisv_scope *s) {
         const cuisv_records *rec_sources = cuisv_records_get(s, 1, &cuisv_sd_cui_source);
         int r = cui_source_list(ui, "fixed_id", (const cui_source *)rec_sources->items, rec_sources->count);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

@@ -158,6 +158,7 @@ static void cuisv_t_309b8c9c(cui_ctx *ui, cuisv_scope *s) {
         cui_status_item_opts o = {0};
         bool r = cui_status_bar_item_ex(ui, "###fixed_id", &o);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
     }
 }
 

@@ -234,6 +234,7 @@ static void cuisv_t_9dba1daa(cui_ctx *ui, cuisv_scope *s) {
         bool p_open_was = p_open;
         bool r = cui_inspector_group(ui, "###fixed_id", &p_open);
         (void)r;
+        cuisv_name_last(ui, "fixed_id");
         if (p_open != p_open_was) { cuisv_set_bool(s, 1, p_open); }
     }
 }
