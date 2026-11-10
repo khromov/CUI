@@ -200,6 +200,12 @@ async function cmd_build(a: Args) {
 		return;
 	}
 	if (a.scriptc) {
+		if (a.app) {
+			// the binary goes into Name.app: build it beside the other intermediate files
+			const root = project_root(resolve(a.entry), a.root);
+			const binary = join(root, '.cui-svelte', 'scriptc', 'bin', app_name(resolve(a.entry)));
+			return build_app(a, await build_with_scriptc({ ...a, out: binary }, !a.release));
+		}
 		const out = await build_with_scriptc(a, !a.release);
 		console.error(`built ${relative(process.cwd(), out)}`);
 		return;

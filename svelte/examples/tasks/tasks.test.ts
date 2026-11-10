@@ -20,6 +20,28 @@ test('add, complete and filter tasks', () => {
 	local_storage.flush();
 });
 
+test('deleting the first task, then adding two', () => {
+	// the first row of an {#each} leaves, then rows are appended: the list's own first row
+	// changes, which an engine that copied the each block's effect got wrong (scriptc)
+	localStorage.removeItem('tasks');
+	const app = mount_test(App, { width: 520, height: 640 });
+	const first = app.find('Write the renderer')!;
+	app.click({ x: 520 - 28 - 16 - 14, y: first.y + first.h / 2 }); // its trash button
+	app.frame(2);
+	expect(app.find('Write the renderer')).toBe(null);
+	for (const title of ['One more', 'And another']) {
+		app.click(app.rect('new')!);
+		app.type(title);
+		app.key('enter');
+		app.frame(2);
+	}
+	const titles = app.nodes().map((n) => n.text).filter((t) => ['Try the web build', 'Ship it', 'One more', 'And another'].includes(t));
+	expect(titles).toEqual(['Try the web build', 'Ship it', 'One more', 'And another']);
+	expect(app.text()).toContain('4 open');
+	localStorage.removeItem('tasks');
+	local_storage.flush();
+});
+
 test('the theme toggle saves its choice for the next launch', async () => {
 	const { get_theme } = await import('cui-svelte');
 	const { saved_theme } = await import('./store.ts');

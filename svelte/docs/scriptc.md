@@ -11,6 +11,7 @@ cui-svelte build main.ts               # once: the scriptc build links this buil
 cui-svelte build main.ts --scriptc     # dist/<name>-scriptc
 cui-svelte run   main.ts --scriptc
 cui-svelte test  app.test.ts --scriptc
+cui-svelte build main.ts --scriptc --app [--notarize profile]   # Name.app, as in the guide
 CUISV_ENGINE=scriptc node test/run.ts  # this package's test files on the scriptc build
 ```
 
@@ -83,6 +84,12 @@ so that Svelte's runtime compiles as untyped JavaScript:
 - `let x = void 0` becomes `let x`, and a class field `x = null` becomes a bare field that the
   constructor sets. With the initializer, the variable is typed `undefined` (or `null`) for
   good and a later write throws.
+- An object literal that may hold an existing object, `{ effect, items }`, becomes an object
+  built key by key (`__cuisv_obj('effect', effect, 'items', items)`), in the app and in
+  svelte. To scriptc a literal is a record with a fixed layout, and an object stored in a
+  record of another layout is stored as a copy, without a diagnostic. Svelte's `{#each}` kept
+  such a copy of its effect: deleting the first row and then adding rows hung the app.
+  Literals of constants only stay literals, since built-ins read their options that way.
 - `await import('./x.ts')` becomes a static import that is already resolved.
 - `Array.isArray` and `JSON.stringify` are redirected, see below.
 
@@ -130,6 +137,7 @@ scriptc 0.4.10, macOS arm64, release builds, both with svelte's production runti
 |---|---|---|
 | `examples/hello` binary | 1.9 MB | 6.6 MB (6.0 MB stripped) |
 | `examples/gallery` binary | 2.3 MB | 7.4 MB |
+| `examples/tasks` as Tasks.app, notarized | 1.9 MB (1.0 MB zipped) | 6.5 MB (2.7 MB zipped) |
 | Build after an edit | under 1 s | 10 to 30 s |
 | Script-only edit in `dev` | hot reload | rebuild |
 | Start to first frame (headless test) | about 10 ms | about 10 ms |

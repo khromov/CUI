@@ -176,13 +176,19 @@ async function bundle_js(opts: ScriptcOptions, components: Map<string, Component
  * - `let x = void 0` becomes `let x`: the first is typed `undefined` for good, the second
  *   takes the type of what is assigned later;
  * - a class field `x = null` becomes a bare field that the constructor sets to null: with the
- *   initializer the field is typed `null` and a later write of anything else throws.
+ *   initializer the field is typed `null` and a later write of anything else throws;
+ * - an object literal `{ a: x, b }` becomes `__cuisv_obj('a', x, 'b', b)`, an object built key
+ *   by key. A literal is a record with a fixed layout to scriptc, and storing an existing
+ *   object in a record of another layout stores a copy, silently: svelte's `{ effect, … }`
+ *   then held a copy of the effect, and removing the first row of an {#each} updated one and
+ *   not the other. An object built by key holds what it is given.
  */
 export function for_scriptc(js: string): string {
 	const is_undefined = (e: ts.Expression): boolean => {
 		while (ts.isParenthesizedExpression(e)) e = e.expression;   // what a JSDoc cast leaves
 		return ts.isVoidExpression(e) || (ts.isIdentifier(e) && e.text === 'undefined');
 	};
+	let dynamic_objects = true;
 	const drop_undefined: ts.TransformerFactory<ts.SourceFile> = (context) => {
 		const visit = (node: ts.Node): ts.Node => {
 			if (
@@ -199,15 +205,111 @@ export function for_scriptc(js: string): string {
 				const moved = untyped_fields(node, context.factory);
 				if (moved) return ts.visitEachChild(moved, visit, context);
 			}
+			if (dynamic_objects && ts.isObjectLiteralExpression(node) && is_plain_data(node)) {
+				const visited = ts.visitEachChild(node, visit, context);
+				return dynamic_object(visited, context.factory);
+			}
 			return ts.visitEachChild(node, visit, context);
 		};
-		return (file) => ts.visitNode(file, visit) as ts.SourceFile;
+		// esbuild names each module in a comment above its code. Object literals are rewritten in
+		// the app and in svelte, which run as untyped code that keeps objects by identity, and
+		// not in other packages (culori): their own typed records would no longer check.
+		return (file) => {
+			const statements = file.statements.map((st) => {
+				for (const c of ts.getLeadingCommentRanges(js, st.getFullStart()) ?? []) {
+					const text = js.slice(c.pos, c.end);
+					if (/^\/\/ \S+\.(js|ts|mjs|cjs|svelte)$/.test(text)) dynamic_objects = !/(^|[\\/])node_modules[\\/](?!svelte[\\/])/.test(text.slice(3));
+				}
+				return ts.visitNode(st, visit) as ts.Statement;
+			});
+			return context.factory.updateSourceFile(file, statements);
+		};
 	};
-	return ts.transpileModule(js, {
+	const out = ts.transpileModule(js, {
 		fileName: 'app.mjs',
 		compilerOptions: { removeComments: true, target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext },
 		transformers: { before: [drop_undefined] }
 	}).outputText;
+	return out + DYNAMIC_OBJECT;
+}
+
+/** A hoisted function declaration, so it may come last in the module. */
+const DYNAMIC_OBJECT = `function __cuisv_obj(...kv) {
+    const o = {};
+    for (let i = 0; i < kv.length; i += 2) o[kv[i]] = kv[i + 1];
+    return o;
+}
+`;
+
+/**
+ * An object literal of data: `key: value`, shorthand and spread members with literal keys.
+ * Not one with methods, accessors or computed keys (a Proxy's handler, a renderer's
+ * functions), not a destructuring target, and not where the language or a built-in reads a
+ * literal: a property descriptor, the handler of a Proxy.
+ */
+function is_plain_data(node: ts.ObjectLiteralExpression): boolean {
+	if (!node.properties.length) return false;
+	for (const p of node.properties) {
+		if (ts.isSpreadAssignment(p) || ts.isShorthandPropertyAssignment(p)) {
+			if (ts.isShorthandPropertyAssignment(p) && p.objectAssignmentInitializer) return false;   // `{ a = 1 } = x`
+			continue;
+		}
+		if (!ts.isPropertyAssignment(p)) return false;
+		if (!(ts.isIdentifier(p.name) || ts.isStringLiteral(p.name) || ts.isNumericLiteral(p.name))) return false;
+		if (p.name.text === '__proto__') return false;
+	}
+	// Only a literal that may hold an existing object needs this. One of constants, functions
+	// and new values stays a literal, which is what built-ins want for their options
+	// (`mkdirSync(path, { recursive: true })` has no lowering for any other object).
+	if (node.properties.every((p) => ts.isPropertyAssignment(p) && is_new_value(p.initializer))) return false;
+	// a destructuring assignment: `({ a, b } = x)`, `for ({ a } of list)`, also nested in one
+	let child: ts.Node = node;
+	for (let parent = node.parent; parent; child = parent, parent = parent.parent) {
+		if (ts.isBinaryExpression(parent) && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && parent.left === child) return false;
+		if ((ts.isForOfStatement(parent) || ts.isForInStatement(parent)) && parent.initializer === child) return false;
+		const still_a_pattern =
+			ts.isParenthesizedExpression(parent) || ts.isArrayLiteralExpression(parent) || ts.isObjectLiteralExpression(parent) ||
+			ts.isPropertyAssignment(parent) || ts.isShorthandPropertyAssignment(parent) || ts.isSpreadElement(parent) || ts.isSpreadAssignment(parent);
+		if (!still_a_pattern) break;
+	}
+	const call = node.parent;
+	if ((ts.isCallExpression(call) || ts.isNewExpression(call)) && call.arguments?.includes(node)) {
+		const callee = call.expression.getText();
+		if (/^(Object\.(defineProperty|defineProperties|create)|Reflect\.defineProperty|Proxy|__defProp)$/.test(callee)) return false;
+	}
+	return true;
+}
+
+/** A constant, a function or an object made right here: nothing else refers to it yet. */
+function is_new_value(e: ts.Expression): boolean {
+	while (ts.isParenthesizedExpression(e)) e = e.expression;
+	if (ts.isPrefixUnaryExpression(e)) return is_new_value(e.operand);
+	return (
+		ts.isLiteralExpression(e) || ts.isVoidExpression(e) || ts.isTypeOfExpression(e) || ts.isArrowFunction(e) || ts.isFunctionExpression(e) ||
+		ts.isNewExpression(e) || ts.isObjectLiteralExpression(e) || ts.isArrayLiteralExpression(e) ||
+		e.kind === ts.SyntaxKind.TrueKeyword || e.kind === ts.SyntaxKind.FalseKeyword || e.kind === ts.SyntaxKind.NullKeyword ||
+		(ts.isIdentifier(e) && e.text === 'undefined')
+	);
+}
+
+/** `{ a: x, ...rest, b }` as `Object.assign(__cuisv_obj('a', x), rest, __cuisv_obj('b', b))`. */
+function dynamic_object(node: ts.ObjectLiteralExpression, f: ts.NodeFactory): ts.Expression {
+	const make = (kv: ts.Expression[]) => f.createCallExpression(f.createIdentifier('__cuisv_obj'), undefined, kv);
+	const parts: ts.Expression[] = [];
+	let kv: ts.Expression[] = [];
+	for (const p of node.properties) {
+		if (ts.isSpreadAssignment(p)) {
+			parts.push(make(kv), p.expression);
+			kv = [];
+		} else if (ts.isShorthandPropertyAssignment(p)) {
+			kv.push(f.createStringLiteral(p.name.text), f.createIdentifier(p.name.text));
+		} else if (ts.isPropertyAssignment(p)) {
+			kv.push(f.createStringLiteral((p.name as ts.Identifier | ts.StringLiteral | ts.NumericLiteral).text), p.initializer);
+		}
+	}
+	if (!parts.length) return make(kv);
+	if (kv.length) parts.push(make(kv));
+	return f.createCallExpression(f.createPropertyAccessExpression(f.createIdentifier('Object'), 'assign'), undefined, parts);
 }
 
 /**
