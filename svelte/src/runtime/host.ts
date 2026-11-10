@@ -159,7 +159,8 @@ export const fs = {
 };
 
 let app_id = '';
-const REBIND = Symbol('rebind');
+/** Set by FileStorage: writes what is unsaved, then forgets what it read (the folder changed). */
+let rebind_storage = () => {};
 
 /**
  * Names the app's data folder (run()'s app_id does this too). Call it before anything reads
@@ -170,7 +171,7 @@ export function set_app_id(id: string) {
 	const next = id.replace(/[^\w.-]+/g, '-');
 	if (next === app_id) return;
 	// what localStorage held belongs to the old folder: unsaved changes go there, then it reads anew
-	local_storage[REBIND]();
+	rebind_storage();
 	app_id = next;
 }
 
@@ -240,9 +241,12 @@ class FileStorage {
 		this.#load().clear();
 		this.#save();
 	}
-	[REBIND]() {
-		if (this.#timer) this.flush();
-		this.#data = null;
+	constructor() {
+		// a closure rather than a method: it is not part of the Storage interface
+		rebind_storage = () => {
+			if (this.#timer) this.flush();
+			this.#data = null;
+		};
 	}
 }
 

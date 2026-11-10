@@ -59,8 +59,55 @@ export function extract_c(source: string, sibling?: string): CBlocks {
 	return { source: out, code, exports };
 }
 
+/** How a C type crosses to JS: undefined for a type exported functions cannot use. */
+export function native_kind(type: string): 'num' | 'int' | 'bool' | 'str' | 'void' | undefined {
+	return TYPES[type];
+}
+
+/**
+ * C for the scriptc build: each exported function as `cuisvn_<name>` with the argument
+ * layout of scriptc's FFI. Strings arrive as a (pointer, length) span and are copied to a C
+ * string for the call; a string result goes to a callback, which is not called for NULL.
+ * src/cli/scriptc.ts writes the matching manifest entries and declarations.
+ */
+function scriptc_shims(fns: NativeFn[]): string[] {
+	const lines: string[] = [];
+	if (fns.some((f) => f.params.some((p) => TYPES[p.type] === 'str'))) {
+		lines.push('#include <stdlib.h>');
+		lines.push('static char *cuisvn__cstr(const uint8_t *p, size_t n) { char *s = malloc(n + 1); if (!s) abort(); if (n) memcpy(s, p, n); s[n] = 0; return s; }');
+	}
+	for (const f of fns) {
+		const rk = TYPES[f.ret];
+		const params: string[] = [];
+		const before: string[] = [];
+		const after: string[] = [];
+		const args: string[] = [];
+		f.params.forEach((p, i) => {
+			const k = TYPES[p.type];
+			if (k === 'num') params.push(`double a${i}`);
+			else if (k === 'int') params.push(`int32_t a${i}`);
+			else if (k === 'bool') params.push(`uint8_t a${i}`);
+			else {
+				params.push(`const uint8_t *a${i}`, `size_t n${i}`);
+				before.push(`char *s${i} = cuisvn__cstr(a${i}, n${i});`);
+				after.push(`free(s${i});`);
+			}
+			args.push(k === 'str' ? `s${i}` : k === 'bool' ? `a${i} != 0` : `(${p.type})a${i}`);
+		});
+		if (rk === 'str') params.push('void (*cb)(const uint8_t *, size_t, void *)', 'void *context');
+		const call = `${f.name}(${args.join(', ')})`;
+		const ret = rk === 'void' || rk === 'str' ? 'void' : rk === 'bool' ? 'uint8_t' : 'double';
+		const body =
+			rk === 'void' ? [`${call};`]
+			: rk === 'str' ? [`const char *r = ${call};`, 'if (r) cb((const uint8_t *)r, strlen(r), context);']
+			: [`${ret} r = (${ret})${call};`];
+		lines.push(`${ret} cuisvn_${f.name}(${params.join(', ') || 'void'}) { ${[...before, ...body, ...after, ...(ret === 'void' ? [] : ['return r;'])].join(' ')} }`);
+	}
+	return lines;
+}
+
 /** C: the QuickJS wrappers for exported functions and their table. */
-export function native_wrappers(fns: NativeFn[], table: string): { c: string; errors: string[] } {
+export function native_wrappers(fns: NativeFn[], table: string): { c: string; errors: string[]; exported: NativeFn[] } {
 	const errors: string[] = [];
 	const lines: string[] = [];
 	for (const f of fns) {
@@ -132,14 +179,7 @@ export function native_wrappers(fns: NativeFn[], table: string): { c: string; er
 			`__attribute__((export_name("cuisv_native_${f.name}"))) ${f.ret === 'void' ? 'void' : 'double'} cuisv_wnative_${f.name}(${params}) { ${f.ret === 'void' ? '' : 'return (double)'}${f.name}(${args}); }`
 		);
 	}
-	const c = [
-		'#ifndef CUISV_WEB',
-		...lines,
-		'#else',
-		...web,
-		`const cuisv_native ${table}[] = { { NULL, NULL, 0 } };`,
-		`const int ${table}_count = 0;`,
-		'#endif'
-	];
-	return { c: c.join('\n'), errors };
+	const empty = [`const cuisv_native ${table}[] = { { NULL, NULL, 0 } };`, `const int ${table}_count = 0;`];
+	const c = ['#if defined(CUISV_SCRIPTC)', ...scriptc_shims(ok_fns), ...empty, '#elif !defined(CUISV_WEB)', ...lines, '#else', ...web, ...empty, '#endif'];
+	return { c: c.join('\n'), errors, exported: ok_fns };
 }

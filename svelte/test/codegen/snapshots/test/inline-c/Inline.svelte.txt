@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef CUISV_WEB
+#if !defined(CUISV_WEB) && !defined(CUISV_SCRIPTC)
 #include "quickjs.h"
 #endif
 #define cuisv_export
@@ -24,7 +24,16 @@
 
 /* ---- end ---- */
 
-#ifndef CUISV_WEB
+#if defined(CUISV_SCRIPTC)
+#include <stdlib.h>
+static char *cuisvn__cstr(const uint8_t *p, size_t n) { char *s = malloc(n + 1); if (!s) abort(); if (n) memcpy(s, p, n); s[n] = 0; return s; }
+double cuisvn_triple(double a0) { double r = (double)triple((double)a0); return r; }
+double cuisvn_len(const uint8_t *a0, size_t n0) { char *s0 = cuisvn__cstr(a0, n0); double r = (double)len(s0); free(s0); return r; }
+void cuisvn_join(const uint8_t *a0, size_t n0, const uint8_t *a1, size_t n1, void (*cb)(const uint8_t *, size_t, void *), void *context) { char *s0 = cuisvn__cstr(a0, n0); char *s1 = cuisvn__cstr(a1, n1); const char *r = join(s0, s1); if (r) cb((const uint8_t *)r, strlen(r), context); free(s0); free(s1); }
+uint8_t cuisvn_odd(int32_t a0, uint8_t a1) { uint8_t r = (uint8_t)odd((int)a0, a1 != 0); return r; }
+const cuisv_native cuisv_natives_9286643e[] = { { NULL, NULL, 0 } };
+const int cuisv_natives_9286643e_count = 0;
+#elif !defined(CUISV_WEB)
 static JSValue cuisv_native_triple(JSContext *c, JSValueConst this_val, int argc, JSValueConst *argv) {
     (void)this_val; (void)argc; (void)argv;
     double a0 = 0;

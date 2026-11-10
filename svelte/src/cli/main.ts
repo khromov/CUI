@@ -12,6 +12,8 @@
  *                                                          hot-swap in the running window, markup
  *                                                          and style edits rebuild the C and relaunch
  *   cui-svelte test  <file.test.ts>                        headless build that runs a test file
+ *   cui-svelte build|run|test <entry.ts> --scriptc         experimental: the JS compiled to native code
+ *                                                          by scriptc instead of run by QuickJS
  *   cui-svelte compile <file.svelte>                       print the C and JS of one component
  *   cui-svelte create  <dir>                               a new app to start from
  */
@@ -28,7 +30,7 @@ import { create } from './create.ts';
 import { project_root, triggers_rebuild } from './project.ts';
 
 const OPTIONS = {
-	release: { type: 'boolean' }, debug: { type: 'boolean' }, verbose: { type: 'boolean', short: 'v' }, web: { type: 'boolean' }, app: { type: 'boolean' },
+	release: { type: 'boolean' }, debug: { type: 'boolean' }, verbose: { type: 'boolean', short: 'v' }, web: { type: 'boolean' }, app: { type: 'boolean' }, scriptc: { type: 'boolean' },
 	out: { type: 'string', short: 'o' }, root: { type: 'string' }, port: { type: 'string', default: '5174' },
 	name: { type: 'string' }, id: { type: 'string' }, 'app-version': { type: 'string' }, icon: { type: 'string' }, sign: { type: 'string' }, notarize: { type: 'string' },
 	help: { type: 'boolean', short: 'h' }
@@ -47,7 +49,7 @@ function parse_args(argv: string[]) {
 	const [cmd = 'help', entry = '', ...rest] = v.help ? ['help'] : positionals;
 	// build makes a release unless --debug; run and dev make a debug build unless --release
 	const release = cmd === 'build' ? !v.debug : !!v.release && !v.debug;
-	return { ...v, cmd, entry, rest, release, app_version: v['app-version'], port: Number(v.port), verbose: !!v.verbose, web: !!v.web, app: !!v.app };
+	return { ...v, cmd, entry, rest, release, scriptc: !!v.scriptc, app_version: v['app-version'], port: Number(v.port), verbose: !!v.verbose, web: !!v.web, app: !!v.app };
 }
 type Args = ReturnType<typeof parse_args>;
 
@@ -93,6 +95,25 @@ async function build_once(a: Args, mode: 'dev' | 'release' | 'debug' | 'test', q
 	const t2 = performance.now();
 	console.error(dim(`bundled ${b.components.size} components in ${Math.round(t1 - t0)} ms, native build ${Math.round(t2 - t1)} ms`));
 	return { ok, binary, js: b.js, components: b.components, c_changed: changed };
+}
+
+// ---- the scriptc build (experimental) ---------------------------------------------------------
+
+/** Builds with scriptc; the binary is the windowed app, or the headless test host with CUISV_HEADLESS=1. */
+async function build_with_scriptc(a: Args, dev: boolean): Promise<string> {
+	const entry = resolve(a.entry);
+	const root = project_root(entry, a.root);
+	const out = a.out ? resolve(a.out) : join(dirname(entry), 'dist', app_name(entry) + '-scriptc' + (process.platform === 'win32' ? '.exe' : ''));
+	// loaded only here: this build needs the typescript package, which the others do not
+	const { build_scriptc } = await import('./scriptc.ts');
+	const r = await build_scriptc({ entry, root, dir: join(root, '.cui-svelte', dev ? 'scriptc-dev' : 'scriptc'), out, dev, verbose: a.verbose });
+	for (const w of r.warnings) console.error(yellow('warning ') + w);
+	if (!r.ok) {
+		console.error(red('error ') + r.log);
+		process.exit(1);
+	}
+	console.error(dim(`bundled in ${Math.round(r.ms.bundle)} ms, C ${Math.round(r.ms.c)} ms, scriptc ${Math.round(r.ms.scriptc)} ms`));
+	return out;
 }
 
 // ---- the browser build ---------------------------------------------------------------------
@@ -178,6 +199,11 @@ async function cmd_build(a: Args) {
 		console.error(`built ${relative(process.cwd(), out)}/ (index.html, app.js, app.wasm): serve it with any static file server`);
 		return;
 	}
+	if (a.scriptc) {
+		const out = await build_with_scriptc(a, !a.release);
+		console.error(`built ${relative(process.cwd(), out)}`);
+		return;
+	}
 	const r = await build_once(a, a.release ? 'release' : 'debug');
 	if (!r.ok) process.exit(1);
 	if (a.app) return build_app(a, r.binary);
@@ -228,6 +254,11 @@ function launch(binary: string, env: Record<string, string>, rest: string[]): Ch
 }
 
 async function cmd_run(a: Args) {
+	if (a.scriptc) {
+		const child = launch(await build_with_scriptc(a, !a.release), {}, a.rest);
+		child.on('exit', (code) => process.exit(code ?? 0));
+		return;
+	}
 	const r = await build_once(a, a.release ? 'release' : 'debug');
 	if (!r.ok) process.exit(1);
 	const child = launch(r.binary, {}, a.rest);
@@ -294,6 +325,13 @@ async function cmd_dev(a: Args) {
 }
 
 async function cmd_test(a: Args) {
+	if (a.scriptc) {
+		const root = project_root(resolve(a.entry), a.root);
+		const out = join(root, '.cui-svelte', 'scriptc', 'bin', app_name(resolve(a.entry)) + '_test');
+		const child = launch(await build_with_scriptc({ ...a, out }, false), { CUISV_HEADLESS: '1' }, a.rest);
+		child.on('exit', (code) => process.exit(code ?? 1));
+		return;
+	}
 	const r = await build_once(a, 'test');
 	if (!r.ok) process.exit(1);
 	const child = launch(r.binary, {}, a.rest);

@@ -131,13 +131,21 @@ function push_slot(handle: number, name: string, value: unknown, b = native()) {
 			break;
 		case 'd':
 			if (value == null) b.unset(handle, i);
-			else b.floats(handle, i, value instanceof Float32Array ? value : Float32Array.from(value as ArrayLike<number>, Number));
+			else b.floats(handle, i, value instanceof Float32Array ? value : float_list(value));
 			break;
 		case 'o':
 			if (value == null) b.unset(handle, i);
 			else b.blob(handle, i, value as Uint8Array);
 			break;
 	}
+}
+
+/** Float32Array.from(v, Number), as a loop: the scriptc build has no typed-array `from` with a mapper. */
+function float_list(v: unknown): Float32Array {
+	const list = typeof (v as ArrayLike<unknown>).length === 'number' ? (v as ArrayLike<unknown>) : Array.from(v as Iterable<unknown>);
+	const out = new Float32Array(list.length);
+	for (let i = 0; i < out.length; i++) out[i] = Number(list[i]);
+	return out;
 }
 
 /** Creates the C scope for a template element and everything below it, then pushes slots. */

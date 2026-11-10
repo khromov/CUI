@@ -410,10 +410,18 @@ export function record_value(bytes: Uint8Array, desc: FieldDesc[], type: string)
 	return from_record(type, unpack(bytes, desc)[0]);
 }
 
+/** Uint8Array.from(v, map), as a loop: the scriptc build has no typed-array `from` with a mapper. */
+function byte_list(v: unknown, map: (x: unknown) => number): Uint8Array {
+	const list = typeof (v as ArrayLike<unknown>).length === 'number' ? (v as ArrayLike<unknown>) : Array.from(v as Iterable<unknown>);
+	const out = new Uint8Array(list.length);
+	for (let i = 0; i < out.length; i++) out[i] = map(list[i]);
+	return out;
+}
+
 /** A bool array for C (multi select, toggle group). */
 export function bools(v: unknown): Uint8Array | undefined {
 	if (v == null) return undefined;
-	return Uint8Array.from(v as ArrayLike<unknown>, (x) => (x ? 1 : 0));
+	return byte_list(v, (x) => (x ? 1 : 0));
 }
 
 /**
@@ -458,13 +466,16 @@ export function bytes(v: unknown): Uint8Array | undefined {
 	if (v instanceof Uint8Array) return v;
 	if (ArrayBuffer.isView(v)) return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
 	if (v instanceof ArrayBuffer) return new Uint8Array(v);
-	return Uint8Array.from(v as ArrayLike<number>, (x) => Number(x) & 255);
+	return byte_list(v, (x) => Number(x) & 255);
 }
 
 /** uint32 masks for C (filter bar selections), little endian like the rest. */
 export function u32s(v: unknown): Uint8Array | undefined {
 	if (v == null) return undefined;
-	const a = Uint32Array.from(v as ArrayLike<number>, (x) => Number(x) >>> 0);
+	// a loop, as in byte_list
+	const list = typeof (v as ArrayLike<unknown>).length === 'number' ? (v as ArrayLike<unknown>) : Array.from(v as Iterable<unknown>);
+	const a = new Uint32Array(list.length);
+	for (let i = 0; i < a.length; i++) a[i] = Number(list[i]) >>> 0;
 	return new Uint8Array(a.buffer);
 }
 

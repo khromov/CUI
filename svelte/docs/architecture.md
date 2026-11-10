@@ -176,6 +176,10 @@ npm test && npm run typecheck
 **`web.ts`.** clang `--target=wasm32` with CUI's shim, shared objects cached, then
 `wasm-ld`.
 
+**`scriptc.ts`.** The experimental build without a JS engine: the bundle is compiled to
+native code by scriptc and linked with `runtime/cuisv_sc.c` in place of the QuickJS host. See
+[The scriptc build](scriptc.md).
+
 **`main.ts`.** The CLI. `dev` decides between hot reload (the C did not change) and a
 relaunch.
 

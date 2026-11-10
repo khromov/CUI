@@ -7,7 +7,7 @@
 
 static void cuisv_t_4ea9d998(cui_ctx *ui, cuisv_scope *s);
 
-const cuisv_template cuisv_tpl_4ea9d998 = { 0x4ea9d998u, "Npm.svelte#0", cuisv_t_4ea9d998, 4, 0 };
+const cuisv_template cuisv_tpl_4ea9d998 = { 0x4ea9d998u, "Npm.svelte#0", cuisv_t_4ea9d998, 3, 0 };
 
 static void cuisv_t_4ea9d998(cui_ctx *ui, cuisv_scope *s) {
     (void)ui; (void)s;
@@ -25,16 +25,11 @@ static void cuisv_t_4ea9d998(cui_ctx *ui, cuisv_scope *s) {
             cuisv_text_inherit(&o);
             cui_text_ex(ui, cuisv_str(s, 1), &o);
         }
-        { /* <Text> k3 */
-            cui_text_opts o = {0};
-            cuisv_text_inherit(&o);
-            cui_text_ex(ui, cuisv_str(s, 2), &o);
-        }
-        { /* <Button> k4 */
+        { /* <Button> k3 */
             cui_button_opts o = {0};
-            bool r = cui_button_ex(ui, "next month###k4", &o);
+            bool r = cui_button_ex(ui, "next month###k3", &o);
             (void)r;
-            if (r) cuisv_emit(s, 3);
+            if (r) cuisv_emit(s, 2);
         }
         cui_box_end(ui);
     }
@@ -48,10 +43,8 @@ static void cuisv_t_4ea9d998(cui_ctx *ui, cuisv_scope *s) {
 
 	dayjs.extend(relativeTime);
 	let date = $state(dayjs('2026-11-09'));
-	const id = crypto.randomUUID();
-	const url = new URL('/docs?page=2#top', 'https://example.com/app/');
 </script>
-<t1319754136 s0={`date=${__cuisv_h.t(date.format('dddd D MMMM YYYY'))}`} s1={`later=${__cuisv_h.t(date.add(3, 'day').format('YYYY-MM-DD'))} from=${__cuisv_h.t(dayjs('2026-11-09').from(dayjs('2026-11-12')))}`} s2={`uuid=${__cuisv_h.t(id.length)} url=${__cuisv_h.t(url.href)} page=${__cuisv_h.t(url.searchParams.get('page'))}`} f3={() => (date = date.add(1, 'month'))}></t1319754136>
+<t1319754136 s0={`date=${__cuisv_h.t(date.format('dddd D MMMM YYYY'))}`} s1={`later=${__cuisv_h.t(date.add(3, 'day').format('YYYY-MM-DD'))} from=${__cuisv_h.t(dayjs('2026-11-09').from(dayjs('2026-11-12')))}`} f2={() => (date = date.add(1, 'month'))}></t1319754136>
 
 ---- metadata ----
 {
@@ -60,7 +53,7 @@ static void cuisv_t_4ea9d998(cui_ctx *ui, cuisv_scope *s) {
    "id": 1319754136,
    "symbol": "cuisv_tpl_4ea9d998",
    "name": "Npm.svelte#0",
-   "slots": 4,
+   "slots": 3,
    "sites": 0
   }
  ],

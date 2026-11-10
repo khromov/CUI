@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef CUISV_WEB
+#if !defined(CUISV_WEB) && !defined(CUISV_SCRIPTC)
 #include "quickjs.h"
 #endif
 #define cuisv_export
@@ -28,7 +28,14 @@ static void draw_bar(cui_ctx *ui, cui_rect r, const float *data, int n) {
 
 /* ---- end ---- */
 
-#ifndef CUISV_WEB
+#if defined(CUISV_SCRIPTC)
+#include <stdlib.h>
+static char *cuisvn__cstr(const uint8_t *p, size_t n) { char *s = malloc(n + 1); if (!s) abort(); if (n) memcpy(s, p, n); s[n] = 0; return s; }
+double cuisvn_hypotenuse(double a0, double a1) { double r = (double)hypotenuse((double)a0, (double)a1); return r; }
+void cuisvn_greet(const uint8_t *a0, size_t n0, void (*cb)(const uint8_t *, size_t, void *), void *context) { char *s0 = cuisvn__cstr(a0, n0); const char *r = greet(s0); if (r) cb((const uint8_t *)r, strlen(r), context); free(s0); }
+const cuisv_native cuisv_natives_56674323[] = { { NULL, NULL, 0 } };
+const int cuisv_natives_56674323_count = 0;
+#elif !defined(CUISV_WEB)
 static JSValue cuisv_native_hypotenuse(JSContext *c, JSValueConst this_val, int argc, JSValueConst *argv) {
     (void)this_val; (void)argc; (void)argv;
     double a0 = 0;

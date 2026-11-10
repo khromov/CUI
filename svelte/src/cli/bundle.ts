@@ -13,7 +13,7 @@ import { compile, type CompileResult, type Warning } from '../compiler/index.ts'
 import { collect_globals, type GlobalRules } from '../compiler/styles.ts';
 
 export const PKG_ROOT = fileURLToPath(new URL('../..', import.meta.url));
-const SVELTE_DIR = dirname(fileURLToPath(import.meta.resolve('svelte/package.json')));
+export const SVELTE_DIR = dirname(fileURLToPath(import.meta.resolve('svelte/package.json')));
 
 const SUBPATHS: Record<string, string> = {
 	'cui-svelte': 'src/runtime/index.ts',

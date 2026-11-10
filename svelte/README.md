@@ -90,6 +90,9 @@ has the details.
   type, take screenshots. See [Testing](docs/testing.md).
 - **The browser**: `--web` compiles the same app to WebAssembly with CUI's web host. The JS
   half runs in the page's own engine. See [Web](docs/web.md).
+- **No JS engine** (experimental): `--scriptc` compiles the JS half to native code with
+  [scriptc](https://scriptc.dev) instead of running it in QuickJS. See
+  [The scriptc build](docs/scriptc.md).
 
 ## Requirements
 

@@ -28,6 +28,15 @@
 			],
 			"cui-svelte/*": [
 				"./src/runtime/*.ts"
+			],
+			"cuisv-ffi": [
+				"./src/scriptc/ffi.ts"
+			],
+			"cuisv-app-natives": [
+				"./src/scriptc/app-natives.d.ts"
+			],
+			"cuisv-svelte-proxy": [
+				"./src/scriptc/svelte-proxy.js"
 			]
 		}
 	},

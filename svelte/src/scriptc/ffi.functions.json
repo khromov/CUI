@@ -1,0 +1,792 @@
+[
+	{
+		"name": "cuisvsc_root",
+		"symbol": "cuisvsc_root",
+		"params": [],
+		"returns": "u32"
+	},
+	{
+		"name": "cuisvsc_scope",
+		"symbol": "cuisvsc_scope",
+		"params": [
+			"u32"
+		],
+		"returns": "u32"
+	},
+	{
+		"name": "cuisvsc_free",
+		"symbol": "cuisvsc_free",
+		"params": [
+			"u32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_insert",
+		"symbol": "cuisvsc_insert",
+		"params": [
+			"u32",
+			"i32",
+			"u32",
+			"u32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_detach",
+		"symbol": "cuisvsc_detach",
+		"params": [
+			"u32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_num",
+		"symbol": "cuisvsc_num",
+		"params": [
+			"u32",
+			"i32",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_bool",
+		"symbol": "cuisvsc_bool",
+		"params": [
+			"u32",
+			"i32",
+			"bool"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_str",
+		"symbol": "cuisvsc_str",
+		"params": [
+			"u32",
+			"i32",
+			"string"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_unset",
+		"symbol": "cuisvsc_unset",
+		"params": [
+			"u32",
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_fn",
+		"symbol": "cuisvsc_fn",
+		"params": [
+			"u32",
+			"i32",
+			"bool"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_strs",
+		"symbol": "cuisvsc_strs",
+		"params": [
+			"u32",
+			"i32",
+			"bytes",
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_floats",
+		"symbol": "cuisvsc_floats",
+		"params": [
+			"u32",
+			"i32",
+			"bytes"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_blob",
+		"symbol": "cuisvsc_blob",
+		"params": [
+			"u32",
+			"i32",
+			"bytes"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_ev_count",
+		"symbol": "cuisvsc_ev_count",
+		"params": [],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_ev_handle",
+		"symbol": "cuisvsc_ev_handle",
+		"params": [
+			"i32"
+		],
+		"returns": "u32"
+	},
+	{
+		"name": "cuisvsc_ev_slot",
+		"symbol": "cuisvsc_ev_slot",
+		"params": [
+			"i32"
+		],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_ev_kind",
+		"symbol": "cuisvsc_ev_kind",
+		"params": [
+			"i32"
+		],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_ev_a",
+		"symbol": "cuisvsc_ev_a",
+		"params": [
+			"i32"
+		],
+		"returns": "f64"
+	},
+	{
+		"name": "cuisvsc_ev_b",
+		"symbol": "cuisvsc_ev_b",
+		"params": [
+			"i32"
+		],
+		"returns": "f64"
+	},
+	{
+		"name": "cuisvsc_ev_str",
+		"symbol": "cuisvsc_ev_str",
+		"params": [
+			"i32",
+			{
+				"callback": {
+					"id": "span",
+					"params": [
+						"string",
+						{
+							"context": "span"
+						}
+					],
+					"returns": "void",
+					"lifetime": "call"
+				}
+			},
+			{
+				"context": "span"
+			}
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_ev_bytes",
+		"symbol": "cuisvsc_ev_bytes",
+		"params": [
+			"i32",
+			{
+				"callback": {
+					"id": "span",
+					"params": [
+						"bytes",
+						{
+							"context": "span"
+						}
+					],
+					"returns": "void",
+					"lifetime": "call"
+				}
+			},
+			{
+				"context": "span"
+			}
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_ev_clear",
+		"symbol": "cuisvsc_ev_clear",
+		"params": [],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_app",
+		"symbol": "cuisvsc_app",
+		"params": [
+			"string",
+			"i32",
+			"i32",
+			"i32",
+			"i32",
+			"i32",
+			"i32",
+			"i32",
+			"i32"
+		],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_frame_begin",
+		"symbol": "cuisvsc_frame_begin",
+		"params": [],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_frame_render",
+		"symbol": "cuisvsc_frame_render",
+		"params": [
+			"bool",
+			"f64"
+		],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_on_paint",
+		"symbol": "cuisvsc_on_paint",
+		"params": [
+			{
+				"callback": {
+					"id": "paint",
+					"params": [
+						"u32",
+						"i32",
+						"f64",
+						"f64",
+						"f64",
+						"f64",
+						{
+							"context": "paint"
+						}
+					],
+					"returns": "void",
+					"lifetime": "retained"
+				}
+			},
+			{
+				"context": "paint"
+			}
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_redraw",
+		"symbol": "cuisvsc_redraw",
+		"params": [],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_quit",
+		"symbol": "cuisvsc_quit",
+		"params": [],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_want_keys",
+		"symbol": "cuisvsc_want_keys",
+		"params": [
+			"bool"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_time_ms",
+		"symbol": "cuisvsc_time_ms",
+		"params": [],
+		"returns": "f64"
+	},
+	{
+		"name": "cuisvsc_set_title",
+		"symbol": "cuisvsc_set_title",
+		"params": [
+			"string"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_set_theme",
+		"symbol": "cuisvsc_set_theme",
+		"params": [
+			"bool"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_get_theme",
+		"symbol": "cuisvsc_get_theme",
+		"params": [],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_set_accent",
+		"symbol": "cuisvsc_set_accent",
+		"params": [
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_shutdown",
+		"symbol": "cuisvsc_shutdown",
+		"params": [],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_clipboard_write",
+		"symbol": "cuisvsc_clipboard_write",
+		"params": [
+			"string"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_clipboard_read",
+		"symbol": "cuisvsc_clipboard_read",
+		"params": [
+			{
+				"callback": {
+					"id": "span",
+					"params": [
+						"string",
+						{
+							"context": "span"
+						}
+					],
+					"returns": "void",
+					"lifetime": "call"
+				}
+			},
+			{
+				"context": "span"
+			}
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_open_url",
+		"symbol": "cuisvsc_open_url",
+		"params": [
+			"string"
+		],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_viewport_part",
+		"symbol": "cuisvsc_viewport_part",
+		"params": [
+			"i32"
+		],
+		"returns": "f64"
+	},
+	{
+		"name": "cuisvsc_rect_of",
+		"symbol": "cuisvsc_rect_of",
+		"params": [
+			"string"
+		],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_rect_part",
+		"symbol": "cuisvsc_rect_part",
+		"params": [
+			"i32"
+		],
+		"returns": "f64"
+	},
+	{
+		"name": "cuisvsc_scroll_to",
+		"symbol": "cuisvsc_scroll_to",
+		"params": [
+			"string",
+			"f64"
+		],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_get_accent",
+		"symbol": "cuisvsc_get_accent",
+		"params": [
+			{
+				"callback": {
+					"id": "span",
+					"params": [
+						"string",
+						{
+							"context": "span"
+						}
+					],
+					"returns": "void",
+					"lifetime": "call"
+				}
+			},
+			{
+				"context": "span"
+			}
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_set_strings",
+		"symbol": "cuisvsc_set_strings",
+		"params": [
+			"bytes",
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_buffer_new",
+		"symbol": "cuisvsc_buffer_new",
+		"params": [
+			"i32",
+			"i32",
+			"f64"
+		],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_buffer_write",
+		"symbol": "cuisvsc_buffer_write",
+		"params": [
+			"f64",
+			"string",
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_buffer_clear",
+		"symbol": "cuisvsc_buffer_clear",
+		"params": [
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_buffer_free",
+		"symbol": "cuisvsc_buffer_free",
+		"params": [
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_toast",
+		"symbol": "cuisvsc_toast",
+		"params": [
+			"string",
+			"string",
+			"string",
+			"i32",
+			"f64",
+			"bool"
+		],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_toast_dismiss",
+		"symbol": "cuisvsc_toast_dismiss",
+		"params": [
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_toast_next",
+		"symbol": "cuisvsc_toast_next",
+		"params": [],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_toast_kind",
+		"symbol": "cuisvsc_toast_kind",
+		"params": [],
+		"returns": "i32"
+	},
+	{
+		"name": "cuisvsc_file_dialog",
+		"symbol": "cuisvsc_file_dialog",
+		"params": [
+			"i32",
+			"string",
+			"string",
+			"string",
+			"string",
+			{
+				"callback": {
+					"id": "span",
+					"params": [
+						"string",
+						{
+							"context": "span"
+						}
+					],
+					"returns": "void",
+					"lifetime": "call"
+				}
+			},
+			{
+				"context": "span"
+			}
+		],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_draw_rect",
+		"symbol": "cuisvsc_draw_rect",
+		"params": [
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_circle",
+		"symbol": "cuisvsc_draw_circle",
+		"params": [
+			"f64",
+			"f64",
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_line",
+		"symbol": "cuisvsc_draw_line",
+		"params": [
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_polyline",
+		"symbol": "cuisvsc_draw_polyline",
+		"params": [
+			"bytes",
+			"f64",
+			"f64",
+			"bool"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_polygon",
+		"symbol": "cuisvsc_draw_polygon",
+		"params": [
+			"bytes",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_arc",
+		"symbol": "cuisvsc_draw_arc",
+		"params": [
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_text",
+		"symbol": "cuisvsc_draw_text",
+		"params": [
+			"f64",
+			"f64",
+			"string",
+			"f64",
+			"f64",
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_icon",
+		"symbol": "cuisvsc_draw_icon",
+		"params": [
+			"string",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_clip",
+		"symbol": "cuisvsc_draw_clip",
+		"params": [
+			"f64",
+			"f64",
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_draw_unclip",
+		"symbol": "cuisvsc_draw_unclip",
+		"params": [],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_measure_text",
+		"symbol": "cuisvsc_measure_text",
+		"params": [
+			"string",
+			"f64",
+			"i32"
+		],
+		"returns": "f64"
+	},
+	{
+		"name": "cuisvsc_test_move",
+		"symbol": "cuisvsc_test_move",
+		"params": [
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_test_button",
+		"symbol": "cuisvsc_test_button",
+		"params": [
+			"i32",
+			"bool"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_test_key",
+		"symbol": "cuisvsc_test_key",
+		"params": [
+			"i32",
+			"bool",
+			"i32"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_test_text",
+		"symbol": "cuisvsc_test_text",
+		"params": [
+			"string"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_test_scroll",
+		"symbol": "cuisvsc_test_scroll",
+		"params": [
+			"f64",
+			"f64"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_test_motion",
+		"symbol": "cuisvsc_test_motion",
+		"params": [
+			"bool"
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_test_nodes",
+		"symbol": "cuisvsc_test_nodes",
+		"params": [
+			{
+				"callback": {
+					"id": "node",
+					"params": [
+						"string",
+						"f64",
+						"f64",
+						"f64",
+						"f64",
+						"f64",
+						{
+							"context": "node"
+						}
+					],
+					"returns": "void",
+					"lifetime": "call"
+				}
+			},
+			{
+				"context": "node"
+			}
+		],
+		"returns": "void"
+	},
+	{
+		"name": "cuisvsc_test_rect",
+		"symbol": "cuisvsc_test_rect",
+		"params": [
+			"string"
+		],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_test_png",
+		"symbol": "cuisvsc_test_png",
+		"params": [
+			"string"
+		],
+		"returns": "bool"
+	},
+	{
+		"name": "cuisvsc_test_clipboard",
+		"symbol": "cuisvsc_test_clipboard",
+		"params": [
+			{
+				"callback": {
+					"id": "span",
+					"params": [
+						"string",
+						{
+							"context": "span"
+						}
+					],
+					"returns": "void",
+					"lifetime": "call"
+				}
+			},
+			{
+				"context": "span"
+			}
+		],
+		"returns": "void"
+	}
+]
